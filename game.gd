@@ -1,0 +1,503 @@
+extends Node2D
+
+const MAIN_MENU_SCENE: String = "res://main_menu.tscn"
+const LEVEL_MAP_SCENE: String = "res://level_map.tscn"
+
+## Score needed to finish the current level; game pauses until you tap through to the next.
+const POINTS_PER_LEVEL: int = 150
+## Active collectibles before “double” mode (levels 1–8).
+const COLLECTIBLES_BASE_SINGLE: int = 10
+## Bombs after level 3 → from this level onward.
+const LEVEL_BOMBS_FROM: int = 4
+## Extra speed ramp after level 5 → from this level onward.
+const LEVEL_FAST_FROM: int = 6
+## Twice as many falling items after level 8 → from this level onward.
+const LEVEL_DOUBLE_FROM: int = 9
+## Lives (shown as hearts). Game over when this hits zero.
+const MAX_LIVES: int = 5
+const HEART_EMOJI: String = "❤️"
+## Playfield: coins that fall below this Y (viewport pixels) count as missed — aligns with bottom HUD strip.
+const BOTTOM_HUD_RESERVE_PX: float = 168.0
+const PARK_POS: Vector2 = Vector2(-4000, -4000)
+const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
+const SAVE_SECTION: String = "progress"
+const KEY_BEST: String = "best_score"
+const KEY_SAVED_SCORE: String = "saved_score"
+const KEY_PROGRESSION: String = "saved_progression_level"
+const KEY_BOOST_LIGHTNING: String = "booster_lightning"
+const KEY_BOOST_HOURGLASS: String = "booster_hourglass"
+const KEY_RETRY_CHARGES: String = "retry_charges"
+const KEY_RETRY_BLOCK_UNTIL: String = "retry_block_until_unix"
+## Retries after Level Failed before a long cooldown (each Retry tap uses one).
+const MAX_RETRY_CHARGES: int = 5
+const RETRY_COOLDOWN_SEC: int = 3 * 3600
+## Every N good taps without a miss raises combo tier: x2 at 5, x3 at 10, …
+const COMBO_STEP: int = 5
+## Flat points added per tap for each level above 1 (before combo multiply).
+const LEVEL_BONUS_PER_LEVEL: int = 2
+
+var score: int = 0
+var best_score: int = 0
+## Consecutive gold / silver / diamond taps; resets on miss or bomb tap.
+var combo_streak: int = 0
+var lives: int = MAX_LIVES
+var missed_coins: int = 0
+var game_over: bool = false
+## Difficulty tier (speed, bombs, etc.); only goes up when you dismiss the level-complete screen.
+var progression_level: int = 1
+## Inventory for the level-fail screen (persisted).
+var booster_lightning: int = 5
+var booster_hourglass: int = 4
+## After Retry with ⚡ booster: slower new spawns for this many seconds.
+var _booster_slow_timer: float = 0.0
+## Can become 6 when Retry uses ⏳ booster.
+var _effective_max_lives: int = MAX_LIVES
+## Retries left after game over (max 5). At 0, Retry is locked until RETRY_COOLDOWN_SEC passes.
+var retry_charges: int = MAX_RETRY_CHARGES
+## Unix time when retry charges refill to max; 0 = not waiting.
+var retry_block_until_unix: int = 0
+
+var _collectibles: Array[Collectible] = []
+var _last_slot_count: int = -1
+
+@onready var score_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ScoreLabel
+@onready var best_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/BestLabel
+@onready var combo_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ComboLabel
+@onready var lives_label: Label = $CanvasLayer/TopBar/Margin/Row/LivesLabel
+@onready var level_label: Label = $CanvasLayer/TopBar/Margin/Row/LevelLabel
+@onready var controls_label: Label = $CanvasLayer/BottomBar/Margin/VBox/ControlsLabel
+@onready var miss_summary_label: Label = $CanvasLayer/BottomBar/Margin/VBox/MissSummaryLabel
+@onready var warning_label: Label = $CanvasLayer/BottomBar/Margin/VBox/WarningLabel
+@onready var game_over_screen: CanvasItem = $CanvasLayer/GameOverScreen
+@onready var settings_screen: SettingsScreen = $CanvasLayer/SettingsScreen
+@onready var pause_screen: PauseScreen = $CanvasLayer/PauseScreen
+@onready var how_to_play_screen: HowToPlayScreen = $CanvasLayer/HowToPlayScreen
+@onready var pause_button: Button = $CanvasLayer/TopBar/Margin/Row/PauseButton
+@onready var settings_button: Button = $CanvasLayer/TopBar/Margin/Row/SettingsButton
+@onready var level_complete_screen: CanvasItem = $CanvasLayer/LevelCompleteScreen
+
+
+func _ready() -> void:
+	add_to_group("main")
+	get_tree().paused = false
+	_load_progress_from_disk()
+	var pending_map: int = LevelSelectState.consume_pending_level()
+	if pending_map > 0:
+		_apply_level_from_map_selection(pending_map)
+	pause_button.pressed.connect(_on_pause_button_pressed)
+	settings_button.pressed.connect(_on_settings_open)
+	level_complete_screen.continue_pressed.connect(_on_level_continue_pressed)
+	game_over_screen.play_again_pressed.connect(_on_play_again_pressed)
+	game_over_screen.home_pressed.connect(_on_home_pressed)
+	pause_screen.resume_pressed.connect(_on_pause_resume_pressed)
+	pause_screen.settings_pressed.connect(_on_pause_settings_pressed)
+	pause_screen.how_to_play_pressed.connect(_on_pause_how_to_play_pressed)
+	pause_screen.main_menu_pressed.connect(_on_pause_main_menu_pressed)
+	for ch in get_children():
+		if ch is Collectible:
+			_collectibles.append(ch as Collectible)
+	_collectibles.sort_custom(func(a: Collectible, b: Collectible) -> bool: return a.get_index() < b.get_index())
+	_last_slot_count = -1
+	set_process(true)
+	_refresh_ui()
+
+
+func get_danger_y() -> float:
+	var h: float = max(get_viewport_rect().size.y, 600.0)
+	return h - BOTTOM_HUD_RESERVE_PX
+
+
+func is_game_over() -> bool:
+	return game_over
+
+
+func get_level() -> int:
+	return progression_level
+
+
+func _segment_score_goal() -> int:
+	return progression_level * POINTS_PER_LEVEL
+
+
+func _process(delta: float) -> void:
+	if _booster_slow_timer > 0.0:
+		_booster_slow_timer = maxf(0.0, _booster_slow_timer - delta)
+	_update_retry_refill_if_needed()
+	if game_over and game_over_screen.visible:
+		game_over_screen.refresh_retry_ui(retry_charges, _retry_wait_seconds())
+
+
+## Scales fall speed from collectibles when ⚡ booster is active (new spawns / respawns).
+func get_fall_speed_bonus_scale() -> float:
+	if _booster_slow_timer > 0.0:
+		return 0.62
+	return 1.0
+
+
+func _update_retry_refill_if_needed() -> void:
+	var now: int = int(Time.get_unix_time_from_system())
+	if retry_charges <= 0 and retry_block_until_unix > 0 and now >= retry_block_until_unix:
+		retry_charges = MAX_RETRY_CHARGES
+		retry_block_until_unix = 0
+		_save_progress_file()
+
+
+func _retry_wait_seconds() -> int:
+	var now: int = int(Time.get_unix_time_from_system())
+	if retry_charges > 0:
+		return 0
+	if retry_block_until_unix <= 0 or now >= retry_block_until_unix:
+		return 0
+	return retry_block_until_unix - now
+
+
+func can_use_retry() -> bool:
+	_update_retry_refill_if_needed()
+	return retry_charges > 0
+
+
+## Every level raises fall speed; level 6+ adds an extra speed tier (“after level 5”).
+## Bases are kept moderate so level 1 is forgiving (was 42–68 before per-coin jitter).
+func get_fall_speed_range() -> Vector2:
+	var lvl: int = get_level()
+	var mn: float = 26.0 + float(lvl - 1) * 10.5
+	var mx: float = 44.0 + float(lvl - 1) * 12.5
+	if lvl >= LEVEL_FAST_FROM:
+		var tiers: float = float(lvl - (LEVEL_FAST_FROM - 1))
+		var bump: float = 1.0 + 0.07 * tiers
+		mn *= bump
+		mx *= bump
+	return Vector2(mn, mx)
+
+
+func bombs_enabled() -> bool:
+	return get_level() >= LEVEL_BOMBS_FROM
+
+
+func _active_slot_count() -> int:
+	var cap: int = _collectibles.size()
+	if get_level() >= LEVEL_DOUBLE_FROM:
+		return min(cap, COLLECTIBLES_BASE_SINGLE * 2)
+	return min(COLLECTIBLES_BASE_SINGLE, cap)
+
+
+func should_run_collectible(c: Collectible) -> bool:
+	var idx: int = _collectibles.find(c)
+	if idx < 0:
+		return true
+	return idx < _active_slot_count() and not game_over
+
+
+func _sync_collectible_slots() -> void:
+	if _collectibles.is_empty():
+		return
+	var n: int = 0 if game_over else _active_slot_count()
+	if n == _last_slot_count:
+		return
+	var prev_n: int = _last_slot_count
+	_last_slot_count = n
+	for i in _collectibles.size():
+		var c: Collectible = _collectibles[i]
+		var on: bool = i < n
+		if on:
+			c.visible = true
+			c.disabled = false
+			c.set_process(true)
+			var should_reset: bool = (prev_n < 0 and i < n) or (prev_n >= 0 and i >= prev_n and i < n)
+			if should_reset:
+				c.reset_for_new_game()
+		else:
+			c.visible = false
+			c.set_process(false)
+			c.disabled = true
+			c.position = PARK_POS
+
+
+func register_collectible(k: Collectible.Kind) -> void:
+	if game_over:
+		return
+	if k == Collectible.Kind.BOMB:
+		combo_streak = 0
+		lives -= 1
+		_refresh_ui()
+		if lives <= 0:
+			_trigger_game_over()
+		return
+	var base_pts: int = 0
+	match k:
+		Collectible.Kind.GOLD:
+			base_pts = 1
+		Collectible.Kind.SILVER_BIG:
+			base_pts = 5
+		Collectible.Kind.DIAMOND:
+			base_pts = 10
+		_:
+			_refresh_ui()
+			return
+	combo_streak += 1
+	var combo_mult: int = 1 + combo_streak / COMBO_STEP
+	var level_bonus: int = max(0, progression_level - 1) * LEVEL_BONUS_PER_LEVEL
+	score += base_pts * combo_mult + level_bonus
+	_refresh_ui()
+	_save_progress_file()
+
+
+func register_miss() -> void:
+	if game_over:
+		return
+	AudioService.play_miss()
+	combo_streak = 0
+	lives -= 1
+	missed_coins += 1
+	_refresh_ui()
+	if lives <= 0:
+		_trigger_game_over()
+
+
+func _clear_pause_state() -> void:
+	get_tree().paused = false
+	pause_screen.hide_pause()
+	how_to_play_screen.hide_help()
+	level_complete_screen.hide_screen()
+
+
+func _trigger_game_over() -> void:
+	if game_over:
+		return
+	game_over = true
+	combo_streak = 0
+	_clear_pause_state()
+	AudioService.play_game_over()
+	if score > best_score:
+		best_score = score
+	_save_progress_file()
+	_update_retry_refill_if_needed()
+	game_over_screen.show_results(score, best_score, booster_lightning, booster_hourglass, retry_charges, _retry_wait_seconds())
+	for c in get_tree().get_nodes_in_group("coin"):
+		c.set_process(false)
+		c.disabled = true
+
+
+func _on_play_again_pressed(booster_id: int = -1) -> void:
+	if not can_use_retry():
+		AudioService.play_button_click()
+		return
+	AudioService.play_button_click()
+	retry_charges -= 1
+	if retry_charges <= 0:
+		retry_block_until_unix = int(Time.get_unix_time_from_system()) + RETRY_COOLDOWN_SEC
+	game_over = false
+	combo_streak = 0
+	missed_coins = 0
+	_effective_max_lives = MAX_LIVES
+	_booster_slow_timer = 0.0
+	lives = MAX_LIVES
+	match booster_id:
+		0:
+			if booster_lightning > 0:
+				booster_lightning -= 1
+				_booster_slow_timer = 14.0
+		1:
+			if booster_hourglass > 0:
+				booster_hourglass -= 1
+				_effective_max_lives = MAX_LIVES + 1
+				lives = MAX_LIVES + 1
+		_:
+			pass
+	_clear_pause_state()
+	game_over_screen.hide_screen()
+	_last_slot_count = -1
+	_refresh_ui()
+	_save_progress_file()
+
+
+func _on_home_pressed() -> void:
+	AudioService.play_button_click()
+	_save_progress_file()
+	_clear_pause_state()
+	get_tree().change_scene_to_file(LEVEL_MAP_SCENE)
+
+
+func _on_settings_open() -> void:
+	if level_complete_screen.visible:
+		return
+	AudioService.play_button_click()
+	settings_screen.open_settings()
+
+
+func _on_level_continue_pressed() -> void:
+	AudioService.play_button_click()
+	progression_level += 1
+	level_complete_screen.hide_screen()
+	get_tree().paused = false
+	_last_slot_count = -1
+	_refresh_ui()
+	_save_progress_file()
+	call_deferred("_try_offer_level_gate")
+
+
+func _try_offer_level_gate() -> void:
+	if game_over:
+		return
+	if level_complete_screen.visible:
+		return
+	if score < _segment_score_goal():
+		return
+	AudioService.play_level_up()
+	level_complete_screen.show_for(progression_level, score, progression_level + 1)
+	get_tree().paused = true
+
+
+func _on_pause_button_pressed() -> void:
+	if game_over:
+		return
+	if level_complete_screen.visible:
+		return
+	if pause_screen.visible:
+		_on_pause_resume_pressed()
+		return
+	AudioService.play_button_click()
+	get_tree().paused = true
+	pause_screen.show_pause()
+
+
+func _on_pause_resume_pressed() -> void:
+	AudioService.play_button_click()
+	get_tree().paused = false
+	pause_screen.hide_pause()
+	how_to_play_screen.hide_help()
+
+
+func _on_pause_settings_pressed() -> void:
+	AudioService.play_button_click()
+	settings_screen.open_settings()
+
+
+func _on_pause_how_to_play_pressed() -> void:
+	AudioService.play_button_click()
+	how_to_play_screen.show_help()
+
+
+func _on_pause_main_menu_pressed() -> void:
+	AudioService.play_button_click()
+	_save_progress_file()
+	_clear_pause_state()
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+
+
+func _exit_tree() -> void:
+	if not game_over:
+		_save_progress_file()
+
+
+func _lives_text() -> String:
+	var hearts := ""
+	for _i in range(max(lives, 0)):
+		hearts += HEART_EMOJI
+	return "Lives: %d/%d %s" % [lives, _effective_max_lives, hearts]
+
+
+func _level_help_text() -> String:
+	var lvl: int = get_level()
+	var combo_hint := "Combo: every %d collects in a row steps up the multiplier." % COMBO_STEP
+	var goal: int = _segment_score_goal()
+	var core := "Reach score %d to finish level %d — the game pauses; tap the button to start level %d (faster)." % [goal, lvl, lvl + 1]
+	if lvl < LEVEL_BOMBS_FROM:
+		return core + " " + combo_hint
+	if lvl < LEVEL_FAST_FROM:
+		return core + " Bombs are on — only tap coins & gems." + combo_hint
+	if lvl < LEVEL_DOUBLE_FROM:
+		return core + " Extra speed tier." + combo_hint
+	return core + " Many coins at once — tap to collect, never the bomb." + combo_hint
+
+
+func _apply_level_from_map_selection(selected: int) -> void:
+	var furthest: int = progression_level
+	var lvl: int = clampi(selected, 1, furthest)
+	if lvl < furthest:
+		progression_level = lvl
+		score = (lvl - 1) * POINTS_PER_LEVEL
+		_save_progress_file()
+
+
+func _load_progress_from_disk() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(SAVE_PATH) != OK:
+		best_score = 0
+		score = 0
+		progression_level = 1
+		booster_lightning = 5
+		booster_hourglass = 4
+		retry_charges = MAX_RETRY_CHARGES
+		retry_block_until_unix = 0
+		return
+	best_score = int(cfg.get_value(SAVE_SECTION, KEY_BEST, 0))
+	score = int(cfg.get_value(SAVE_SECTION, KEY_SAVED_SCORE, 0))
+	progression_level = int(cfg.get_value(SAVE_SECTION, KEY_PROGRESSION, 1))
+	progression_level = clampi(progression_level, 1, 999999)
+	booster_lightning = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, 5)), 0, 99)
+	booster_hourglass = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, 4)), 0, 99)
+	retry_charges = clampi(int(cfg.get_value(SAVE_SECTION, KEY_RETRY_CHARGES, MAX_RETRY_CHARGES)), 0, MAX_RETRY_CHARGES)
+	retry_block_until_unix = int(cfg.get_value(SAVE_SECTION, KEY_RETRY_BLOCK_UNTIL, 0))
+	if retry_charges <= 0 and retry_block_until_unix <= 0:
+		retry_charges = MAX_RETRY_CHARGES
+		retry_block_until_unix = 0
+	_update_retry_refill_if_needed()
+
+
+func _save_progress_file() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(SAVE_PATH)
+	if score > best_score:
+		best_score = score
+	cfg.set_value(SAVE_SECTION, KEY_BEST, best_score)
+	cfg.set_value(SAVE_SECTION, KEY_SAVED_SCORE, score)
+	cfg.set_value(SAVE_SECTION, KEY_PROGRESSION, progression_level)
+	cfg.set_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, booster_lightning)
+	cfg.set_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, booster_hourglass)
+	cfg.set_value(SAVE_SECTION, KEY_RETRY_CHARGES, retry_charges)
+	cfg.set_value(SAVE_SECTION, KEY_RETRY_BLOCK_UNTIL, retry_block_until_unix)
+	cfg.save(SAVE_PATH)
+
+
+func _refresh_ui() -> void:
+	if controls_label:
+		if bombs_enabled():
+			controls_label.text = "Tap a coin or gem to collect it. Tap a red bomb = mistake (loses a life)."
+		else:
+			controls_label.text = "Tap a coin or gem to collect it. (No bombs yet — just catch the good drops.)"
+	if score_label:
+		score_label.text = "Score: %d" % score
+	if best_label:
+		best_label.text = "High: %d (saved)" % max(best_score, score)
+	if combo_label:
+		if combo_streak == 0:
+			combo_label.text = "Combo x1 · %d taps without miss → x2" % COMBO_STEP
+		else:
+			var mult: int = 1 + combo_streak / COMBO_STEP
+			var until_next: int = (1 + combo_streak / COMBO_STEP) * COMBO_STEP - combo_streak
+			combo_label.text = "Combo x%d · streak %d (%d to x%d)" % [mult, combo_streak, until_next, mult + 1]
+	if lives_label:
+		lives_label.text = _lives_text()
+	if not game_over:
+		_sync_collectible_slots()
+		_try_offer_level_gate()
+	if level_label:
+		var g: int = _segment_score_goal()
+		level_label.text = "Level: %d  ·  %d / %d" % [get_level(), mini(score, g), g]
+	if miss_summary_label:
+		miss_summary_label.text = "Missed coins: %d" % missed_coins
+	if warning_label:
+		if level_complete_screen.visible:
+			warning_label.text = ""
+		elif game_over:
+			warning_label.text = "Level failed — Retry or ✕ for menu."
+		elif lives <= 1:
+			warning_label.add_theme_color_override("font_color", Color(1, 0.55, 0.45))
+			warning_label.text = "Last life! Tap coins & gems only — bombs are a mistake. Strip still costs a life. " + _level_help_text()
+		elif lives <= 3:
+			warning_label.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55))
+			warning_label.text = "Low lives — " + _level_help_text()
+		else:
+			warning_label.add_theme_color_override("font_color", Color(0.62, 0.7, 0.8))
+			warning_label.text = _level_help_text()

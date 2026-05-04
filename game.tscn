@@ -1,7 +1,12 @@
-[gd_scene format=3 uid="uid://7246aegh8ppg"]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
-[ext_resource type="Script" path="res://main.gd" id="3_main"]
+[ext_resource type="Script" path="res://game.gd" id="3_game"]
+[ext_resource type="PackedScene" path="res://ui/game_over_screen.tscn" id="4_go"]
+[ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="5_set"]
+[ext_resource type="PackedScene" path="res://ui/pause_screen.tscn" id="6_pa"]
+[ext_resource type="PackedScene" path="res://ui/how_to_play_screen.tscn" id="7_htp"]
+[ext_resource type="PackedScene" path="res://ui/level_complete_screen.tscn" id="8_lvl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_TopBar"]
 bg_color = Color(0.06, 0.075, 0.12, 0.98)
@@ -13,22 +18,10 @@ bg_color = Color(0.09, 0.055, 0.065, 0.97)
 border_width_top = 2
 border_color = Color(0.42, 0.22, 0.24, 0.95)
 
-[sub_resource type="StyleBoxFlat" id="StyleBox_SettingsPanel"]
-bg_color = Color(0.08, 0.1, 0.16, 0.98)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.22, 0.28, 0.42, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
 [sub_resource type="Theme" id="Theme_0xm2m"]
 
-[node name="Main" type="Node2D" unique_id=1231411710]
-script = ExtResource("3_main")
+[node name="Game" type="Node2D" unique_id=1231411710]
+script = ExtResource("3_game")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=214866011]
 offset_right = 1080.0
@@ -36,6 +29,7 @@ offset_bottom = 1920.0
 color = Color(0.098, 0.114, 0.176, 1)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=979960685]
+process_mode = 3
 
 [node name="TopBar" type="PanelContainer" parent="CanvasLayer" unique_id=1091089218]
 anchors_preset = 10
@@ -101,12 +95,21 @@ text = "Level: 1"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="SettingsButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926186]
-custom_minimum_size = Vector2(64, 64)
+[node name="PauseButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926187]
 layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+flat = true
+theme_override_font_sizes/font_size = 28
+text = "||"
+mouse_filter = 0
+
+[node name="SettingsButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926186]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+flat = true
 theme_override_font_sizes/font_size = 36
 text = "⚙"
-flat = true
+mouse_filter = 0
 
 [node name="BottomBar" type="PanelContainer" parent="CanvasLayer" unique_id=1871596873]
 anchors_preset = 12
@@ -149,139 +152,45 @@ theme_override_font_sizes/font_size = 20
 text = "Tip: Don’t let coins or gems reach the red strip — that also costs a life."
 autowrap_mode = 3
 
-[node name="GameOverOverlay" type="Control" parent="CanvasLayer" unique_id=1286708802]
-visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Dim" type="ColorRect" parent="CanvasLayer/GameOverOverlay" unique_id=1061918239]
+[node name="PauseScreen" parent="CanvasLayer" instance=ExtResource("6_pa")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0.02, 0.03, 0.07, 0.78)
 
-[node name="Center" type="CenterContainer" parent="CanvasLayer/GameOverOverlay" unique_id=358206288]
+[node name="HowToPlayScreen" parent="CanvasLayer" instance=ExtResource("7_htp")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameOverOverlay/Center" unique_id=1330659799]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="GameOverTitle" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=1647099936]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.82, 0.38, 1)
-theme_override_font_sizes/font_size = 48
-text = "Game Over"
-horizontal_alignment = 1
-
-[node name="FinalScoreLabel" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=1645044395]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.93, 0.945, 0.97, 1)
-theme_override_font_sizes/font_size = 30
-text = "Final Score: 0"
-horizontal_alignment = 1
-
-[node name="BestScoreLabel" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=1645044396]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.86, 1, 1)
-theme_override_font_sizes/font_size = 28
-text = "Best Score: 0"
-horizontal_alignment = 1
-
-[node name="PlayAgainButton" type="Button" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=2085037151]
-custom_minimum_size = Vector2(360, 64)
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "Play Again"
-
-[node name="HomeButton" type="Button" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=2085037152]
-custom_minimum_size = Vector2(360, 64)
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "Home"
-
-[node name="SettingsOverlay" type="Control" parent="CanvasLayer" unique_id=1286708803]
-visible = false
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Dim" type="ColorRect" parent="CanvasLayer/SettingsOverlay" unique_id=1061918240]
+[node name="SettingsScreen" parent="CanvasLayer" instance=ExtResource("5_set")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0.02, 0.03, 0.07, 0.72)
 
-[node name="Center" type="CenterContainer" parent="CanvasLayer/SettingsOverlay" unique_id=358206289]
+[node name="GameOverScreen" parent="CanvasLayer" instance=ExtResource("4_go")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 
-[node name="Panel" type="PanelContainer" parent="CanvasLayer/SettingsOverlay/Center" unique_id=1330659800]
-custom_minimum_size = Vector2(520, 320)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBox_SettingsPanel")
-
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/SettingsOverlay/Center/Panel" unique_id=1330659801]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/SettingsOverlay/Center/Panel/Margin" unique_id=1330659802]
-layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="SettingsTitle" type="Label" parent="CanvasLayer/SettingsOverlay/Center/Panel/Margin/VBox" unique_id=1330659803]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.96, 0.99, 1)
-theme_override_font_sizes/font_size = 32
-text = "Settings"
-horizontal_alignment = 1
-
-[node name="MusicCheck" type="CheckButton" parent="CanvasLayer/SettingsOverlay/Center/Panel/Margin/VBox" unique_id=1330659804]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-button_pressed = true
-text = "Music (background, looping)"
-
-[node name="SfxCheck" type="CheckButton" parent="CanvasLayer/SettingsOverlay/Center/Panel/Margin/VBox" unique_id=1330659805]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-button_pressed = true
-text = "Sound effects"
-
-[node name="CloseButton" type="Button" parent="CanvasLayer/SettingsOverlay/Center/Panel/Margin/VBox" unique_id=1330659806]
-custom_minimum_size = Vector2(280, 56)
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Close"
+[node name="LevelCompleteScreen" parent="CanvasLayer" instance=ExtResource("8_lvl")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Coin" type="Button" parent="." unique_id=1912197000]
 custom_minimum_size = Vector2(76, 76)

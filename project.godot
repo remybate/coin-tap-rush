@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="Coin Tap Rush"
-run/main_scene="uid://bndk3isl3vcgh"
+run/main_scene="res://main_menu.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+AudioManager="*res://audio_manager.gd"
 
 [display]
 

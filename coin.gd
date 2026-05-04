@@ -9,6 +9,9 @@ static var TEX_SILVER: Texture2D = load("res://silver_coin.svg") as Texture2D
 static var TEX_DIAMOND: Texture2D = load("res://diamond.svg") as Texture2D
 static var TEX_BOMB: Texture2D = load("res://bomb.svg") as Texture2D
 
+## <1 slows lateral sine motion (same path shape, fewer zigzags per second of fall).
+const ZIG_ANGULAR_SCALE: float = 0.52
+
 var rng := RandomNumberGenerator.new()
 var kind: Kind = Kind.GOLD
 
@@ -16,11 +19,11 @@ var fall_speed: float = 220.0
 var base_x: float = 0.0
 ## Primary zigzag
 var zig_amplitude: float = 60.0
-var zig_angular_speed: float = 3.0
+var zig_angular_speed: float = 1.56
 var phase: float = 0.0
 ## Secondary wobble (irregular zigzag, not a straight line)
 var zig_amplitude2: float = 24.0
-var zig_angular_speed2: float = 5.5
+var zig_angular_speed2: float = 2.86
 var phase2: float = 0.0
 ## Spin (rad/s); sign = direction
 var spin_rad_per_sec: float = 2.5
@@ -98,6 +101,10 @@ func _on_pressed() -> void:
 	var main: Node = get_tree().get_first_node_in_group("main")
 	if main and main.has_method("is_game_over") and main.is_game_over():
 		return
+	if kind == Kind.BOMB:
+		AudioService.play_bomb_tap()
+	else:
+		AudioService.play_coin_tap()
 	if main and main.has_method("register_collectible"):
 		main.register_collectible(kind)
 	_pick_random_path(false)
@@ -119,11 +126,11 @@ func _pick_random_path(first_spawn: bool = false) -> void:
 	base_x = rng.randf_range(margin, w - margin)
 
 	zig_amplitude = rng.randf_range(36.0, 130.0)
-	zig_angular_speed = rng.randf_range(1.8, 6.2)
+	zig_angular_speed = rng.randf_range(1.8, 6.2) * ZIG_ANGULAR_SCALE
 	phase = rng.randf() * TAU
 
 	zig_amplitude2 = rng.randf_range(12.0, 48.0)
-	zig_angular_speed2 = rng.randf_range(3.5, 9.5)
+	zig_angular_speed2 = rng.randf_range(3.5, 9.5) * ZIG_ANGULAR_SCALE
 	phase2 = rng.randf() * TAU
 
 	var bounds := Vector2(170.0, 290.0)
@@ -133,6 +140,8 @@ func _pick_random_path(first_spawn: bool = false) -> void:
 	## Different fall speeds per spawn, scaled by current level range
 	var base_fall: float = rng.randf_range(bounds.x, bounds.y)
 	fall_speed = base_fall * rng.randf_range(0.82, 1.18)
+	if main and main.has_method("get_fall_speed_bonus_scale"):
+		fall_speed *= main.get_fall_speed_bonus_scale()
 
 	## Rotation: direction and rate (bombs spin a bit faster)
 	var spin_roll: float = rng.randf_range(1.8, 4.2)
