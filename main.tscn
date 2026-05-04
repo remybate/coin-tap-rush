@@ -3,8 +3,6 @@
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
 [ext_resource type="Script" uid="uid://dy72hnwk1v0as" path="res://main.gd" id="3_main"]
 
-[sub_resource type="Theme" id="Theme_0xm2m"]
-
 [sub_resource type="StyleBoxFlat" id="StyleBox_TopBar"]
 bg_color = Color(0.06, 0.075, 0.12, 0.98)
 border_width_bottom = 1
@@ -15,6 +13,8 @@ bg_color = Color(0.09, 0.055, 0.065, 0.97)
 border_width_top = 2
 border_color = Color(0.42, 0.22, 0.24, 0.95)
 
+[sub_resource type="Theme" id="Theme_0xm2m"]
+
 [node name="Main" type="Node2D" unique_id=1231411710]
 script = ExtResource("3_main")
 
@@ -23,91 +23,107 @@ offset_right = 1080.0
 offset_bottom = 1920.0
 color = Color(0.098, 0.114, 0.176, 1)
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
-layer = 1
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=979960685]
 
-[node name="TopBar" type="PanelContainer" parent="CanvasLayer"]
-layout_mode = 3
+[node name="TopBar" type="PanelContainer" parent="CanvasLayer" unique_id=1091089218]
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 100.0
+offset_bottom = 154.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBox_TopBar")
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/TopBar"]
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/TopBar" unique_id=1880931650]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 14
+theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 14
-mouse_filter = 2
+theme_override_constants/margin_bottom = 10
 
-[node name="Row" type="HBoxContainer" parent="CanvasLayer/TopBar/Margin"]
+[node name="Row" type="HBoxContainer" parent="CanvasLayer/TopBar/Margin" unique_id=1143984539]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
-mouse_filter = 2
 
-[node name="ScoreLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row"]
+[node name="ScoreColumn" type="VBoxContainer" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1799012870]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
-theme_override_colors/font_color = Color(0.88, 0.92, 0.97, 1)
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012871]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.96, 0.99, 1)
+theme_override_font_sizes/font_size = 28
 text = "Score: 0"
 vertical_alignment = 1
 
-[node name="LivesLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row"]
+[node name="BestLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012872]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.86, 1, 1)
+theme_override_font_sizes/font_size = 22
+text = "High: 0 (saved)"
+vertical_alignment = 1
+
+[node name="ComboLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012873]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.55, 1)
+theme_override_font_sizes/font_size = 20
+text = "Combo x1 · 0 streak"
+vertical_alignment = 1
+
+[node name="LivesLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=2145121924]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 28
 theme_override_colors/font_color = Color(1, 0.82, 0.86, 1)
-text = "Lives: ❤️❤️❤️"
+theme_override_font_sizes/font_size = 28
+text = "Lives: 5/5 ❤️❤️❤️❤️❤️"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="LevelLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row"]
+[node name="LevelLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926185]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
 theme_override_colors/font_color = Color(0.88, 0.92, 0.97, 1)
+theme_override_font_sizes/font_size = 26
 text = "Level: 1"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="BottomBar" type="PanelContainer" parent="CanvasLayer"]
-layout_mode = 3
+[node name="BottomBar" type="PanelContainer" parent="CanvasLayer" unique_id=1871596873]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_top = -128.0
 grow_horizontal = 2
-mouse_filter = 0
+grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBox_BottomBar")
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/BottomBar"]
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/BottomBar" unique_id=152725311]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 14
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 14
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/BottomBar/Margin"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/BottomBar/Margin" unique_id=1915377881]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="MissSummaryLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox"]
+[node name="MissSummaryLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=585042805]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.95, 0.72, 0.72, 1)
+theme_override_font_sizes/font_size = 22
 text = "Missed coins: 0"
 
-[node name="WarningLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox"]
+[node name="WarningLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=1892446012]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.62, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 20
 text = "Gold +1, big silver +5, diamond +10. Bombs −1 life if tapped. Gold or gems in the strip cost a life."
 autowrap_mode = 3
 
-[node name="GameOverOverlay" type="Control" parent="CanvasLayer"]
+[node name="GameOverOverlay" type="Control" parent="CanvasLayer" unique_id=1286708802]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -117,7 +133,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 
-[node name="Dim" type="ColorRect" parent="CanvasLayer/GameOverOverlay"]
+[node name="Dim" type="ColorRect" parent="CanvasLayer/GameOverOverlay" unique_id=1061918239]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -127,7 +143,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.02, 0.03, 0.07, 0.78)
 
-[node name="Center" type="CenterContainer" parent="CanvasLayer/GameOverOverlay"]
+[node name="Center" type="CenterContainer" parent="CanvasLayer/GameOverOverlay" unique_id=358206288]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -136,106 +152,151 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameOverOverlay/Center"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameOverOverlay/Center" unique_id=1330659799]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="GameOverTitle" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox"]
+[node name="GameOverTitle" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=1647099936]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.38, 1)
 theme_override_font_sizes/font_size = 48
 text = "Game Over"
 horizontal_alignment = 1
 
-[node name="FinalScoreLabel" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox"]
+[node name="FinalScoreLabel" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=1645044395]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.93, 0.945, 0.97, 1)
 theme_override_font_sizes/font_size = 30
-text = "Final score: 0"
+text = "Final Score: 0"
 horizontal_alignment = 1
 
-[node name="PlayAgainButton" type="Button" parent="CanvasLayer/GameOverOverlay/Center/VBox"]
+[node name="BestScoreLabel" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=1645044396]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.86, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "Best Score: 0"
+horizontal_alignment = 1
+
+[node name="PlayAgainButton" type="Button" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=2085037151]
 custom_minimum_size = Vector2(360, 64)
+layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "Play Again"
 
+[node name="HomeButton" type="Button" parent="CanvasLayer/GameOverOverlay/Center/VBox" unique_id=2085037152]
+custom_minimum_size = Vector2(360, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Home"
+
 [node name="Coin" type="Button" parent="." unique_id=1912197000]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin2" type="Button" parent="." unique_id=1912197001]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin3" type="Button" parent="." unique_id=1912197002]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin4" type="Button" parent="." unique_id=1912197003]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin5" type="Button" parent="." unique_id=1912197004]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin6" type="Button" parent="." unique_id=1912197005]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin7" type="Button" parent="." unique_id=1912197006]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin8" type="Button" parent="." unique_id=1912197007]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin9" type="Button" parent="." unique_id=1912197008]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
-theme = SubResource("Theme_0xm2m")
-text = ""
 script = ExtResource("1_ig7tw")
 
 [node name="Coin10" type="Button" parent="." unique_id=1912197009]
 custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
+script = ExtResource("1_ig7tw")
+
+[node name="Coin11" type="Button" parent="." unique_id=1912197010]
+custom_minimum_size = Vector2(76, 76)
 theme = SubResource("Theme_0xm2m")
-text = ""
+flat = true
+expand_icon = true
+script = ExtResource("1_ig7tw")
+
+[node name="Coin12" type="Button" parent="." unique_id=1912197011]
+custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
+flat = true
+expand_icon = true
+script = ExtResource("1_ig7tw")
+
+[node name="Coin13" type="Button" parent="." unique_id=1912197012]
+custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
+flat = true
+expand_icon = true
+script = ExtResource("1_ig7tw")
+
+[node name="Coin14" type="Button" parent="." unique_id=1912197013]
+custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
+flat = true
+expand_icon = true
+script = ExtResource("1_ig7tw")
+
+[node name="Coin15" type="Button" parent="." unique_id=1912197014]
+custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
+flat = true
+expand_icon = true
+script = ExtResource("1_ig7tw")
+
+[node name="Coin16" type="Button" parent="." unique_id=1912197015]
+custom_minimum_size = Vector2(76, 76)
+theme = SubResource("Theme_0xm2m")
+flat = true
+expand_icon = true
 script = ExtResource("1_ig7tw")
