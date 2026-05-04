@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bndk3isl3vcgh"]
+
+[node name="Node2D" type="Node2D" unique_id=1231411710]
+metadata/_edit_vertical_guides_ = [-166.0]
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=214866011]
+offset_left = -165.0
+offset_top = -103.0
+offset_right = 1955.0
+offset_bottom = 1238.0
+color = Color(0.37254903, 1, 1, 1)
