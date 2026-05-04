@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="dTop" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#e8ffff"/>
+      <stop offset="100%" stop-color="#5ec8e8"/>
+    </linearGradient>
+    <linearGradient id="dL" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7ad4f0"/>
+      <stop offset="100%" stop-color="#1a8ec4"/>
+    </linearGradient>
+    <linearGradient id="dR" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a0e8ff"/>
+      <stop offset="100%" stop-color="#2080b8"/>
+    </linearGradient>
+    <linearGradient id="dBot" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#3aa8d8"/>
+      <stop offset="100%" stop-color="#0a5090"/>
+    </linearGradient>
+  </defs>
+  <path fill="#000" opacity="0.15" d="M68 24 L108 52 L64 108 L20 52 Z" transform="translate(4 6)"/>
+  <path fill="url(#dTop)" stroke="#0a6090" stroke-width="1" d="M64 22 L98 50 L30 50 Z"/>
+  <path fill="url(#dL)" d="M30 50 L64 22 L64 104 Z"/>
+  <path fill="url(#dR)" d="M98 50 L64 22 L64 104 Z"/>
+  <path fill="url(#dBot)" d="M30 50 L64 104 L98 50 Z"/>
+  <path fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.45" d="M64 22 L64 104 M30 50 L98 50"/>
+</svg>

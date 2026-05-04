@@ -3,10 +3,11 @@ class_name Collectible
 
 enum Kind { GOLD, SILVER_BIG, DIAMOND, BOMB }
 
-const TEX_GOLD: Texture2D = preload("res://gold_coin.svg")
-const TEX_SILVER: Texture2D = preload("res://silver_coin.svg")
-const TEX_DIAMOND: Texture2D = preload("res://diamond.svg")
-const TEX_BOMB: Texture2D = preload("res://bomb.svg")
+## SVG cannot use preload() in Godot 4.2 — use load() so the texture importer remap applies.
+static var TEX_GOLD: Texture2D = load("res://gold_coin.svg") as Texture2D
+static var TEX_SILVER: Texture2D = load("res://silver_coin.svg") as Texture2D
+static var TEX_DIAMOND: Texture2D = load("res://diamond.svg") as Texture2D
+static var TEX_BOMB: Texture2D = load("res://bomb.svg") as Texture2D
 
 var rng := RandomNumberGenerator.new()
 var kind: Kind = Kind.GOLD

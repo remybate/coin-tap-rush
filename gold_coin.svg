@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="gRim" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#f7e08a"/>
+      <stop offset="25%" stop-color="#d4a017"/>
+      <stop offset="50%" stop-color="#8a6408"/>
+      <stop offset="75%" stop-color="#c9981a"/>
+      <stop offset="100%" stop-color="#6b4a06"/>
+    </linearGradient>
+    <radialGradient id="gFace" cx="38%" cy="36%" r="68%">
+      <stop offset="0%" stop-color="#fff3b0"/>
+      <stop offset="45%" stop-color="#e8b923"/>
+      <stop offset="100%" stop-color="#a5780a"/>
+    </radialGradient>
+    <linearGradient id="gRing" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c9a012"/>
+      <stop offset="100%" stop-color="#7a5200"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="66" cy="70" rx="52" ry="38" fill="#000" opacity="0.18"/>
+  <ellipse cx="64" cy="64" rx="54" ry="40" fill="url(#gRim)"/>
+  <ellipse cx="64" cy="62" rx="45" ry="32" fill="url(#gFace)" stroke="#6b4500" stroke-width="1.2"/>
+  <ellipse cx="64" cy="62" rx="36" ry="25" fill="none" stroke="url(#gRing)" stroke-width="2" opacity="0.95"/>
+  <path fill="#7a5200" opacity="0.9" d="M64 46l4.8 14.6h15.8l-12.8 9.2 4.8 14.8-12.8-9.3-12.8 9.3 4.8-14.8-12.8-9.2h15.8z"/>
+</svg>
