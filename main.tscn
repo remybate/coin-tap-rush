@@ -1,23 +1,241 @@
 [gd_scene format=3 uid="uid://bndk3isl3vcgh"]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://dy72hnwk1v0as" path="res://main.gd" id="3_main"]
 
 [sub_resource type="Theme" id="Theme_0xm2m"]
 
-[node name="Node2D" type="Node2D" unique_id=1231411710]
-metadata/_edit_vertical_guides_ = [-166.0]
+[sub_resource type="StyleBoxFlat" id="StyleBox_TopBar"]
+bg_color = Color(0.06, 0.075, 0.12, 0.98)
+border_width_bottom = 1
+border_color = Color(0.16, 0.19, 0.3, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_BottomBar"]
+bg_color = Color(0.09, 0.055, 0.065, 0.97)
+border_width_top = 2
+border_color = Color(0.42, 0.22, 0.24, 0.95)
+
+[node name="Main" type="Node2D" unique_id=1231411710]
+script = ExtResource("3_main")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=214866011]
-offset_left = -165.0
-offset_top = -103.0
-offset_right = 1955.0
-offset_bottom = 1238.0
-color = Color(0.37254903, 1, 1, 1)
+offset_right = 1080.0
+offset_bottom = 1920.0
+color = Color(0.098, 0.114, 0.176, 1)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 1
+
+[node name="TopBar" type="PanelContainer" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBox_TopBar")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 14
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="CanvasLayer/TopBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+mouse_filter = 2
+
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.88, 0.92, 0.97, 1)
+text = "Score: 0"
+vertical_alignment = 1
+
+[node name="LivesLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 0.82, 0.86, 1)
+text = "Lives: ❤️❤️❤️"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(0.88, 0.92, 0.97, 1)
+text = "Level: 1"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="BottomBar" type="PanelContainer" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -128.0
+grow_horizontal = 2
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleBox_BottomBar")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/BottomBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 14
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/BottomBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MissSummaryLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.95, 0.72, 0.72, 1)
+text = "Missed coins: 0"
+
+[node name="WarningLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.62, 0.7, 0.8, 1)
+text = "Gold +1, big silver +5, diamond +10. Bombs −1 life if tapped. Gold or gems in the strip cost a life."
+autowrap_mode = 3
+
+[node name="GameOverOverlay" type="Control" parent="CanvasLayer"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="CanvasLayer/GameOverOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.03, 0.07, 0.78)
+
+[node name="Center" type="CenterContainer" parent="CanvasLayer/GameOverOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/GameOverOverlay/Center"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="GameOverTitle" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.38, 1)
+theme_override_font_sizes/font_size = 48
+text = "Game Over"
+horizontal_alignment = 1
+
+[node name="FinalScoreLabel" type="Label" parent="CanvasLayer/GameOverOverlay/Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.945, 0.97, 1)
+theme_override_font_sizes/font_size = 30
+text = "Final score: 0"
+horizontal_alignment = 1
+
+[node name="PlayAgainButton" type="Button" parent="CanvasLayer/GameOverOverlay/Center/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(360, 64)
+theme_override_font_sizes/font_size = 26
+text = "Play Again"
 
 [node name="Coin" type="Button" parent="." unique_id=1912197000]
-offset_right = 8.0
-offset_bottom = 8.0
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
 theme = SubResource("Theme_0xm2m")
-theme_override_font_sizes/font_size = 50
-text = "🪙"
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin2" type="Button" parent="." unique_id=1912197001]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin3" type="Button" parent="." unique_id=1912197002]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin4" type="Button" parent="." unique_id=1912197003]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin5" type="Button" parent="." unique_id=1912197004]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin6" type="Button" parent="." unique_id=1912197005]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin7" type="Button" parent="." unique_id=1912197006]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin8" type="Button" parent="." unique_id=1912197007]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin9" type="Button" parent="." unique_id=1912197008]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
+script = ExtResource("1_ig7tw")
+
+[node name="Coin10" type="Button" parent="." unique_id=1912197009]
+custom_minimum_size = Vector2(76, 76)
+flat = true
+expand_icon = true
+theme = SubResource("Theme_0xm2m")
+text = ""
 script = ExtResource("1_ig7tw")
