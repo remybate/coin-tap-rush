@@ -1,5 +1,9 @@
 [gd_scene format=3 uid="uid://bndk3isl3vcgh"]
 
+[ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
+
+[sub_resource type="Theme" id="Theme_0xm2m"]
+
 [node name="Node2D" type="Node2D" unique_id=1231411710]
 metadata/_edit_vertical_guides_ = [-166.0]
 
@@ -9,3 +13,11 @@ offset_top = -103.0
 offset_right = 1955.0
 offset_bottom = 1238.0
 color = Color(0.37254903, 1, 1, 1)
+
+[node name="Coin" type="Button" parent="." unique_id=1912197000]
+offset_right = 8.0
+offset_bottom = 8.0
+theme = SubResource("Theme_0xm2m")
+theme_override_font_sizes/font_size = 50
+text = "🪙"
+script = ExtResource("1_ig7tw")
