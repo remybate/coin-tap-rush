@@ -19,6 +19,13 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var coin_value_label: Label = $MainColumn/VBox/TopBar/CoinPill/Margin/HBox/CoinValue
 @onready var lives_value_label: Label = $MainColumn/VBox/TopBar/LivesPill/Margin/HBox/LivesValue
 @onready var play_button: Button = $MainColumn/VBox/PlaySection/PlayButton
+@onready var _sparkle_host: Control = $SparkleField
+
+var _sp_nodes: Array[TextureRect] = []
+var _sp_phase: Array[float] = []
+var _sp_base: Array[Vector2] = []
+var _amb_t: float = 0.0
+var _play_bounce_t: float = 0.0
 
 
 func _ready() -> void:
@@ -29,6 +36,56 @@ func _ready() -> void:
 	_clear_stale_retry_lock_in_save()
 	_refresh_currency_ui()
 	_try_auto_daily_bonus()
+	_build_menu_sparkles()
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	_amb_t += delta
+	_play_bounce_t += delta
+	if play_button != null and is_instance_valid(play_button):
+		var sb: float = 1.0 + 0.032 * sin(_play_bounce_t * 2.55)
+		play_button.pivot_offset = play_button.size * 0.5
+		play_button.scale = Vector2(sb, sb)
+	var i := 0
+	while i < _sp_nodes.size():
+		var tr: TextureRect = _sp_nodes[i]
+		if not is_instance_valid(tr):
+			_sp_nodes.remove_at(i)
+			_sp_phase.remove_at(i)
+			_sp_base.remove_at(i)
+			continue
+		var base: Vector2 = _sp_base[i]
+		tr.position = base + Vector2(sin(_amb_t * 0.9 + _sp_phase[i]) * 3.0, cos(_amb_t * 0.75 + _sp_phase[i]) * 2.5)
+		var a: float = 0.22 + 0.2 * sin(_amb_t * 1.25 + _sp_phase[i])
+		tr.modulate.a = clampf(a, 0.12, 0.45)
+		i += 1
+
+
+func _build_menu_sparkles() -> void:
+	if _sparkle_host == null:
+		return
+	var tex: Texture2D = load("res://ui/map_art/sparkle.svg") as Texture2D
+	if tex == null:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var w: float = maxf(get_viewport_rect().size.x, 400.0)
+	var h: float = maxf(get_viewport_rect().size.y, 600.0)
+	for j in 10:
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.custom_minimum_size = Vector2(20, 20)
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var p := Vector2(rng.randf_range(16.0, w - 36.0), rng.randf_range(72.0, h - 260.0))
+		tr.position = p
+		tr.modulate = Color(1, 1, 0.92, rng.randf_range(0.25, 0.42))
+		_sparkle_host.add_child(tr)
+		_sp_nodes.append(tr)
+		_sp_phase.append(rng.randf() * TAU)
+		_sp_base.append(p)
 
 
 func _notification(what: int) -> void:

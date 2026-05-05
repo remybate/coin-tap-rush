@@ -52,7 +52,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_pulse_t += delta
 	if _pulse_btn != null and is_instance_valid(_pulse_btn):
-		var s: float = 1.0 + 0.024 * sin(_pulse_t * 2.05)
+		var s: float = 1.0 + 0.055 * sin(_pulse_t * 2.35)
 		_pulse_btn.pivot_offset = _pulse_btn.size * 0.5
 		_pulse_btn.scale = Vector2(s, s)
 	for tr in _sway_nodes:
@@ -364,9 +364,9 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 		s.corner_radius_top_right = 99
 		s.corner_radius_bottom_right = 99
 		s.corner_radius_bottom_left = 99
-		s.shadow_color = Color(0, 0, 0, 0.32)
-		s.shadow_size = 5
-		s.shadow_offset = Vector2(0, 3)
+		s.shadow_color = Color(0.02, 0.04, 0.12, 0.42)
+		s.shadow_size = 7
+		s.shadow_offset = Vector2(0, 4)
 
 	match state:
 		"locked":
@@ -382,27 +382,27 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 			n.shadow_size = 7
 			n.shadow_color = Color(0.05, 0.25, 0.1, 0.45)
 		"current":
-			n.bg_color = Color(1, 0.86, 0.32, 1)
-			n.border_color = Color(0.55, 0.25, 0.95, 1)
-			h.bg_color = Color(1, 0.92, 0.48, 1)
-			p.bg_color = Color(0.92, 0.72, 0.2, 1)
-			n.shadow_size = 12
-			n.shadow_color = Color(0.75, 0.45, 1.0, 0.55)
-			h.shadow_size = 10
-			h.shadow_color = Color(0.85, 0.55, 1.0, 0.4)
+			n.bg_color = Color(1, 0.88, 0.35, 1)
+			n.border_color = Color(0.62, 0.32, 1, 1)
+			h.bg_color = Color(1, 0.94, 0.52, 1)
+			p.bg_color = Color(0.95, 0.74, 0.22, 1)
+			n.shadow_size = 16
+			n.shadow_color = Color(0.85, 0.5, 1.0, 0.62)
+			h.shadow_size = 14
+			h.shadow_color = Color(0.9, 0.58, 1.0, 0.48)
 
 	if state == "current":
 		for s in [n, h, p]:
 			s.border_width_left = 5
 			s.border_width_top = 5
 			s.border_width_right = 5
-			s.border_width_bottom = 5
+			s.border_width_bottom = 8
 	else:
 		for s in [n, h, p]:
 			s.border_width_left = 3
 			s.border_width_top = 3
 			s.border_width_right = 3
-			s.border_width_bottom = 3
+			s.border_width_bottom = 5
 
 	btn.add_theme_stylebox_override("normal", n)
 	btn.add_theme_stylebox_override("hover", h)

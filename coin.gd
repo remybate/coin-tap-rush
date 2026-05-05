@@ -107,6 +107,8 @@ func _on_pressed() -> void:
 		AudioService.play_coin_tap()
 	if main and main.has_method("register_collectible"):
 		main.register_collectible(kind)
+	if kind != Kind.BOMB and main and main.has_method("play_collect_burst"):
+		main.play_collect_burst(global_position, kind)
 	_pick_random_path(false)
 
 

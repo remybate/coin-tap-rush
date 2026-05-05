@@ -17,7 +17,7 @@ const LEVEL_DOUBLE_FROM: int = 9
 const MAX_LIVES: int = 5
 const HEART_EMOJI: String = "❤️"
 ## Playfield: coins that fall below this Y (viewport pixels) count as missed — aligns with bottom HUD strip.
-const BOTTOM_HUD_RESERVE_PX: float = 168.0
+const BOTTOM_HUD_RESERVE_PX: float = 188.0
 const PARK_POS: Vector2 = Vector2(-4000, -4000)
 const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
 const SAVE_SECTION: String = "progress"
@@ -75,6 +75,7 @@ var _last_slot_count: int = -1
 @onready var pause_button: Button = $CanvasLayer/TopBar/Margin/Row/PauseButton
 @onready var settings_button: Button = $CanvasLayer/TopBar/Margin/Row/SettingsButton
 @onready var level_complete_screen: CanvasItem = $CanvasLayer/LevelCompleteScreen
+@onready var _collect_burst: CPUParticles2D = $CollectBurst
 
 
 func _ready() -> void:
@@ -211,6 +212,20 @@ func _sync_collectible_slots() -> void:
 			c.set_process(false)
 			c.disabled = true
 			c.position = PARK_POS
+
+
+func play_collect_burst(world_pos: Vector2, k: Collectible.Kind) -> void:
+	if game_over or _collect_burst == null:
+		return
+	var tint := Color(1, 0.9, 0.38)
+	match k:
+		Collectible.Kind.SILVER_BIG:
+			tint = Color(0.92, 0.96, 1.0)
+		Collectible.Kind.DIAMOND:
+			tint = Color(0.45, 0.92, 1.0)
+		_:
+			pass
+	_collect_burst.burst_at(world_pos, tint)
 
 
 func register_collectible(k: Collectible.Kind) -> void:

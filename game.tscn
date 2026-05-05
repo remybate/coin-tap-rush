@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
 [ext_resource type="Script" path="res://game.gd" id="3_game"]
@@ -7,34 +7,127 @@
 [ext_resource type="PackedScene" path="res://ui/pause_screen.tscn" id="6_pa"]
 [ext_resource type="PackedScene" path="res://ui/how_to_play_screen.tscn" id="7_htp"]
 [ext_resource type="PackedScene" path="res://ui/level_complete_screen.tscn" id="8_lvl"]
+[ext_resource type="Script" path="res://collect_burst_fx.gd" id="9_burst"]
+
+[sub_resource type="Gradient" id="Grad_Playfield"]
+offsets = PackedFloat32Array(0, 0.35, 0.62, 1)
+colors = PackedColorArray(0.14, 0.06, 0.22, 1, 0.12, 0.22, 0.42, 1, 0.08, 0.38, 0.48, 1, 0.05, 0.18, 0.28, 1)
+
+[sub_resource type="GradientTexture2D" id="GradTex_Playfield"]
+gradient = SubResource("Grad_Playfield")
+width = 8
+height = 1024
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_TopBar"]
-bg_color = Color(0.06, 0.075, 0.12, 0.98)
-border_width_bottom = 1
-border_color = Color(0.16, 0.19, 0.3, 1)
+bg_color = Color(0.1, 0.06, 0.2, 0.97)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(0.95, 0.72, 0.28, 0.95)
+corner_radius_top_left = 0
+corner_radius_top_right = 0
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 10
+shadow_offset = Vector2(0, 6)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 6.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_BottomBar"]
-bg_color = Color(0.09, 0.055, 0.065, 0.97)
-border_width_top = 2
-border_color = Color(0.42, 0.22, 0.24, 0.95)
+bg_color = Color(0.07, 0.04, 0.14, 0.98)
+border_width_left = 0
+border_width_top = 4
+border_width_right = 0
+border_width_bottom = 0
+border_color = Color(1, 0.78, 0.32, 0.9)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 12
+shadow_offset = Vector2(0, -5)
+
+[sub_resource type="StyleBoxFlat" id="StyleHudIconN"]
+bg_color = Color(0.22, 0.12, 0.38, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 6
+border_color = Color(0.55, 0.35, 0.95, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleHudIconH"]
+bg_color = Color(0.32, 0.18, 0.52, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 6
+border_color = Color(0.75, 0.55, 1, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleHudIconP"]
+bg_color = Color(0.16, 0.08, 0.28, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(0.35, 0.2, 0.62, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [sub_resource type="Theme" id="Theme_0xm2m"]
 
 [node name="Game" type="Node2D" unique_id=1231411710]
 script = ExtResource("3_game")
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=214866011]
+[node name="PlayfieldBg" type="TextureRect" parent="." unique_id=214866011]
 offset_right = 1080.0
 offset_bottom = 1920.0
-color = Color(0.098, 0.114, 0.176, 1)
+mouse_filter = 2
+texture = SubResource("GradTex_Playfield")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayfieldVignette" type="ColorRect" parent="."]
+offset_right = 1080.0
+offset_bottom = 1920.0
+mouse_filter = 2
+color = Color(0.02, 0, 0.08, 0.42)
+
+[node name="TreasureFloorGlow" type="ColorRect" parent="."]
+offset_top = 1180.0
+offset_right = 1080.0
+offset_bottom = 1920.0
+mouse_filter = 2
+color = Color(0.25, 0.55, 0.35, 0.22)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=979960685]
 process_mode = 3
+layer = 10
 
 [node name="TopBar" type="PanelContainer" parent="CanvasLayer" unique_id=1091089218]
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 154.0
+offset_left = 12.0
+offset_top = 10.0
+offset_right = -12.0
+offset_bottom = 168.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBox_TopBar")
@@ -59,21 +152,27 @@ theme_override_constants/separation = 4
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012871]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.96, 0.99, 1)
+theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.35, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 28
 text = "Score: 0"
 vertical_alignment = 1
 
 [node name="BestLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012872]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.86, 1, 1)
+theme_override_colors/font_color = Color(0.75, 0.92, 1, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.2, 0.35, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 22
 text = "High: 0 (saved)"
 vertical_alignment = 1
 
 [node name="ComboLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012873]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.88, 0.55, 1)
+theme_override_colors/font_color = Color(1, 0.72, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.35, 0.1, 0.3, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 20
 text = "Combo x1 · 0 streak"
 vertical_alignment = 1
@@ -81,15 +180,19 @@ vertical_alignment = 1
 [node name="LivesLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=2145121924]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.82, 0.86, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 0.88, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.35, 0.12, 0.2, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 26
 text = "Lives: 5/5 ❤️❤️❤️❤️❤️"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="LevelLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926185]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.92, 0.97, 1)
+theme_override_colors/font_color = Color(0.85, 1, 0.92, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.25, 0.2, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 26
 text = "Level: 1"
 horizontal_alignment = 2
@@ -98,16 +201,24 @@ vertical_alignment = 1
 [node name="PauseButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926187]
 layout_mode = 2
 custom_minimum_size = Vector2(64, 64)
-flat = true
-theme_override_font_sizes/font_size = 28
-text = "||"
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
+text = "‖"
 mouse_filter = 0
 
 [node name="SettingsButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926186]
 layout_mode = 2
 custom_minimum_size = Vector2(64, 64)
-flat = true
-theme_override_font_sizes/font_size = 36
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
 text = "⚙"
 mouse_filter = 0
 
@@ -116,7 +227,10 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -168.0
+offset_left = 10.0
+offset_top = -176.0
+offset_right = -10.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBox_BottomBar")
@@ -134,20 +248,26 @@ theme_override_constants/separation = 6
 
 [node name="ControlsLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=585042804]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.22, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 24
 text = "Tap a coin or gem to collect it."
 autowrap_mode = 3
 
 [node name="MissSummaryLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=585042805]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.72, 0.72, 1)
+theme_override_colors/font_color = Color(1, 0.72, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0.35, 0.08, 0.12, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 22
 text = "Missed coins: 0"
 
 [node name="WarningLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=1892446012]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.7, 0.8, 1)
+theme_override_colors/font_color = Color(0.72, 0.88, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.15, 0.28, 1)
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 20
 text = "Tip: Don’t let coins or gems reach the red strip — that also costs a life."
 autowrap_mode = 3
@@ -331,3 +451,23 @@ theme = SubResource("Theme_0xm2m")
 flat = true
 expand_icon = true
 script = ExtResource("1_ig7tw")
+
+[node name="CollectBurst" type="CPUParticles2D" parent="."]
+z_index = 30
+emitting = false
+amount = 42
+lifetime = 0.48
+one_shot = true
+explosiveness = 0.9
+randomness = 0.35
+local_coords = true
+direction = Vector3(0, -1, 0)
+spread = 150.0
+gravity = Vector3(0, 280, 0)
+initial_velocity_min = 90.0
+initial_velocity_max = 280.0
+angular_velocity_min = -4.0
+angular_velocity_max = 4.0
+scale_amount_min = 1.8
+scale_amount_max = 4.5
+script = ExtResource("9_burst")

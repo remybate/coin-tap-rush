@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://7246aegh8ppg"]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
-[ext_resource type="Script" path="res://main.gd" id="3_main"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_TopBar"]
 bg_color = Color(0.06, 0.075, 0.12, 0.98)
@@ -28,7 +27,6 @@ corner_radius_bottom_left = 12
 [sub_resource type="Theme" id="Theme_0xm2m"]
 
 [node name="Main" type="Node2D" unique_id=1231411710]
-script = ExtResource("3_main")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=214866011]
 offset_right = 1080.0
