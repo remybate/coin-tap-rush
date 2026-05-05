@@ -107,9 +107,23 @@ func _on_pressed() -> void:
 		AudioService.play_coin_tap()
 	if main and main.has_method("register_collectible"):
 		main.register_collectible(kind)
+	if kind != Kind.BOMB and main and main.has_method("set_magnet_focus"):
+		main.set_magnet_focus(global_position.x)
 	if kind != Kind.BOMB and main and main.has_method("play_collect_burst"):
 		main.play_collect_burst(global_position, kind)
 	_pick_random_path(false)
+
+
+func convert_bomb_to_safe_coin() -> void:
+	if kind != Kind.BOMB:
+		return
+	var safety: int = 0
+	while kind == Kind.BOMB and safety < 14:
+		kind = _pick_random_kind()
+		safety += 1
+	if kind == Kind.BOMB:
+		kind = Kind.GOLD
+	_apply_kind()
 
 
 func _pick_random_path(first_spawn: bool = false) -> void:
@@ -175,10 +189,17 @@ func _process(delta: float) -> void:
 	if main and main.has_method("get_danger_y"):
 		miss_y = main.get_danger_y()
 
-	time_falling += delta
-	position.y += fall_speed * delta
+	var vm: float = 1.0
+	if main and main.has_method("get_collectible_vertical_mult"):
+		vm = main.get_collectible_vertical_mult()
+
+	time_falling += delta * vm
+	position.y += fall_speed * delta * vm
 	position.x = _x_at_time(time_falling)
-	rotation += spin_rad_per_sec * delta
+	rotation += spin_rad_per_sec * delta * vm
+
+	if main and main.has_method("apply_magnet_to_collectible"):
+		main.apply_magnet_to_collectible(self, delta)
 
 	if position.y > miss_y:
 		if kind == Kind.BOMB:

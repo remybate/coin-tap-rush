@@ -140,7 +140,7 @@ func _reward_blurb(day: int) -> String:
 		3:
 			return "250 river coins"
 		4:
-			return "Gleam magnet charm"
+			return "Spark Sweep bomb charm"
 		5:
 			return "500 river coins"
 		6:

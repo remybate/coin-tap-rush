@@ -31,6 +31,7 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var _shop_popup: Node = $ShopPopupLayer
 @onready var _trophies_popup: Node = $TrophiesPopupLayer
 @onready var _events_popup: Node = $EventsPopupLayer
+@onready var _pregame_popup: Control = $PreGameBoostersPopup
 
 var _furthest_level: int = 1
 var _selected_level: int = 1
@@ -52,6 +53,11 @@ func _ready() -> void:
 	_display_levels = clampi(maxi(18, _furthest_level + 4), 12, 72)
 	_settings_btn.pressed.connect(_on_settings_pressed)
 	_main_play.pressed.connect(_on_main_play_pressed)
+	if _pregame_popup != null:
+		if _pregame_popup.has_signal("play_pressed"):
+			_pregame_popup.play_pressed.connect(_on_pregame_play_pressed)
+		if _pregame_popup.has_signal("closed_popup"):
+			_pregame_popup.closed_popup.connect(_on_pregame_closed)
 	_settings_layer.progress_reset.connect(_on_map_progress_reset)
 	call_deferred("_deferred_build_map")
 
@@ -428,7 +434,6 @@ func _on_level_node_pressed(lv: int) -> void:
 	_update_main_play_label()
 	_refresh_all_level_styles()
 	AudioService.play_button_click()
-	_start_gameplay()
 
 
 func _refresh_all_level_styles() -> void:
@@ -454,9 +459,34 @@ func _scroll_to_selected() -> void:
 	_map_scroll.scroll_vertical = int(clampf(target_y - view_h * 0.38, 0.0, max_scroll))
 
 
+func _read_pregame_booster_stocks() -> Vector2i:
+	var cfg := ConfigFile.new()
+	var bc: int = 3
+	var ss: int = 3
+	if cfg.load(SAVE_PATH) == OK:
+		bc = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_BOMB_CLEAR, 3)), 0, 99)
+		ss = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_START_SLOW, 3)), 0, 99)
+	return Vector2i(bc, ss)
+
+
 func _start_gameplay() -> void:
+	if _pregame_popup != null and _pregame_popup.has_method("present"):
+		var st: Vector2i = _read_pregame_booster_stocks()
+		_pregame_popup.call("present", st.x, st.y)
+		return
+	LevelSelectState.set_pregame_boosters(false, false)
 	LevelSelectState.request_start_at_level(_selected_level)
 	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _on_pregame_play_pressed(use_bomb_clear: bool, use_start_slow: bool) -> void:
+	LevelSelectState.set_pregame_boosters(use_bomb_clear, use_start_slow)
+	LevelSelectState.request_start_at_level(_selected_level)
+	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+func _on_pregame_closed() -> void:
+	pass
 
 
 func _on_main_play_pressed() -> void:

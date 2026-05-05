@@ -1,0 +1,238 @@
+[gd_scene format=3 uid="uid://cqwstjceovyhg"]
+
+[ext_resource type="Script" path="res://ui/pregame_boosters_popup.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StylePanel"]
+bg_color = Color(0.16, 0.1, 0.28, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(1, 0.78, 0.35, 0.95)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleCard"]
+bg_color = Color(0.28, 0.16, 0.48, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(0.65, 0.45, 0.95, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
+[sub_resource type="StyleBoxFlat" id="StylePlay"]
+bg_color = Color(0.18, 0.62, 0.38, 1)
+border_width_bottom = 5
+border_color = Color(0.05, 0.35, 0.18, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[node name="PreGameBoostersPopup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+mouse_filter = 0
+z_index = 50
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.02, 0.02, 0.06, 0.72)
+
+[node name="CloseX" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -64.0
+offset_top = 36.0
+offset_right = -20.0
+offset_bottom = 84.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 28
+flat = true
+text = "✕"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(460, 520)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StylePanel")
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="Root" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0.15, 0.08, 0.3, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 30
+text = "River Charms"
+horizontal_alignment = 1
+
+[node name="SubTitle" type="Label" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Optional boosts before you sail"
+horizontal_alignment = 1
+
+[node name="CardsRow" type="HBoxContainer" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="BombClearCard" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="IconL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "⚡"
+horizontal_alignment = 1
+
+[node name="NameL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+text = "Lightning Booster"
+horizontal_alignment = 1
+
+[node name="DescL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.82, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Zaps every bomb off the board once."
+autowrap_mode = 3
+
+[node name="CountLabel" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 1, 0.75, 1)
+theme_override_font_sizes/font_size = 20
+text = "×0"
+horizontal_alignment = 1
+
+[node name="Toggle" type="CheckButton" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+layout_mode = 2
+text = "Use"
+
+[node name="StartSlowCard" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleCard")
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="IconL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "⏳"
+horizontal_alignment = 1
+
+[node name="NameL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.65, 1)
+theme_override_font_sizes/font_size = 18
+text = "Hourglass Booster"
+horizontal_alignment = 1
+
+[node name="DescL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.82, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Slows falling loot for the first 10 seconds."
+autowrap_mode = 3
+
+[node name="CountLabel" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 1, 0.75, 1)
+theme_override_font_sizes/font_size = 20
+text = "×0"
+horizontal_alignment = 1
+
+[node name="Toggle" type="CheckButton" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+layout_mode = 2
+text = "Use"
+
+[node name="HintLabel" type="Label" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.76, 0.88, 1)
+theme_override_font_sizes/font_size = 15
+text = "Pick up to two charms, or tap Play with none."
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="Footer" type="HBoxContainer" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+alignment = 1
+
+[node name="PlayButton" type="Button" parent="Center/Panel/Margin/Root/Footer"]
+custom_minimum_size = Vector2(220, 56)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(0.95, 1, 0.9, 1)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StylePlay")
+text = "PLAY"

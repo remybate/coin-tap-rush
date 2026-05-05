@@ -182,13 +182,13 @@ func _daily_reward_payload(day: int) -> Dictionary:
 		3:
 			return {"coins": 250}
 		4:
-			return {"lightning": 1}
+			return {"bomb_clear": 1}
 		5:
 			return {"coins": 500}
 		6:
 			return {"shield": 1}
 		7:
-			return {"coins": 800, "lightning": 1, "hourglass": 1, "shield": 1}
+			return {"coins": 800, "lightning": 1, "hourglass": 1, "shield": 1, "bomb_clear": 1, "start_slow": 1}
 		_:
 			return {}
 
@@ -210,6 +210,12 @@ func _grant_daily_rewards_for_day(cfg: ConfigFile, day: int) -> void:
 	var sh: int = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_SHIELD, 0)), 0, 99)
 	sh += int(r.get("shield", 0))
 	cfg.set_value(SAVE_SECTION, KEY_BOOST_SHIELD, sh)
+	var bc: int = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_BOMB_CLEAR, 3)), 0, 99)
+	bc += int(r.get("bomb_clear", 0))
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_BOMB_CLEAR, bc)
+	var ss: int = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_START_SLOW, 3)), 0, 99)
+	ss += int(r.get("start_slow", 0))
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_START_SLOW, ss)
 
 
 func _on_daily_vault_claimed() -> void:

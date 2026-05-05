@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
 [ext_resource type="Script" path="res://game.gd" id="3_game"]
@@ -98,6 +98,18 @@ border_width_top = 3
 border_width_right = 3
 border_width_bottom = 4
 border_color = Color(0.35, 0.2, 0.62, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleHudIconD"]
+bg_color = Color(0.12, 0.12, 0.16, 0.55)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.35, 0.35, 0.42, 0.55)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
@@ -258,7 +270,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = -176.0
+offset_top = -252.0
 offset_right = -10.0
 offset_bottom = -10.0
 grow_horizontal = 2
@@ -301,6 +313,55 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 20
 text = "Tip: Don’t let coins or gems reach the red strip — that also costs a life."
 autowrap_mode = 3
+
+[node name="BoosterBar" type="HBoxContainer" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=1892446013]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="BoosterFreeze" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446014]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
+theme_override_styles/disabled = SubResource("StyleHudIconD")
+text = "❄️\n0"
+
+[node name="BoosterSlow" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446015]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
+theme_override_styles/disabled = SubResource("StyleHudIconD")
+text = "🌀\n0"
+
+[node name="BoosterMagnet" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446016]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
+theme_override_styles/disabled = SubResource("StyleHudIconD")
+text = "🧲\n0"
+
+[node name="BoosterShield" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446017]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
+theme_override_styles/disabled = SubResource("StyleHudIconD")
+text = "🛡️\n0"
 
 [node name="PauseScreen" parent="CanvasLayer" instance=ExtResource("6_pa")]
 layout_mode = 1

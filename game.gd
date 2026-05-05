@@ -17,7 +17,7 @@ const LEVEL_DOUBLE_FROM: int = 9
 const MAX_LIVES: int = 5
 const HEART_EMOJI: String = "❤️"
 ## Playfield: coins that fall below this Y (viewport pixels) count as missed — aligns with bottom HUD strip.
-const BOTTOM_HUD_RESERVE_PX: float = 188.0
+const BOTTOM_HUD_RESERVE_PX: float = 248.0
 const PARK_POS: Vector2 = Vector2(-4000, -4000)
 const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
 const SAVE_SECTION: String = "progress"
@@ -54,9 +54,26 @@ var progression_level: int = 1
 var booster_lightning: int = 5
 var booster_hourglass: int = 4
 ## Absorbs one bomb tap (no life lost); consumed on use.
-var booster_shield: int = 0
+var booster_shield: int = 2
+## Pre-level map charms (separate from retry ⚡/⏳ stocks).
+var booster_bomb_clear: int = 3
+var booster_start_slow: int = 3
+## In-game HUD consumables.
+var ingame_freeze: int = 2
+var ingame_slowmo: int = 2
+var ingame_magnet: int = 2
 ## After Retry with ⚡ booster: slower new spawns for this many seconds.
 var _booster_slow_timer: float = 0.0
+var _ingame_slow_timer: float = 0.0
+var _freeze_timer: float = 0.0
+var _magnet_timer: float = 0.0
+var _run_bomb_clear_pending: bool = false
+var _magnet_target_x: float = -1.0
+var _booster_feedback_timer: float = 0.0
+var _booster_feedback_text: String = ""
+var _reward_rng := RandomNumberGenerator.new()
+## Absorbs the next bomb tap or missed-coin penalty (from tapping the Shield HUD charm).
+var _shield_blocks_next: int = 0
 ## Can become 6 when Retry uses ⏳ booster.
 var _effective_max_lives: int = MAX_LIVES
 ## Retries left after game over (max 5). At 0, Retry is locked until RETRY_COOLDOWN_SEC passes.
@@ -83,6 +100,10 @@ var _paused_for_hud_settings: bool = false
 @onready var controls_label: Label = $CanvasLayer/BottomBar/Margin/VBox/ControlsLabel
 @onready var miss_summary_label: Label = $CanvasLayer/BottomBar/Margin/VBox/MissSummaryLabel
 @onready var warning_label: Label = $CanvasLayer/BottomBar/Margin/VBox/WarningLabel
+@onready var booster_freeze_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterFreeze
+@onready var booster_slow_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterSlow
+@onready var booster_magnet_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterMagnet
+@onready var booster_shield_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterShield
 @onready var game_over_screen: CanvasItem = $CanvasLayer/GameOverScreen
 @onready var settings_screen: SettingsScreen = $CanvasLayer/SettingsScreen
 @onready var pause_screen: PauseScreen = $CanvasLayer/PauseScreen
@@ -96,10 +117,12 @@ var _paused_for_hud_settings: bool = false
 func _ready() -> void:
 	add_to_group("main")
 	get_tree().paused = false
+	_reward_rng.randomize()
 	_load_progress_from_disk()
 	var pending_map: int = LevelSelectState.consume_pending_level()
 	if pending_map > 0:
 		_apply_level_from_map_selection(pending_map)
+	_apply_pregame_charm_selection(LevelSelectState.consume_pregame_flags())
 	pause_button.pressed.connect(_on_pause_button_pressed)
 	settings_button.pressed.connect(_on_settings_open)
 	level_complete_screen.continue_pressed.connect(_on_level_continue_pressed)
@@ -112,6 +135,14 @@ func _ready() -> void:
 	if settings_screen != null:
 		settings_screen.progress_reset.connect(_on_progress_reset)
 		settings_screen.closed.connect(_on_settings_closed)
+	if booster_freeze_btn != null:
+		booster_freeze_btn.pressed.connect(_on_booster_freeze_pressed)
+	if booster_slow_btn != null:
+		booster_slow_btn.pressed.connect(_on_booster_slow_pressed)
+	if booster_magnet_btn != null:
+		booster_magnet_btn.pressed.connect(_on_booster_magnet_pressed)
+	if booster_shield_btn != null:
+		booster_shield_btn.pressed.connect(_on_booster_shield_hud_pressed)
 	for ch in get_children():
 		if ch is Collectible:
 			_collectibles.append(ch as Collectible)
@@ -146,16 +177,88 @@ func _segment_score_goal() -> int:
 func _process(delta: float) -> void:
 	if _booster_slow_timer > 0.0:
 		_booster_slow_timer = maxf(0.0, _booster_slow_timer - delta)
+	if _ingame_slow_timer > 0.0:
+		_ingame_slow_timer = maxf(0.0, _ingame_slow_timer - delta)
+	if _freeze_timer > 0.0:
+		_freeze_timer = maxf(0.0, _freeze_timer - delta)
+	if _magnet_timer > 0.0:
+		_magnet_timer = maxf(0.0, _magnet_timer - delta)
+	if _booster_feedback_timer > 0.0:
+		_booster_feedback_timer = maxf(0.0, _booster_feedback_timer - delta)
 	_update_retry_refill_if_needed()
+	_try_apply_pending_bomb_clear()
 	if game_over and game_over_screen.visible:
 		game_over_screen.refresh_retry_ui(retry_charges, _retry_wait_seconds())
 
 
-## Scales fall speed from collectibles when ⚡ booster is active (new spawns / respawns).
+## Scales fall speed from collectibles when slow charms are active (spawn jitter + live motion).
 func get_fall_speed_bonus_scale() -> float:
+	var s: float = 1.0
 	if _booster_slow_timer > 0.0:
-		return 0.62
-	return 1.0
+		s *= 0.62
+	if _ingame_slow_timer > 0.0:
+		s *= 0.55
+	return s
+
+
+func get_collectible_vertical_mult() -> float:
+	if _freeze_timer > 0.0:
+		return 0.0
+	return get_fall_speed_bonus_scale()
+
+
+func set_magnet_focus(world_x: float) -> void:
+	_magnet_target_x = world_x
+
+
+func apply_magnet_to_collectible(c: Collectible, delta: float) -> void:
+	if _magnet_timer <= 0.0 or c.kind == Collectible.Kind.BOMB:
+		return
+	var tx: float = _magnet_target_x
+	if tx < 0.0:
+		tx = maxf(get_viewport_rect().size.x * 0.5, 120.0)
+	var t: float = clampf(5.5 * delta, 0.0, 1.0)
+	c.base_x = lerpf(c.base_x, tx, t)
+
+
+func _try_apply_pending_bomb_clear() -> void:
+	if not _run_bomb_clear_pending or game_over:
+		return
+	if not bombs_enabled():
+		booster_bomb_clear += 1
+		_run_bomb_clear_pending = false
+		_save_progress_file()
+		return
+	var any_bomb_visible: bool = false
+	for c in _collectibles:
+		if is_instance_valid(c) and c.visible and c.kind == Collectible.Kind.BOMB:
+			any_bomb_visible = true
+			break
+	if not any_bomb_visible:
+		return
+	for c in _collectibles:
+		if is_instance_valid(c) and c.visible and c.kind == Collectible.Kind.BOMB:
+			c.convert_bomb_to_safe_coin()
+	_flash_booster("Spark Sweep — bombs zapped!")
+	_run_bomb_clear_pending = false
+
+
+func _apply_pregame_charm_selection(pre: Dictionary) -> void:
+	var want_bc: bool = bool(pre.get("bomb_clear", false))
+	var want_ss: bool = bool(pre.get("start_slow", false))
+	if want_bc and booster_bomb_clear > 0:
+		booster_bomb_clear -= 1
+		_run_bomb_clear_pending = true
+	if want_ss and booster_start_slow > 0:
+		booster_start_slow -= 1
+		_booster_slow_timer = maxf(_booster_slow_timer, 10.0)
+	_save_progress_file()
+
+
+func _flash_booster(msg: String) -> void:
+	_booster_feedback_text = msg
+	_booster_feedback_timer = 2.0
+	_refresh_ui()
 
 
 func _update_retry_refill_if_needed() -> void:
@@ -256,8 +359,9 @@ func register_collectible(k: Collectible.Kind) -> void:
 		return
 	if k == Collectible.Kind.BOMB:
 		combo_streak = 0
-		if booster_shield > 0:
-			booster_shield -= 1
+		if _shield_blocks_next > 0:
+			_shield_blocks_next -= 1
+			_flash_booster("Aegis — blast absorbed!")
 			_refresh_ui()
 			_save_progress_file()
 			return
@@ -296,6 +400,14 @@ func register_bomb_dodged() -> void:
 
 func register_miss() -> void:
 	if game_over:
+		return
+	if _shield_blocks_next > 0:
+		_shield_blocks_next -= 1
+		combo_streak = 0
+		AudioService.play_coin_tap()
+		_flash_booster("Aegis — missed drop absorbed!")
+		_refresh_ui()
+		_save_progress_file()
 		return
 	AudioService.play_miss()
 	combo_streak = 0
@@ -343,6 +455,11 @@ func _on_play_again_pressed(booster_id: int = -1) -> void:
 	missed_coins = 0
 	_effective_max_lives = MAX_LIVES
 	_booster_slow_timer = 0.0
+	_ingame_slow_timer = 0.0
+	_freeze_timer = 0.0
+	_magnet_timer = 0.0
+	_run_bomb_clear_pending = false
+	_shield_blocks_next = 0
 	lives = MAX_LIVES
 	match booster_id:
 		0:
@@ -390,6 +507,7 @@ func _on_settings_closed() -> void:
 
 func _on_level_continue_pressed() -> void:
 	AudioService.play_button_click()
+	_grant_random_level_booster_maybe()
 	progression_level += 1
 	level_complete_screen.hide_screen()
 	get_tree().paused = false
@@ -397,6 +515,39 @@ func _on_level_continue_pressed() -> void:
 	_refresh_ui()
 	_save_progress_file()
 	call_deferred("_try_offer_level_gate")
+
+
+func _grant_random_level_booster_maybe() -> void:
+	var roll: Dictionary = BoosterManager.roll_level_complete_bonus(_reward_rng)
+	if roll.is_empty():
+		return
+	var k: String = str(roll.get("key", ""))
+	var amt: int = clampi(int(roll.get("amount", 1)), 1, 9)
+	match k:
+		BoosterManager.KEY_INGAME_FREEZE:
+			ingame_freeze = clampi(ingame_freeze + amt, 0, 99)
+		BoosterManager.KEY_INGAME_SLOWMO:
+			ingame_slowmo = clampi(ingame_slowmo + amt, 0, 99)
+		BoosterManager.KEY_INGAME_MAGNET:
+			ingame_magnet = clampi(ingame_magnet + amt, 0, 99)
+		BoosterManager.KEY_SHIELD:
+			booster_shield = clampi(booster_shield + amt, 0, 99)
+		BoosterManager.KEY_BOMB_CLEAR:
+			booster_bomb_clear = clampi(booster_bomb_clear + amt, 0, 99)
+		BoosterManager.KEY_START_SLOW:
+			booster_start_slow = clampi(booster_start_slow + amt, 0, 99)
+		BoosterManager.KEY_RETRY_LIGHTNING:
+			booster_lightning = clampi(booster_lightning + amt, 0, 99)
+		BoosterManager.KEY_RETRY_HOURGLASS:
+			booster_hourglass = clampi(booster_hourglass + amt, 0, 99)
+		_:
+			return
+	_save_progress_file()
+	call_deferred("_deferred_level_bonus_toast", "Bonus charm added to your vault!")
+
+
+func _deferred_level_bonus_toast(msg: String) -> void:
+	_flash_booster(msg)
 
 
 func _try_offer_level_gate() -> void:
@@ -448,6 +599,52 @@ func _on_pause_main_menu_pressed() -> void:
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
 
+func _on_booster_freeze_pressed() -> void:
+	if game_over or level_complete_screen.visible or ingame_freeze <= 0 or _freeze_timer > 0.0:
+		return
+	AudioService.play_button_click()
+	ingame_freeze -= 1
+	_freeze_timer = 5.0
+	_flash_booster("Glacier — drops hold still!")
+	_save_progress_file()
+	_refresh_ui()
+
+
+func _on_booster_slow_pressed() -> void:
+	if game_over or level_complete_screen.visible or ingame_slowmo <= 0 or _ingame_slow_timer > 0.0:
+		return
+	AudioService.play_button_click()
+	ingame_slowmo -= 1
+	_ingame_slow_timer = 8.0
+	_flash_booster("Driftward — gentle falls!")
+	_save_progress_file()
+	_refresh_ui()
+
+
+func _on_booster_magnet_pressed() -> void:
+	if game_over or level_complete_screen.visible or ingame_magnet <= 0 or _magnet_timer > 0.0:
+		return
+	AudioService.play_button_click()
+	ingame_magnet -= 1
+	_magnet_timer = 8.0
+	if _magnet_target_x < 0.0:
+		_magnet_target_x = maxf(get_viewport_rect().size.x * 0.5, 120.0)
+	_flash_booster("Tidepull — gleams lean your way!")
+	_save_progress_file()
+	_refresh_ui()
+
+
+func _on_booster_shield_hud_pressed() -> void:
+	if game_over or level_complete_screen.visible or booster_shield <= 0:
+		return
+	AudioService.play_button_click()
+	booster_shield -= 1
+	_shield_blocks_next += 1
+	_flash_booster("Aegis primed — next danger is soaked!")
+	_save_progress_file()
+	_refresh_ui()
+
+
 func _exit_tree() -> void:
 	if not game_over:
 		_save_progress_file()
@@ -491,7 +688,12 @@ func _load_progress_from_disk() -> void:
 		progression_level = 1
 		booster_lightning = 5
 		booster_hourglass = 4
-		booster_shield = 0
+		booster_shield = 2
+		booster_bomb_clear = 3
+		booster_start_slow = 3
+		ingame_freeze = 2
+		ingame_slowmo = 2
+		ingame_magnet = 2
 		retry_charges = MAX_RETRY_CHARGES
 		retry_block_until_unix = 0
 		stat_gleams_collected = 0
@@ -504,7 +706,12 @@ func _load_progress_from_disk() -> void:
 	progression_level = clampi(progression_level, 1, 999999)
 	booster_lightning = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, 5)), 0, 99)
 	booster_hourglass = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, 4)), 0, 99)
-	booster_shield = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_SHIELD, 0)), 0, 99)
+	booster_shield = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_SHIELD, 2)), 0, 99)
+	booster_bomb_clear = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_BOMB_CLEAR, 3)), 0, 99)
+	booster_start_slow = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_START_SLOW, 3)), 0, 99)
+	ingame_freeze = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_INGAME_FREEZE, 2)), 0, 99)
+	ingame_slowmo = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_INGAME_SLOWMO, 2)), 0, 99)
+	ingame_magnet = clampi(int(cfg.get_value(SAVE_SECTION, BoosterManager.KEY_INGAME_MAGNET, 2)), 0, 99)
 	retry_charges = clampi(int(cfg.get_value(SAVE_SECTION, KEY_RETRY_CHARGES, MAX_RETRY_CHARGES)), 0, MAX_RETRY_CHARGES)
 	retry_block_until_unix = int(cfg.get_value(SAVE_SECTION, KEY_RETRY_BLOCK_UNTIL, 0))
 	if retry_charges <= 0 and retry_block_until_unix <= 0:
@@ -527,6 +734,11 @@ func _save_progress_file() -> void:
 	cfg.set_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, booster_lightning)
 	cfg.set_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, booster_hourglass)
 	cfg.set_value(SAVE_SECTION, KEY_BOOST_SHIELD, booster_shield)
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_BOMB_CLEAR, booster_bomb_clear)
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_START_SLOW, booster_start_slow)
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_INGAME_FREEZE, ingame_freeze)
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_INGAME_SLOWMO, ingame_slowmo)
+	cfg.set_value(SAVE_SECTION, BoosterManager.KEY_INGAME_MAGNET, ingame_magnet)
 	cfg.set_value(SAVE_SECTION, KEY_RETRY_CHARGES, retry_charges)
 	cfg.set_value(SAVE_SECTION, KEY_RETRY_BLOCK_UNTIL, retry_block_until_unix)
 	cfg.set_value(SAVE_SECTION, KEY_STAT_GLEAMS, stat_gleams_collected)
@@ -535,7 +747,22 @@ func _save_progress_file() -> void:
 	cfg.save(SAVE_PATH)
 
 
+func _refresh_booster_bar() -> void:
+	if booster_freeze_btn == null:
+		return
+	var busy: bool = game_over or level_complete_screen.visible or get_tree().paused
+	booster_freeze_btn.disabled = busy or ingame_freeze <= 0 or _freeze_timer > 0.0
+	booster_slow_btn.disabled = busy or ingame_slowmo <= 0 or _ingame_slow_timer > 0.0
+	booster_magnet_btn.disabled = busy or ingame_magnet <= 0 or _magnet_timer > 0.0
+	booster_shield_btn.disabled = busy or booster_shield <= 0
+	booster_freeze_btn.text = "❄️\n%d" % ingame_freeze
+	booster_slow_btn.text = "🌀\n%d" % ingame_slowmo
+	booster_magnet_btn.text = "🧲\n%d" % ingame_magnet
+	booster_shield_btn.text = "🛡️\n%d" % booster_shield
+
+
 func _refresh_ui() -> void:
+	_refresh_booster_bar()
 	if controls_label:
 		if bombs_enabled():
 			controls_label.text = "Tap a coin or gem to collect it. Tap a red bomb = mistake (loses a life)."
@@ -563,7 +790,10 @@ func _refresh_ui() -> void:
 	if miss_summary_label:
 		miss_summary_label.text = "Missed coins: %d" % missed_coins
 	if warning_label:
-		if level_complete_screen.visible:
+		if _booster_feedback_timer > 0.0 and not _booster_feedback_text.is_empty():
+			warning_label.add_theme_color_override("font_color", Color(0.55, 0.98, 0.78))
+			warning_label.text = _booster_feedback_text
+		elif level_complete_screen.visible:
 			warning_label.text = ""
 		elif game_over:
 			warning_label.text = "Level failed — Retry or ✕ for menu."
