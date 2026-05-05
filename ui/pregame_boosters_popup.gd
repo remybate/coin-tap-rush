@@ -16,6 +16,7 @@ signal closed_popup
 
 var _stock_bomb_clear: int = 0
 var _stock_start_slow: int = 0
+var _hourglass_milestone_ok: bool = true
 
 
 func _ready() -> void:
@@ -25,9 +26,10 @@ func _ready() -> void:
 	_toggle_slow.toggled.connect(_on_slow_toggled)
 
 
-func present(bomb_clear_stock: int, start_slow_stock: int) -> void:
+func present(bomb_clear_stock: int, start_slow_stock: int, furthest_unlocked: int = 999999) -> void:
 	_stock_bomb_clear = maxi(0, bomb_clear_stock)
 	_stock_start_slow = maxi(0, start_slow_stock)
+	_hourglass_milestone_ok = LevelProgression.is_booster_unlocked("pregame_hourglass", furthest_unlocked)
 	_toggle_bomb.set_pressed_no_signal(false)
 	_toggle_slow.set_pressed_no_signal(false)
 	_refresh_counts()
@@ -43,16 +45,17 @@ func _refresh_counts() -> void:
 
 func _apply_lock_styles() -> void:
 	_toggle_bomb.disabled = _stock_bomb_clear <= 0
-	_toggle_slow.disabled = _stock_start_slow <= 0
+	_toggle_slow.disabled = _stock_start_slow <= 0 or not _hourglass_milestone_ok
 	_card_bomb.modulate = Color(1, 1, 1, 1) if _stock_bomb_clear > 0 else Color(0.55, 0.58, 0.65, 0.9)
-	_card_slow.modulate = Color(1, 1, 1, 1) if _stock_start_slow > 0 else Color(0.55, 0.58, 0.65, 0.9)
+	var slow_ok: bool = _stock_start_slow > 0 and _hourglass_milestone_ok
+	_card_slow.modulate = Color(1, 1, 1, 1) if slow_ok else Color(0.55, 0.58, 0.65, 0.9)
 
 
 func _selected_count() -> int:
 	var n: int = 0
 	if _toggle_bomb.button_pressed and _stock_bomb_clear > 0:
 		n += 1
-	if _toggle_slow.button_pressed and _stock_start_slow > 0:
+	if _toggle_slow.button_pressed and _stock_start_slow > 0 and _hourglass_milestone_ok:
 		n += 1
 	return n
 
@@ -66,7 +69,7 @@ func _on_bomb_toggled(pressed: bool) -> void:
 
 
 func _on_slow_toggled(pressed: bool) -> void:
-	if pressed and _stock_start_slow <= 0:
+	if pressed and (_stock_start_slow <= 0 or not _hourglass_milestone_ok):
 		_toggle_slow.set_pressed_no_signal(false)
 		return
 	if pressed and _selected_count() > 2:
@@ -76,7 +79,7 @@ func _on_slow_toggled(pressed: bool) -> void:
 func _on_play() -> void:
 	AudioService.play_button_click()
 	var u_bc: bool = _toggle_bomb.button_pressed and _stock_bomb_clear > 0
-	var u_ss: bool = _toggle_slow.button_pressed and _stock_start_slow > 0
+	var u_ss: bool = _toggle_slow.button_pressed and _stock_start_slow > 0 and _hourglass_milestone_ok
 	visible = false
 	play_pressed.emit(u_bc, u_ss)
 

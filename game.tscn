@@ -169,7 +169,7 @@ anchor_right = 1.0
 offset_left = 12.0
 offset_top = 10.0
 offset_right = -12.0
-offset_bottom = 168.0
+offset_bottom = 198.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBox_TopBar")
@@ -217,6 +217,24 @@ theme_override_colors/font_outline_color = Color(0.35, 0.1, 0.3, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 20
 text = "Combo x1 · 0 streak"
+vertical_alignment = 1
+
+[node name="VaultCoinsLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012874]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.42, 1)
+theme_override_colors/font_outline_color = Color(0.22, 0.12, 0.05, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
+text = "🪙 Vault: 0"
+vertical_alignment = 1
+
+[node name="LevelCoinsHudLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012875]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.95, 0.88, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.2, 0.15, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 19
+text = "Level coins: 0"
 vertical_alignment = 1
 
 [node name="LivesLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=2145121924]

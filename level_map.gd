@@ -35,7 +35,9 @@ const MAX_LIVES_DISPLAY: int = 5
 
 var _furthest_level: int = 1
 var _selected_level: int = 1
-var _display_levels: int = 24
+var _display_levels: int = 32
+## First level index shown in the sliding map window (1-based).
+var _window_level_start: int = 1
 var _node_center_x: float = 260.0
 var _level_centers: Array[Vector2] = []
 var _pulse_btn: Button = null
@@ -50,7 +52,6 @@ func _ready() -> void:
 		_shop_popup.connect("toast_requested", Callable(self, "_open_info_popup"))
 	_load_save_summary()
 	_selected_level = _furthest_level
-	_display_levels = clampi(maxi(18, _furthest_level + 4), 12, 72)
 	_settings_btn.pressed.connect(_on_settings_pressed)
 	_main_play.pressed.connect(_on_main_play_pressed)
 	if _pregame_popup != null:
@@ -321,6 +322,15 @@ func _build_visual_map() -> void:
 		c.queue_free()
 	_level_centers.clear()
 
+	var span: int = 34
+	var teaser_end: int = mini(_furthest_level + 1, 999999)
+	_window_level_start = maxi(1, _selected_level - 12)
+	var window_end: int = _window_level_start + span - 1
+	if window_end < teaser_end:
+		window_end = teaser_end
+	_window_level_start = maxi(1, window_end - span + 1)
+	_display_levels = window_end - _window_level_start + 1
+
 	var w: float = _map_content_width()
 	_node_center_x = w * 0.5
 	var total_h: float = map_top_padding + float(_display_levels) * level_spacing + 240.0
@@ -342,10 +352,11 @@ func _build_visual_map() -> void:
 	_ambience.build(w, total_h, pts)
 
 	for i in range(_display_levels):
-		var lv: int = i + 1
+		var lv: int = _window_level_start + i
 		var pos: Vector2 = _level_centers[i]
 		var btn := Button.new()
 		btn.text = str(lv)
+		btn.set_meta(&"level_id", lv)
 		btn.custom_minimum_size = Vector2(76, 76)
 		btn.position = pos - btn.custom_minimum_size * 0.5
 		btn.focus_mode = Control.FOCUS_NONE
@@ -353,7 +364,7 @@ func _build_visual_map() -> void:
 		_apply_level_button_style(btn, lv)
 		btn.pressed.connect(_on_level_node_pressed.bind(lv))
 		_levels_layer.add_child(btn)
-		if lv == _furthest_level:
+		if lv == _selected_level:
 			_pulse_btn = btn
 
 
@@ -437,11 +448,11 @@ func _on_level_node_pressed(lv: int) -> void:
 
 
 func _refresh_all_level_styles() -> void:
-	var idx := 0
 	for child in _levels_layer.get_children():
 		if child is Button:
-			idx += 1
-			_apply_level_button_style(child as Button, idx)
+			var id: int = int((child as Button).get_meta(&"level_id", 0))
+			if id > 0:
+				_apply_level_button_style(child as Button, id)
 
 
 func _update_main_play_label() -> void:
@@ -451,9 +462,10 @@ func _update_main_play_label() -> void:
 func _scroll_to_selected() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
-	if _selected_level < 1 or _selected_level > _level_centers.size():
+	var idx: int = _selected_level - _window_level_start
+	if idx < 0 or idx >= _level_centers.size():
 		return
-	var target_y: float = _level_centers[_selected_level - 1].y
+	var target_y: float = _level_centers[idx].y
 	var view_h: float = _map_scroll.size.y
 	var max_scroll: float = float(_map_scroll.get_v_scroll_bar().max_value)
 	_map_scroll.scroll_vertical = int(clampf(target_y - view_h * 0.38, 0.0, max_scroll))
@@ -472,7 +484,7 @@ func _read_pregame_booster_stocks() -> Vector2i:
 func _start_gameplay() -> void:
 	if _pregame_popup != null and _pregame_popup.has_method("present"):
 		var st: Vector2i = _read_pregame_booster_stocks()
-		_pregame_popup.call("present", st.x, st.y)
+		_pregame_popup.call("present", st.x, st.y, _furthest_level)
 		return
 	LevelSelectState.set_pregame_boosters(false, false)
 	LevelSelectState.request_start_at_level(_selected_level)
@@ -557,7 +569,6 @@ func _on_side_events_pressed() -> void:
 
 func _on_map_progress_reset() -> void:
 	_load_save_summary()
-	_display_levels = clampi(maxi(18, _furthest_level + 4), 12, 72)
 	_selected_level = clampi(_furthest_level, 1, 999_999)
 	_refresh_hud()
 	call_deferred("_deferred_build_map")

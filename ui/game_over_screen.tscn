@@ -288,6 +288,15 @@ theme_override_font_sizes/font_size = 26
 text = "Score: 0"
 horizontal_alignment = 1
 
+[node name="CoinsLostLabel" type="Label" parent="Center/MainColumn/ScoreColumn"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.72, 0.55, 1)
+theme_override_font_sizes/font_size = 18
+text = "Coins not banked: 0"
+horizontal_alignment = 1
+autowrap_mode = 3
+
 [node name="BestScoreLabel" type="Label" parent="Center/MainColumn/ScoreColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.86, 1, 1)

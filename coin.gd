@@ -57,6 +57,8 @@ func reset_for_new_game() -> void:
 
 func _pick_random_kind() -> Kind:
 	var main: Node = get_tree().get_first_node_in_group("main")
+	if main and main.has_method("get_collectible_kind_for_spawn"):
+		return main.get_collectible_kind_for_spawn(rng)
 	var bombs_ok: bool = true
 	if main and main.has_method("bombs_enabled"):
 		bombs_ok = main.bombs_enabled()
@@ -167,7 +169,13 @@ func _pick_random_path(first_spawn: bool = false) -> void:
 	rotation = rng.randf() * TAU
 
 	time_falling = 0.0
-	position.y = rng.randf_range(-140.0, -24.0) if not first_spawn else rng.randf_range(-48.0, 0.0)
+	var y_top: float = -140.0
+	var y_bot: float = -24.0
+	if main and main.has_method("get_spawn_depth_range"):
+		var yr: Vector2 = main.get_spawn_depth_range()
+		y_top = yr.x
+		y_bot = yr.y
+	position.y = rng.randf_range(y_top, y_bot) if not first_spawn else rng.randf_range(minf(y_bot, -10.0), 0.0)
 	position.x = _x_at_time(0.0)
 
 

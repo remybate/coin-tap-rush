@@ -7,6 +7,7 @@ signal home_pressed
 const MAX_RETRIES_DISPLAY: int = 5
 
 @onready var final_score_label: Label = $Center/MainColumn/ScoreColumn/FinalScoreLabel
+@onready var coins_lost_label: Label = $Center/MainColumn/ScoreColumn/CoinsLostLabel
 @onready var best_score_label: Label = $Center/MainColumn/ScoreColumn/BestScoreLabel
 @onready var retries_label: Label = $Center/MainColumn/RetriesLabel
 @onready var minus_badge: Label = $Center/MainColumn/HeartRow/HeartPanel/MinusBadge
@@ -84,8 +85,14 @@ func _on_retry_pressed() -> void:
 	play_again_pressed.emit(id)
 
 
-func show_results(final_score: int, best: int, lightning_left: int, hourglass_left: int, retries_left: int, retry_wait_sec: int) -> void:
+func show_results(final_score: int, best: int, lightning_left: int, hourglass_left: int, retries_left: int, retry_wait_sec: int, run_coins_lost: int = 0) -> void:
 	final_score_label.text = "Score: %d" % final_score
+	if coins_lost_label != null:
+		if run_coins_lost > 0:
+			coins_lost_label.text = "Coins not banked: %d — finish a level to send them to your vault." % run_coins_lost
+			coins_lost_label.visible = true
+		else:
+			coins_lost_label.visible = false
 	best_score_label.text = "Best: %d" % best
 	lightning_count_label.text = str(lightning_left)
 	hourglass_count_label.text = str(hourglass_left)

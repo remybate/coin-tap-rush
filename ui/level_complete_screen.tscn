@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://ui/level_complete_screen.gd" id="1"]
 
@@ -44,6 +44,58 @@ corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
+[sub_resource type="StyleBoxFlat" id="StyleHomeN"]
+bg_color = Color(0.28, 0.38, 0.72, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(0.55, 0.72, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleHomeH"]
+bg_color = Color(0.38, 0.48, 0.88, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(0.72, 0.82, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleHomeP"]
+bg_color = Color(0.18, 0.26, 0.55, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(0.4, 0.55, 0.92, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleRewardPanel"]
+bg_color = Color(0.14, 0.12, 0.22, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 4
+border_color = Color(1, 0.78, 0.35, 0.75)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+content_margin_left = 16
+content_margin_top = 14
+content_margin_right = 16
+content_margin_bottom = 16
+
 [node name="LevelCompleteScreen" type="Control"]
 process_mode = 3
 visible = false
@@ -76,33 +128,91 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
-theme_override_constants/separation = 22
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="TitleLabel" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.95, 0.78, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 36
 text = "Level 1 complete!"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="ScoreLabel" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.93, 0.95, 0.98, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 28
 text = "Score: 0"
 horizontal_alignment = 1
 
-[node name="NextButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(240, 68)
+[node name="LevelCoinsLabel" type="Label" parent="Center/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0.25, 0.12, 0.05, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 26
+text = "Coins this run: +0"
+horizontal_alignment = 1
+
+[node name="RewardPanel" type="PanelContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleRewardPanel")
+
+[node name="RVBox" type="VBoxContainer" parent="Center/VBox/RewardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RewardHeader" type="Label" parent="Center/VBox/RewardPanel/RVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.4, 1)
+theme_override_font_sizes/font_size = 22
+text = "Rewards earned"
+horizontal_alignment = 1
+
+[node name="RewardsLabel" type="Label" parent="Center/VBox/RewardPanel/RVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "—"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CoinFlyAnchor" type="Control" parent="Center/VBox/RewardPanel/RVBox"]
+custom_minimum_size = Vector2(120, 56)
 layout_mode = 2
 size_flags_horizontal = 4
+
+[node name="Hint" type="Label" parent="Center/VBox/RewardPanel/RVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.88, 1)
+theme_override_font_sizes/font_size = 16
+text = "Watch the gleams sail to your vault!"
+horizontal_alignment = 1
+
+[node name="ButtonRow" type="HBoxContainer" parent="Center/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="HomeButton" type="Button" parent="Center/VBox/ButtonRow"]
+custom_minimum_size = Vector2(168, 64)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(0.92, 1, 0.98, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleHomeN")
+theme_override_styles/hover = SubResource("StyleHomeH")
+theme_override_styles/pressed = SubResource("StyleHomeP")
+text = "Home"
+
+[node name="ContinueButton" type="Button" parent="Center/VBox/ButtonRow"]
+custom_minimum_size = Vector2(220, 64)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
 theme_override_styles/normal = SubResource("StyleBtnNormal")
 theme_override_styles/hover = SubResource("StyleBtnHover")
 theme_override_styles/pressed = SubResource("StyleBtnPressed")
-text = "Level 2"
+text = "Continue"
