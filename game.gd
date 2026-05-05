@@ -72,6 +72,8 @@ var stat_max_combo_streak: int = 0
 
 var _collectibles: Array[Collectible] = []
 var _last_slot_count: int = -1
+## When true, gameplay was paused only because Settings was opened from the HUD (not Pause / level-up).
+var _paused_for_hud_settings: bool = false
 
 @onready var score_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ScoreLabel
 @onready var best_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/BestLabel
@@ -109,6 +111,7 @@ func _ready() -> void:
 	pause_screen.main_menu_pressed.connect(_on_pause_main_menu_pressed)
 	if settings_screen != null:
 		settings_screen.progress_reset.connect(_on_progress_reset)
+		settings_screen.closed.connect(_on_settings_closed)
 	for ch in get_children():
 		if ch is Collectible:
 			_collectibles.append(ch as Collectible)
@@ -364,14 +367,25 @@ func _on_home_pressed() -> void:
 	AudioService.play_button_click()
 	_save_progress_file()
 	_clear_pause_state()
-	get_tree().change_scene_to_file(LEVEL_MAP_SCENE)
+	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
 
 func _on_settings_open() -> void:
 	if level_complete_screen.visible:
 		return
+	if game_over:
+		return
 	AudioService.play_button_click()
+	if not get_tree().paused:
+		get_tree().paused = true
+		_paused_for_hud_settings = true
 	settings_screen.open_settings()
+
+
+func _on_settings_closed() -> void:
+	if _paused_for_hud_settings:
+		get_tree().paused = false
+		_paused_for_hud_settings = false
 
 
 func _on_level_continue_pressed() -> void:

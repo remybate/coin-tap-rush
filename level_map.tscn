@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://level_map.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="2"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://ui/shop_popup.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://ui/trophies_popup.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://ui/events_popup.tscn" id="11"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.42, 0.78, 1)
@@ -524,6 +525,14 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="TrophiesPopupLayer" parent="." instance=ExtResource("10")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EventsPopupLayer" parent="." instance=ExtResource("11")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

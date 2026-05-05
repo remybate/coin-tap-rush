@@ -30,6 +30,7 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var _simple_popup: SimplePopup = $SimplePopupLayer
 @onready var _shop_popup: Node = $ShopPopupLayer
 @onready var _trophies_popup: Node = $TrophiesPopupLayer
+@onready var _events_popup: Node = $EventsPopupLayer
 
 var _furthest_level: int = 1
 var _selected_level: int = 1
@@ -51,6 +52,7 @@ func _ready() -> void:
 	_display_levels = clampi(maxi(18, _furthest_level + 4), 12, 72)
 	_settings_btn.pressed.connect(_on_settings_pressed)
 	_main_play.pressed.connect(_on_main_play_pressed)
+	_settings_layer.progress_reset.connect(_on_map_progress_reset)
 	call_deferred("_deferred_build_map")
 
 
@@ -512,15 +514,20 @@ func _on_side_shop_pressed() -> void:
 
 func _on_side_rewards_pressed() -> void:
 	AudioService.play_button_click()
-	_open_info_popup(
-		"Daily vault gift",
-		"Streak rewards are claimed from the Home screen’s Daily vault. Head home, open the chest, and your coin river grows!"
-	)
+	get_tree().change_scene_to_file(HOME_SCENE)
 
 
 func _on_side_events_pressed() -> void:
 	AudioService.play_button_click()
-	_open_info_popup(
-		"Seasonal vault tour",
-		"Limited-time treasure hunts remix lanes with themed sparkle rules. The calendar will ping you when a tour goes live."
-	)
+	if _events_popup != null and _events_popup.has_method("open_events"):
+		_events_popup.call("open_events")
+	else:
+		_open_info_popup("Vault events", "Events are unavailable right now.")
+
+
+func _on_map_progress_reset() -> void:
+	_load_save_summary()
+	_display_levels = clampi(maxi(18, _furthest_level + 4), 12, 72)
+	_selected_level = clampi(_furthest_level, 1, 999_999)
+	_refresh_hud()
+	call_deferred("_deferred_build_map")

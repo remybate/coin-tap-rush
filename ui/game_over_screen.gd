@@ -15,11 +15,13 @@ const MAX_RETRIES_DISPLAY: int = 5
 @onready var lightning_count_label: Label = $Center/MainColumn/BoosterRow/LightningBooster/Badge/Count
 @onready var hourglass_count_label: Label = $Center/MainColumn/BoosterRow/HourglassBooster/Badge/Count
 @onready var retry_button: Button = $Center/MainColumn/RetryButton
+@onready var home_button: Button = $Center/MainColumn/HomeButton
 @onready var close_button: Button = $CloseButton
 
 
 func _ready() -> void:
 	retry_button.pressed.connect(_on_retry_pressed)
+	home_button.pressed.connect(_on_home_button_pressed)
 	close_button.pressed.connect(func() -> void: home_pressed.emit())
 	booster_lightning.toggled.connect(_on_lightning_toggled)
 	booster_hourglass.toggled.connect(_on_hourglass_toggled)
@@ -61,6 +63,10 @@ func refresh_retry_ui(charges: int, wait_sec: int) -> void:
 	else:
 		retry_button.disabled = false
 		retry_button.text = "Retry"
+
+
+func _on_home_button_pressed() -> void:
+	home_pressed.emit()
 
 
 func _on_retry_pressed() -> void:

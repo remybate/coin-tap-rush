@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://ui/game_over_screen.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/game_over_bg.png" id="2"]
@@ -101,6 +101,45 @@ corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleHomeNormal"]
+bg_color = Color(0.36, 0.32, 0.68, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 10
+border_color = Color(0.2, 0.16, 0.45, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.08, 0.06, 0.18, 0.45)
+shadow_size = 6
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleHomeHover"]
+bg_color = Color(0.44, 0.4, 0.78, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 10
+border_color = Color(0.28, 0.22, 0.55, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleHomePressed"]
+bg_color = Color(0.28, 0.24, 0.52, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 8
+border_color = Color(0.14, 0.1, 0.35, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 
 [sub_resource type="StyleBoxFlat" id="StyleClose"]
 bg_color = Color(0.9, 0.22, 0.22, 1)
@@ -363,3 +402,17 @@ theme_override_styles/hover = SubResource("StyleRetryHover")
 theme_override_styles/pressed = SubResource("StyleRetryPressed")
 theme_override_styles/disabled = SubResource("StyleRetryDisabled")
 text = "Retry"
+
+[node name="HomeButton" type="Button" parent="Center/MainColumn"]
+custom_minimum_size = Vector2(420, 64)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.88, 1)
+theme_override_colors/font_pressed_color = Color(0.92, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.1, 0.28, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleHomeNormal")
+theme_override_styles/hover = SubResource("StyleHomeHover")
+theme_override_styles/pressed = SubResource("StyleHomePressed")
+text = "🏠  Home"
