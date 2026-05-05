@@ -1,10 +1,14 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://main_menu.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/how_to_play_screen.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://ui/daily_bonus_screen.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://ui/shop_popup.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://ui/trophies_popup.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://ui/cards_popup.tscn" id="19"]
+[ext_resource type="PackedScene" path="res://ui/events_popup.tscn" id="20"]
 [ext_resource type="Texture2D" path="res://gold_coin.svg" id="5"]
 [ext_resource type="Texture2D" path="res://ui/home_icons/profile_ring.svg" id="6"]
 [ext_resource type="Texture2D" path="res://ui/home_icons/gear.svg" id="7"]
@@ -653,7 +657,39 @@ title = "Coin Tap Rush"
 size = Vector2i(520, 200)
 dialog_text = "Coming soon!"
 
-[node name="HowToPlayLayer" parent="." instance=ExtResource("2")]
+[node name="ShopPopupLayer" parent="." instance=ExtResource("17")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TrophiesPopupLayer" parent="." instance=ExtResource("18")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardsPopupLayer" parent="." instance=ExtResource("19")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EventsPopupLayer" parent="." instance=ExtResource("20")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SimplePopupLayer" parent="." instance=ExtResource("16")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -677,7 +713,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="SimplePopupLayer" parent="." instance=ExtResource("16")]
+[node name="HowToPlayLayer" parent="." instance=ExtResource("2")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

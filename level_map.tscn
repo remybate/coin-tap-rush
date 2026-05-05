@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://level_map.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="2"]
@@ -7,6 +7,9 @@
 [ext_resource type="Script" path="res://ui/map_path_drawer.gd" id="5"]
 [ext_resource type="Script" path="res://ui/level_map_ambience.gd" id="6"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/level_map_bg.png" id="7"]
+[ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://ui/shop_popup.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://ui/trophies_popup.tscn" id="10"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.42, 0.78, 1)
@@ -511,6 +514,30 @@ text = "Trophy"
 [node name="StubDialog" type="AcceptDialog" parent="."]
 title = "Coin Tap Rush"
 size = Vector2i(520, 200)
+
+[node name="ShopPopupLayer" parent="." instance=ExtResource("9")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TrophiesPopupLayer" parent="." instance=ExtResource("10")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SimplePopupLayer" parent="." instance=ExtResource("8")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="SettingsLayer" parent="." instance=ExtResource("2")]
 layout_mode = 1

@@ -27,6 +27,9 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var _settings_btn: Button = $TopBar/HBox/SettingsBtn
 @onready var _stub: AcceptDialog = $StubDialog
 @onready var _settings_layer: SettingsScreen = $SettingsLayer
+@onready var _simple_popup: SimplePopup = $SimplePopupLayer
+@onready var _shop_popup: Node = $ShopPopupLayer
+@onready var _trophies_popup: Node = $TrophiesPopupLayer
 
 var _furthest_level: int = 1
 var _selected_level: int = 1
@@ -41,6 +44,8 @@ var _sway_nodes: Array[TextureRect] = []
 func _ready() -> void:
 	set_process(false)
 	_settings_layer.visible = false
+	if _shop_popup != null and _shop_popup.has_signal("toast_requested"):
+		_shop_popup.connect("toast_requested", Callable(self, "_open_info_popup"))
 	_load_save_summary()
 	_selected_level = _furthest_level
 	_display_levels = clampi(maxi(18, _furthest_level + 4), 12, 72)
@@ -462,6 +467,13 @@ func _on_settings_pressed() -> void:
 	_settings_layer.open_settings()
 
 
+func _open_info_popup(title: String, msg: String) -> void:
+	if _simple_popup != null:
+		_simple_popup.open_popup(title, msg)
+	else:
+		_show_stub(title, msg)
+
+
 func _show_stub(title: String, msg: String) -> void:
 	_stub.title = title
 	_stub.dialog_text = msg
@@ -480,12 +492,18 @@ func _on_levels_tab_pressed() -> void:
 
 func _on_nav_shop_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Shop", "Treasure deals — coming soon!")
+	if _shop_popup != null and _shop_popup.has_method("open_shop"):
+		_shop_popup.call("open_shop")
+	else:
+		_open_info_popup("Treasure Emporium", "The shop cart rolled away — try again from Home.")
 
 
 func _on_nav_trophy_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Trophy", "Your achievements — coming soon!")
+	if _trophies_popup != null and _trophies_popup.has_method("open_trophies"):
+		_trophies_popup.call("open_trophies")
+	else:
+		_open_info_popup("Hall of Gleams", "Trophies are polishing — open them from Home.")
 
 
 func _on_side_shop_pressed() -> void:
@@ -494,9 +512,15 @@ func _on_side_shop_pressed() -> void:
 
 func _on_side_rewards_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Rewards", "Daily streak rewards — open Home for the daily bonus chest!")
+	_open_info_popup(
+		"Daily vault gift",
+		"Streak rewards are claimed from the Home screen’s Daily vault. Head home, open the chest, and your coin river grows!"
+	)
 
 
 func _on_side_events_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Events", "Limited-time treasure hunts — coming soon!")
+	_open_info_popup(
+		"Seasonal vault tour",
+		"Limited-time treasure hunts remix lanes with themed sparkle rules. The calendar will ping you when a tour goes live."
+	)

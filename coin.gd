@@ -181,7 +181,10 @@ func _process(delta: float) -> void:
 	rotation += spin_rad_per_sec * delta
 
 	if position.y > miss_y:
-		if kind != Kind.BOMB:
+		if kind == Kind.BOMB:
+			if main and main.has_method("register_bomb_dodged"):
+				main.register_bomb_dodged()
+		else:
 			if main and main.has_method("register_miss"):
 				main.register_miss()
 			if main and main.has_method("is_game_over") and main.is_game_over():

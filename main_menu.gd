@@ -9,6 +9,9 @@ const KEY_RETRY_CHARGES: String = "retry_charges"
 const KEY_RETRY_BLOCK_UNTIL: String = "retry_block_until_unix"
 const KEY_DAILY_LAST_CLAIM_DAY: String = "daily_bonus_last_claim_day"
 const KEY_DAILY_STREAK: String = "daily_bonus_streak"
+const KEY_BOOST_LIGHTNING: String = "booster_lightning"
+const KEY_BOOST_HOURGLASS: String = "booster_hourglass"
+const KEY_BOOST_SHIELD: String = "booster_shield"
 const MAX_RETRY_CHARGES: int = 5
 const MAX_LIVES_DISPLAY: int = 5
 
@@ -17,6 +20,11 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var daily_bonus: DailyBonusScreen = $DailyBonusLayer
 @onready var stub_dialog: AcceptDialog = $StubDialog
 @onready var simple_popup: SimplePopup = $SimplePopupLayer
+## Shop/trophy scenes use `shop_popup.gd` / `trophies_popup.gd` — typed as Node so main menu parses even if global class registration is late.
+@onready var shop_popup: Node = $ShopPopupLayer
+@onready var trophies_popup: Node = $TrophiesPopupLayer
+@onready var cards_popup: Node = $CardsPopupLayer
+@onready var events_popup: Node = $EventsPopupLayer
 @onready var coin_value_label: Label = $MainColumn/VBox/TopBar/CoinPill/Margin/HBox/CoinValue
 @onready var lives_value_label: Label = $MainColumn/VBox/TopBar/LivesPill/Margin/HBox/LivesValue
 @onready var play_button: Button = $MainColumn/VBox/PlaySection/PlayButton
@@ -33,7 +41,10 @@ func _ready() -> void:
 	how_to_play.visible = false
 	settings.visible = false
 	daily_bonus.hide_bonus()
-	daily_bonus.bonus_claimed.connect(_on_daily_bonus_claimed)
+	daily_bonus.claim_pressed.connect(_on_daily_vault_claimed)
+	settings.progress_reset.connect(_on_progress_reset)
+	if shop_popup != null and shop_popup.has_signal("toast_requested"):
+		shop_popup.connect("toast_requested", Callable(self, "_open_popup"))
 	_clear_stale_retry_lock_in_save()
 	_refresh_currency_ui()
 	_try_auto_daily_bonus()
@@ -148,23 +159,66 @@ func _try_auto_daily_bonus() -> void:
 	var st: Dictionary = _read_daily_state()
 	if int(st["last_day"]) == _today_day_index():
 		return
-	daily_bonus.show_for_day(_daily_day_number_for_popup())
+	var next_day: int = _daily_day_number_for_popup()
+	daily_bonus.present(next_day, true, int(st["streak"]))
 
 
 func _open_daily_bonus_flow() -> void:
 	AudioService.play_button_click()
 	var st: Dictionary = _read_daily_state()
 	var today: int = _today_day_index()
-	if int(st["last_day"]) == today:
-		_show_stub("Daily Reward", "You already claimed today's reward. Come back tomorrow!")
-		return
-	daily_bonus.show_for_day(_daily_day_number_for_popup())
+	var can_claim: bool = int(st["last_day"]) != today
+	var streak_saved: int = int(st["streak"])
+	var next_day: int = _daily_day_number_for_popup() if can_claim else streak_saved
+	daily_bonus.present(next_day, can_claim, streak_saved)
 
 
-func _on_daily_bonus_claimed(amount: int) -> void:
+func _daily_reward_payload(day: int) -> Dictionary:
+	match clampi(day, 1, 7):
+		1:
+			return {"coins": 100}
+		2:
+			return {"hourglass": 1}
+		3:
+			return {"coins": 250}
+		4:
+			return {"lightning": 1}
+		5:
+			return {"coins": 500}
+		6:
+			return {"shield": 1}
+		7:
+			return {"coins": 800, "lightning": 1, "hourglass": 1, "shield": 1}
+		_:
+			return {}
+
+
+func _grant_daily_rewards_for_day(cfg: ConfigFile, day: int) -> void:
+	var r: Dictionary = _daily_reward_payload(day)
+	var bank: int = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_SAVED_SCORE, 0)))
+	bank += int(r.get("coins", 0))
+	cfg.set_value(SAVE_SECTION, KEY_SAVED_SCORE, bank)
+	var best: int = int(cfg.get_value(SAVE_SECTION, KEY_BEST, 0))
+	if bank > best:
+		cfg.set_value(SAVE_SECTION, KEY_BEST, bank)
+	var li: int = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, 5)), 0, 99)
+	li += int(r.get("lightning", 0))
+	cfg.set_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, li)
+	var hg: int = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, 4)), 0, 99)
+	hg += int(r.get("hourglass", 0))
+	cfg.set_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, hg)
+	var sh: int = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_SHIELD, 0)), 0, 99)
+	sh += int(r.get("shield", 0))
+	cfg.set_value(SAVE_SECTION, KEY_BOOST_SHIELD, sh)
+
+
+func _on_daily_vault_claimed() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(SAVE_PATH)
 	var today: int = _today_day_index()
+	if int(cfg.get_value(SAVE_SECTION, KEY_DAILY_LAST_CLAIM_DAY, -1)) == today:
+		return
+	var day: int = _daily_day_number_for_popup()
 	var last_day: int = int(cfg.get_value(SAVE_SECTION, KEY_DAILY_LAST_CLAIM_DAY, -1))
 	var streak: int = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_DAILY_STREAK, 0)))
 	if last_day == today - 1:
@@ -173,14 +227,10 @@ func _on_daily_bonus_claimed(amount: int) -> void:
 		streak = 1
 	cfg.set_value(SAVE_SECTION, KEY_DAILY_LAST_CLAIM_DAY, today)
 	cfg.set_value(SAVE_SECTION, KEY_DAILY_STREAK, streak)
-	var bank: int = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_SAVED_SCORE, 0)))
-	bank += maxi(0, amount)
-	cfg.set_value(SAVE_SECTION, KEY_SAVED_SCORE, bank)
-	var best: int = int(cfg.get_value(SAVE_SECTION, KEY_BEST, 0))
-	if bank > best:
-		cfg.set_value(SAVE_SECTION, KEY_BEST, bank)
+	_grant_daily_rewards_for_day(cfg, day)
 	cfg.save(SAVE_PATH)
 	_refresh_currency_ui()
+	daily_bonus.hide_bonus()
 
 
 func _show_stub(title: String, message: String) -> void:
@@ -204,7 +254,10 @@ func _on_play_pressed() -> void:
 
 func _on_profile_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup("Profile", "Avatars and nicknames — coming soon!")
+	_open_popup(
+		"Vault profile",
+		"Your portrait frame, trail sparkles, and signature tap burst will live here. Customize your look between runs in a future update."
+	)
 
 
 func _on_top_settings_pressed() -> void:
@@ -218,27 +271,27 @@ func _on_side_daily_pressed() -> void:
 
 func _on_side_shop_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup("Shop", "Treasure deals and boost packs — coming soon!")
+	_open_shop()
 
 
 func _on_side_bonus_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup("Bonus", "Limited bonus rounds — coming soon!")
+	_open_bonus()
 
 
 func _on_side_events_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup("Events", "Seasonal challenges — coming soon!")
+	_open_events()
 
 
 func _on_nav_shop_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup("Shop", "Open the treasure shop — coming soon!")
+	_open_shop()
 
 
 func _on_nav_trophy_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup("Trophies", "Your achievements wall — coming soon!")
+	_open_trophies()
 
 
 func _on_nav_home_pressed() -> void:
@@ -250,5 +303,45 @@ func _on_nav_rewards_pressed() -> void:
 
 
 func _on_nav_cards_pressed() -> void:
+	_open_cards()
+
+
+func _open_cards() -> void:
 	AudioService.play_button_click()
-	_open_popup("Cards", "Collectible rush cards — coming soon!")
+	if cards_popup != null and cards_popup.has_method("open_cards"):
+		cards_popup.call("open_cards")
+	else:
+		_open_popup("Rush Reliquary", "The card vault is sealed — try again after an update.")
+
+
+func _open_bonus() -> void:
+	if events_popup != null and events_popup.has_method("open_bonus"):
+		events_popup.call("open_bonus")
+	else:
+		_open_popup("Bonus board", "The bonus board is being re-inked — check back soon.")
+
+
+func _open_events() -> void:
+	if events_popup != null and events_popup.has_method("open_events"):
+		events_popup.call("open_events")
+	else:
+		_open_popup("Vault events", "The event lanterns are out — check back soon.")
+
+
+func _on_progress_reset() -> void:
+	_refresh_currency_ui()
+	daily_bonus.hide_bonus()
+
+
+func _open_shop() -> void:
+	if shop_popup != null and shop_popup.has_method("open_shop"):
+		shop_popup.call("open_shop")
+	else:
+		_open_popup("Shop", "The emporium is temporarily unavailable.")
+
+
+func _open_trophies() -> void:
+	if trophies_popup != null and trophies_popup.has_method("open_trophies"):
+		trophies_popup.call("open_trophies")
+	else:
+		_open_popup("Trophies", "The hall of gleams is closed for polishing.")

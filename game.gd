@@ -26,8 +26,13 @@ const KEY_SAVED_SCORE: String = "saved_score"
 const KEY_PROGRESSION: String = "saved_progression_level"
 const KEY_BOOST_LIGHTNING: String = "booster_lightning"
 const KEY_BOOST_HOURGLASS: String = "booster_hourglass"
+const KEY_BOOST_SHIELD: String = "booster_shield"
 const KEY_RETRY_CHARGES: String = "retry_charges"
 const KEY_RETRY_BLOCK_UNTIL: String = "retry_block_until_unix"
+## Lifetime stats for trophies (do not affect scoring).
+const KEY_STAT_GLEAMS: String = "stat_gleams_collected"
+const KEY_STAT_BOMBS_DODGED: String = "stat_bombs_dodged"
+const KEY_STAT_MAX_COMBO: String = "stat_max_combo_streak"
 ## Retries after Level Failed before a long cooldown (each Retry tap uses one).
 const MAX_RETRY_CHARGES: int = 5
 const RETRY_COOLDOWN_SEC: int = 3 * 3600
@@ -48,6 +53,8 @@ var progression_level: int = 1
 ## Inventory for the level-fail screen (persisted).
 var booster_lightning: int = 5
 var booster_hourglass: int = 4
+## Absorbs one bomb tap (no life lost); consumed on use.
+var booster_shield: int = 0
 ## After Retry with ⚡ booster: slower new spawns for this many seconds.
 var _booster_slow_timer: float = 0.0
 ## Can become 6 when Retry uses ⏳ booster.
@@ -56,6 +63,12 @@ var _effective_max_lives: int = MAX_LIVES
 var retry_charges: int = MAX_RETRY_CHARGES
 ## Unix time when retry charges refill to max; 0 = not waiting.
 var retry_block_until_unix: int = 0
+## Good taps (coins/gems) — used for trophy progress.
+var stat_gleams_collected: int = 0
+## Bombs that left the screen without being tapped.
+var stat_bombs_dodged: int = 0
+## Best consecutive good-tap streak this save has seen.
+var stat_max_combo_streak: int = 0
 
 var _collectibles: Array[Collectible] = []
 var _last_slot_count: int = -1
@@ -94,12 +107,19 @@ func _ready() -> void:
 	pause_screen.settings_pressed.connect(_on_pause_settings_pressed)
 	pause_screen.how_to_play_pressed.connect(_on_pause_how_to_play_pressed)
 	pause_screen.main_menu_pressed.connect(_on_pause_main_menu_pressed)
+	if settings_screen != null:
+		settings_screen.progress_reset.connect(_on_progress_reset)
 	for ch in get_children():
 		if ch is Collectible:
 			_collectibles.append(ch as Collectible)
 	_collectibles.sort_custom(func(a: Collectible, b: Collectible) -> bool: return a.get_index() < b.get_index())
 	_last_slot_count = -1
 	set_process(true)
+	_refresh_ui()
+
+
+func _on_progress_reset() -> void:
+	_load_progress_from_disk()
 	_refresh_ui()
 
 
@@ -233,6 +253,11 @@ func register_collectible(k: Collectible.Kind) -> void:
 		return
 	if k == Collectible.Kind.BOMB:
 		combo_streak = 0
+		if booster_shield > 0:
+			booster_shield -= 1
+			_refresh_ui()
+			_save_progress_file()
+			return
 		lives -= 1
 		_refresh_ui()
 		if lives <= 0:
@@ -250,10 +275,19 @@ func register_collectible(k: Collectible.Kind) -> void:
 			_refresh_ui()
 			return
 	combo_streak += 1
+	stat_gleams_collected += 1
+	stat_max_combo_streak = maxi(stat_max_combo_streak, combo_streak)
 	var combo_mult: int = 1 + combo_streak / COMBO_STEP
 	var level_bonus: int = max(0, progression_level - 1) * LEVEL_BONUS_PER_LEVEL
 	score += base_pts * combo_mult + level_bonus
 	_refresh_ui()
+	_save_progress_file()
+
+
+func register_bomb_dodged() -> void:
+	if game_over:
+		return
+	stat_bombs_dodged += 1
 	_save_progress_file()
 
 
@@ -443,8 +477,12 @@ func _load_progress_from_disk() -> void:
 		progression_level = 1
 		booster_lightning = 5
 		booster_hourglass = 4
+		booster_shield = 0
 		retry_charges = MAX_RETRY_CHARGES
 		retry_block_until_unix = 0
+		stat_gleams_collected = 0
+		stat_bombs_dodged = 0
+		stat_max_combo_streak = 0
 		return
 	best_score = int(cfg.get_value(SAVE_SECTION, KEY_BEST, 0))
 	score = int(cfg.get_value(SAVE_SECTION, KEY_SAVED_SCORE, 0))
@@ -452,11 +490,15 @@ func _load_progress_from_disk() -> void:
 	progression_level = clampi(progression_level, 1, 999999)
 	booster_lightning = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, 5)), 0, 99)
 	booster_hourglass = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, 4)), 0, 99)
+	booster_shield = clampi(int(cfg.get_value(SAVE_SECTION, KEY_BOOST_SHIELD, 0)), 0, 99)
 	retry_charges = clampi(int(cfg.get_value(SAVE_SECTION, KEY_RETRY_CHARGES, MAX_RETRY_CHARGES)), 0, MAX_RETRY_CHARGES)
 	retry_block_until_unix = int(cfg.get_value(SAVE_SECTION, KEY_RETRY_BLOCK_UNTIL, 0))
 	if retry_charges <= 0 and retry_block_until_unix <= 0:
 		retry_charges = MAX_RETRY_CHARGES
 		retry_block_until_unix = 0
+	stat_gleams_collected = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_STAT_GLEAMS, 0)))
+	stat_bombs_dodged = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_STAT_BOMBS_DODGED, 0)))
+	stat_max_combo_streak = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_STAT_MAX_COMBO, 0)))
 	_update_retry_refill_if_needed()
 
 
@@ -470,8 +512,12 @@ func _save_progress_file() -> void:
 	cfg.set_value(SAVE_SECTION, KEY_PROGRESSION, progression_level)
 	cfg.set_value(SAVE_SECTION, KEY_BOOST_LIGHTNING, booster_lightning)
 	cfg.set_value(SAVE_SECTION, KEY_BOOST_HOURGLASS, booster_hourglass)
+	cfg.set_value(SAVE_SECTION, KEY_BOOST_SHIELD, booster_shield)
 	cfg.set_value(SAVE_SECTION, KEY_RETRY_CHARGES, retry_charges)
 	cfg.set_value(SAVE_SECTION, KEY_RETRY_BLOCK_UNTIL, retry_block_until_unix)
+	cfg.set_value(SAVE_SECTION, KEY_STAT_GLEAMS, stat_gleams_collected)
+	cfg.set_value(SAVE_SECTION, KEY_STAT_BOMBS_DODGED, stat_bombs_dodged)
+	cfg.set_value(SAVE_SECTION, KEY_STAT_MAX_COMBO, stat_max_combo_streak)
 	cfg.save(SAVE_PATH)
 
 

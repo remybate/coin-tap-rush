@@ -3,16 +3,19 @@
 [ext_resource type="Script" path="res://ui/settings_screen.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_SettingsPanel"]
-bg_color = Color(0.08, 0.1, 0.16, 0.98)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.22, 0.28, 0.42, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+bg_color = Color(0.06, 0.08, 0.14, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(1, 0.78, 0.35, 0.82)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 10
+shadow_offset = Vector2(0, 5)
 
 [node name="SettingsScreen" type="Control"]
 process_mode = 3
@@ -34,7 +37,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.02, 0.03, 0.07, 0.72)
+color = Color(0.02, 0.02, 0.08, 0.76)
 
 [node name="CloseX" type="Button" parent="."]
 layout_mode = 1
@@ -62,7 +65,7 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(520, 320)
+custom_minimum_size = Vector2(560, 470)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBox_SettingsPanel")
 
@@ -79,22 +82,44 @@ theme_override_constants/separation = 18
 
 [node name="SettingsTitle" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.96, 0.99, 1)
-theme_override_font_sizes/font_size = 32
-text = "Settings"
+theme_override_colors/font_color = Color(1, 0.84, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0.22, 0.1, 0.42, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 34
+text = "Vault settings"
 horizontal_alignment = 1
 
 [node name="MusicCheck" type="CheckButton" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 button_pressed = true
-text = "Music (background, looping)"
+text = "Music on"
 
 [node name="SfxCheck" type="CheckButton" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 button_pressed = true
-text = "Sound effects"
+text = "Sound effects on"
+
+[node name="VibrationCheck" type="CheckButton" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+button_pressed = true
+text = "Vibration on"
+
+[node name="ResetProgressButton" type="Button" parent="Center/Panel/Margin/VBox"]
+custom_minimum_size = Vector2(280, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Reset progress"
+
+[node name="ResetHint" type="Label" parent="Center/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.9, 1, 0.92)
+theme_override_font_sizes/font_size = 16
+text = "Reset hint"
+horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="CloseButton" type="Button" parent="Center/Panel/Margin/VBox"]
 custom_minimum_size = Vector2(280, 56)

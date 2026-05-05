@@ -3,36 +3,39 @@
 [ext_resource type="Script" path="res://ui/daily_bonus_screen.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBonusPanel"]
-bg_color = Color(0.07, 0.1, 0.16, 0.98)
+bg_color = Color(0.06, 0.08, 0.14, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 4
+border_color = Color(1, 0.72, 0.38, 0.85)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleClaimNormal"]
+bg_color = Color(0.42, 0.32, 0.78, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.22, 0.3, 0.48, 1)
+border_width_bottom = 8
+border_color = Color(0.2, 0.12, 0.45, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxFlat" id="StyleBonusButton"]
-bg_color = Color(0.38, 0.76, 0.46, 1)
+[sub_resource type="StyleBoxFlat" id="StyleClaimHover"]
+bg_color = Color(0.5, 0.4, 0.9, 1)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
-border_width_bottom = 10
-border_color = Color(0.12, 0.4, 0.2, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBonusButtonHover"]
-bg_color = Color(0.44, 0.84, 0.52, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 10
-border_color = Color(0.14, 0.45, 0.24, 1)
+border_width_bottom = 8
+border_color = Color(0.24, 0.16, 0.52, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
@@ -58,7 +61,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.02, 0.04, 0.08, 0.8)
+color = Color(0.02, 0.02, 0.08, 0.78)
 
 [node name="CloseX" type="Button" parent="."]
 layout_mode = 1
@@ -81,73 +84,80 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 48.0
+offset_right = -12.0
+offset_bottom = -12.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(900, 720)
+custom_minimum_size = Vector2(560, 640)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBonusPanel")
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
+[node name="Root" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Title" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.52, 1)
-theme_override_font_sizes/font_size = 42
-text = "Daily Bonus - Day 1"
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0.3, 0.12, 0.5, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 32
+text = "Seven-Sigil Vault Calendar"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Center/Panel/Margin/VBox"]
+[node name="Subtitle" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.9, 0.98, 1)
-theme_override_font_sizes/font_size = 24
-text = "Pick one reward to start your run with extra coins."
+theme_override_colors/font_color = Color(0.88, 0.93, 1, 1)
+theme_override_font_sizes/font_size = 17
+text = "Subtitle"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Bonus70" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 92)
+[node name="StatusLabel" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.18, 0.1, 1)
-theme_override_constants/outline_size = 7
-theme_override_font_sizes/font_size = 34
-theme_override_styles/normal = SubResource("StyleBonusButton")
-theme_override_styles/hover = SubResource("StyleBonusButtonHover")
-theme_override_styles/pressed = SubResource("StyleBonusButton")
-text = "+70 Coins"
+theme_override_colors/font_color = Color(0.92, 0.96, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Status"
+horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="Bonus120" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 92)
+[node name="CalendarScroll" type="ScrollContainer" parent="Center/Panel/Margin/Root"]
+custom_minimum_size = Vector2(0, 260)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.18, 0.1, 1)
-theme_override_constants/outline_size = 7
-theme_override_font_sizes/font_size = 34
-theme_override_styles/normal = SubResource("StyleBonusButton")
-theme_override_styles/hover = SubResource("StyleBonusButtonHover")
-theme_override_styles/pressed = SubResource("StyleBonusButton")
-text = "+120 Coins"
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="Bonus200" type="Button" parent="Center/Panel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 92)
+[node name="CalendarGrid" type="GridContainer" parent="Center/Panel/Margin/Root/CalendarScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 4
+
+[node name="ClaimRow" type="HBoxContainer" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+alignment = 1
+
+[node name="ClaimButton" type="Button" parent="Center/Panel/Margin/Root/ClaimRow"]
+custom_minimum_size = Vector2(280, 56)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.18, 0.1, 1)
-theme_override_constants/outline_size = 7
-theme_override_font_sizes/font_size = 34
-theme_override_styles/normal = SubResource("StyleBonusButton")
-theme_override_styles/hover = SubResource("StyleBonusButtonHover")
-theme_override_styles/pressed = SubResource("StyleBonusButton")
-text = "+200 Coins"
+theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.28, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleClaimNormal")
+theme_override_styles/hover = SubResource("StyleClaimHover")
+theme_override_styles/pressed = SubResource("StyleClaimNormal")
+text = "Claim reward"
