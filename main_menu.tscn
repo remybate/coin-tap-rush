@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://ui/how_to_play_screen.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://ui/daily_bonus_screen.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="16"]
 [ext_resource type="Texture2D" path="res://gold_coin.svg" id="5"]
 [ext_resource type="Texture2D" path="res://ui/home_icons/profile_ring.svg" id="6"]
 [ext_resource type="Texture2D" path="res://ui/home_icons/gear.svg" id="7"]
@@ -669,6 +670,14 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="DailyBonusLayer" parent="." instance=ExtResource("4")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SimplePopupLayer" parent="." instance=ExtResource("16")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

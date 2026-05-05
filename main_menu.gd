@@ -16,6 +16,7 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var settings: SettingsScreen = $SettingsLayer
 @onready var daily_bonus: DailyBonusScreen = $DailyBonusLayer
 @onready var stub_dialog: AcceptDialog = $StubDialog
+@onready var simple_popup: SimplePopup = $SimplePopupLayer
 @onready var coin_value_label: Label = $MainColumn/VBox/TopBar/CoinPill/Margin/HBox/CoinValue
 @onready var lives_value_label: Label = $MainColumn/VBox/TopBar/LivesPill/Margin/HBox/LivesValue
 @onready var play_button: Button = $MainColumn/VBox/PlaySection/PlayButton
@@ -183,9 +184,17 @@ func _on_daily_bonus_claimed(amount: int) -> void:
 
 
 func _show_stub(title: String, message: String) -> void:
+	# Legacy AcceptDialog fallback (should be rare).
 	stub_dialog.title = title
 	stub_dialog.dialog_text = message
 	stub_dialog.popup_centered()
+
+
+func _open_popup(title: String, message: String) -> void:
+	if simple_popup != null:
+		simple_popup.open_popup(title, message)
+	else:
+		_show_stub(title, message)
 
 
 func _on_play_pressed() -> void:
@@ -195,7 +204,7 @@ func _on_play_pressed() -> void:
 
 func _on_profile_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Profile", "Avatars and nicknames — coming soon!")
+	_open_popup("Profile", "Avatars and nicknames — coming soon!")
 
 
 func _on_top_settings_pressed() -> void:
@@ -209,27 +218,27 @@ func _on_side_daily_pressed() -> void:
 
 func _on_side_shop_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Shop", "Treasure deals and boost packs — coming soon!")
+	_open_popup("Shop", "Treasure deals and boost packs — coming soon!")
 
 
 func _on_side_bonus_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Bonus", "Limited bonus rounds — coming soon!")
+	_open_popup("Bonus", "Limited bonus rounds — coming soon!")
 
 
 func _on_side_events_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Events", "Seasonal challenges — coming soon!")
+	_open_popup("Events", "Seasonal challenges — coming soon!")
 
 
 func _on_nav_shop_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Shop", "Open the treasure shop — coming soon!")
+	_open_popup("Shop", "Open the treasure shop — coming soon!")
 
 
 func _on_nav_trophy_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Trophies", "Your achievements wall — coming soon!")
+	_open_popup("Trophies", "Your achievements wall — coming soon!")
 
 
 func _on_nav_home_pressed() -> void:
@@ -242,4 +251,4 @@ func _on_nav_rewards_pressed() -> void:
 
 func _on_nav_cards_pressed() -> void:
 	AudioService.play_button_click()
-	_show_stub("Cards", "Collectible rush cards — coming soon!")
+	_open_popup("Cards", "Collectible rush cards — coming soon!")

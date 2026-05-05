@@ -8,12 +8,19 @@ signal bonus_claimed(amount: int)
 @onready var bonus_70_button: Button = $Center/Panel/Margin/VBox/Bonus70
 @onready var bonus_120_button: Button = $Center/Panel/Margin/VBox/Bonus120
 @onready var bonus_200_button: Button = $Center/Panel/Margin/VBox/Bonus200
+@onready var close_x: Button = $CloseX
 
 
 func _ready() -> void:
 	bonus_70_button.pressed.connect(func() -> void: _claim_bonus(70))
 	bonus_120_button.pressed.connect(func() -> void: _claim_bonus(120))
 	bonus_200_button.pressed.connect(func() -> void: _claim_bonus(200))
+	close_x.pressed.connect(_on_close_pressed)
+
+
+func _on_close_pressed() -> void:
+	AudioService.play_button_click()
+	hide_bonus()
 
 
 func show_for_day(day_num: int) -> void:

@@ -6,10 +6,12 @@ signal closed
 @onready var music_check: CheckButton = $Center/Panel/Margin/VBox/MusicCheck
 @onready var sfx_check: CheckButton = $Center/Panel/Margin/VBox/SfxCheck
 @onready var close_button: Button = $Center/Panel/Margin/VBox/CloseButton
+@onready var close_x: Button = $CloseX
 
 
 func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
+	close_x.pressed.connect(_on_close_pressed)
 	music_check.toggled.connect(_on_music_toggled)
 	sfx_check.toggled.connect(_on_sfx_toggled)
 
