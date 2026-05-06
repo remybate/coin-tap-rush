@@ -36,10 +36,13 @@ const DEBUG_LEVEL_MAP_FLOW: bool = true
 @onready var _trophies_popup: Node = $TrophiesPopupLayer
 @onready var _events_popup: Node = $EventsPopupLayer
 @onready var _pregame_popup: Control = $PreGameBoostersPopup
+@onready var _journey_layer: Control = $JourneyRewardsLayer
+@onready var _rank_layer: Control = $LocalRankLayer
 @onready var _profile_btn: Button = $TopBar/HBox/ProfileBtn
 @onready var _coin_plus_btn: Button = $TopBar/HBox/CoinPill/Margin/HBox/CoinPlusBtn
 @onready var _lives_plus_btn: Button = $TopBar/HBox/LivesPill/Margin/HBox/LivesPlusBtn
 @onready var _nav_home: Button = $BottomNav/NavMargin/NavRow/BtnHome
+@onready var _nav_journey: Button = $BottomNav/NavMargin/NavRow/BtnJourney
 @onready var _nav_levels: Button = $BottomNav/NavMargin/NavRow/BtnLevels
 @onready var _nav_shop: Button = $BottomNav/NavMargin/NavRow/BtnShop
 @onready var _nav_trophy: Button = $BottomNav/NavMargin/NavRow/BtnTrophy
@@ -67,6 +70,8 @@ func _ready() -> void:
 	_settings_layer.visible = false
 	if _shop_popup != null and _shop_popup.has_signal("toast_requested"):
 		_shop_popup.connect("toast_requested", Callable(self, "_open_info_popup"))
+	if is_instance_valid(_rank_layer) and _rank_layer.has_signal("trophies_requested"):
+		_rank_layer.trophies_requested.connect(_on_rank_layer_trophies_requested)
 	_load_save_summary()
 	var requested: int = LevelSelectState.consume_pending_level()
 	if requested > 0:
@@ -795,6 +800,12 @@ func _on_levels_tab_pressed() -> void:
 	_scroll_to_selected()
 
 
+func _on_nav_journey_pressed() -> void:
+	AudioService.play_button_click()
+	if is_instance_valid(_journey_layer) and _journey_layer.has_method("open_journey"):
+		_journey_layer.open_journey()
+
+
 func _on_nav_shop_pressed() -> void:
 	AudioService.play_button_click()
 	if _shop_popup != null and _shop_popup.has_method("open_shop"):
@@ -805,6 +816,15 @@ func _on_nav_shop_pressed() -> void:
 
 func _on_nav_trophy_pressed() -> void:
 	AudioService.play_button_click()
+	if is_instance_valid(_rank_layer) and _rank_layer.has_method("open_rank"):
+		_rank_layer.open_rank()
+	elif _trophies_popup != null and _trophies_popup.has_method("open_trophies"):
+		_trophies_popup.call("open_trophies")
+	else:
+		_open_info_popup("Hall of Gleams", "Trophies are polishing — open them from Home.")
+
+
+func _on_rank_layer_trophies_requested() -> void:
 	if _trophies_popup != null and _trophies_popup.has_method("open_trophies"):
 		_trophies_popup.call("open_trophies")
 	else:
@@ -938,58 +958,63 @@ func _apply_top_bar_arcade_styles() -> void:
 
 
 func _apply_bottom_nav_arcade_styles() -> void:
-	var nav_n := _make_flat_style(Color(0.38, 0.22, 0.78, 1), Color(0.98, 0.78, 0.22, 1), 3, 18, 8, Color(0, 0, 0, 0.42))
+	## Icon-only bar: large centered icons, glossy tiles, gold rim; Levels tab reads as selected.
+	var nav_n := _make_flat_style(Color(0.34, 0.2, 0.82, 1), Color(0.98, 0.82, 0.28, 1), 3, 22, 11, Color(0, 0, 0, 0.48))
 	var nav_h := nav_n.duplicate() as StyleBoxFlat
-	nav_h.bg_color = Color(0.48, 0.32, 0.92, 1)
+	nav_h.bg_color = Color(0.46, 0.34, 0.95, 1)
+	nav_h.shadow_color = Color(0.15, 0.05, 0.35, 0.4)
 	var nav_p := nav_n.duplicate() as StyleBoxFlat
-	nav_p.bg_color = Color(0.28, 0.14, 0.62, 1)
-	var sel_n := _make_flat_style(Color(0.48, 0.32, 0.95, 1), Color(1, 0.88, 0.35, 1), 4, 20, 12, Color(0.55, 0.35, 1.0, 0.45))
+	nav_p.bg_color = Color(0.26, 0.12, 0.68, 1)
+	var sel_n := _make_flat_style(Color(0.5, 0.36, 0.98, 1), Color(1, 0.9, 0.38, 1), 4, 24, 14, Color(0.45, 0.28, 0.95, 0.5))
 	var sel_h := sel_n.duplicate() as StyleBoxFlat
-	sel_h.bg_color = Color(0.55, 0.42, 1.0, 1)
-	var bottom := _make_flat_style(Color(0.07, 0.05, 0.18, 0.98), Color(0.95, 0.72, 0.2, 1), 0, 24, 14, Color(0, 0, 0, 0.55))
+	sel_h.bg_color = Color(0.58, 0.45, 1.0, 1)
+	var bottom := _make_flat_style(Color(0.06, 0.04, 0.16, 0.99), Color(0.95, 0.72, 0.2, 1), 0, 26, 16, Color(0, 0, 0, 0.58))
 	bottom.border_width_top = 5
 	bottom.border_width_left = 0
 	bottom.border_width_right = 0
 	bottom.border_width_bottom = 0
 	$BottomNav.add_theme_stylebox_override("panel", bottom)
 	var tex_home: Texture2D = load("res://ui/map_art/nav_home.svg") as Texture2D
+	var tex_journey: Texture2D = load("res://ui/map_art/nav_journey.svg") as Texture2D
 	var tex_map: Texture2D = load("res://ui/map_art/nav_map.svg") as Texture2D
 	var tex_shop: Texture2D = load("res://ui/map_art/nav_shop.svg") as Texture2D
 	var tex_trophy: Texture2D = load("res://ui/map_art/nav_trophy.svg") as Texture2D
-	for b: Button in [_nav_home, _nav_shop, _nav_trophy]:
+	const NAV_MIN := Vector2(78, 102)
+	const NAV_SEL_MIN := Vector2(96, 118)
+	for b: Button in [_nav_home, _nav_journey, _nav_shop, _nav_trophy]:
 		b.add_theme_stylebox_override("normal", nav_n)
 		b.add_theme_stylebox_override("hover", nav_h)
 		b.add_theme_stylebox_override("pressed", nav_p)
 		b.add_theme_stylebox_override("focus", nav_n)
-		b.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-		b.add_theme_color_override("font_outline_color", Color(0.06, 0.02, 0.18, 1))
-		b.add_theme_constant_override("outline_size", 5)
-		b.add_theme_font_size_override("font_size", 15)
-		b.custom_minimum_size = Vector2(72, 76)
+		b.text = ""
+		b.add_theme_constant_override("icon_max_width", 70)
+		b.add_theme_constant_override("h_separation", 0)
+		b.custom_minimum_size = NAV_MIN
 		b.clip_contents = false
 	_nav_levels.add_theme_stylebox_override("normal", sel_n)
 	_nav_levels.add_theme_stylebox_override("hover", sel_h)
 	_nav_levels.add_theme_stylebox_override("pressed", nav_p)
 	_nav_levels.add_theme_stylebox_override("focus", sel_n)
-	_nav_levels.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	_nav_levels.add_theme_color_override("font_outline_color", Color(0.08, 0.04, 0.02, 1))
-	_nav_levels.add_theme_constant_override("outline_size", 6)
-	_nav_levels.add_theme_font_size_override("font_size", 16)
-	_nav_levels.custom_minimum_size = Vector2(80, 92)
+	_nav_levels.text = ""
+	_nav_levels.add_theme_constant_override("icon_max_width", 84)
+	_nav_levels.add_theme_constant_override("h_separation", 0)
+	_nav_levels.custom_minimum_size = NAV_SEL_MIN
 	_nav_levels.clip_contents = false
 	if tex_home:
 		_nav_home.icon = tex_home
+	if tex_journey:
+		_nav_journey.icon = tex_journey
 	if tex_map:
 		_nav_levels.icon = tex_map
 	if tex_shop:
 		_nav_shop.icon = tex_shop
 	if tex_trophy:
 		_nav_trophy.icon = tex_trophy
-	for b in [_nav_home, _nav_levels, _nav_shop, _nav_trophy]:
+	for b in [_nav_home, _nav_journey, _nav_levels, _nav_shop, _nav_trophy]:
 		b.expand_icon = true
-		## Godot 4.x Button: horizontal icon position is `icon_alignment`, not `horizontal_icon_alignment`.
 		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	if is_instance_valid(_shop_notif_badge):
 		var bn := _make_flat_style(Color(0.92, 0.18, 0.22, 1), Color(1, 1, 1, 0.9), 2, 99, 3, Color(0, 0, 0, 0.35))
 		_shop_notif_badge.add_theme_stylebox_override("panel", bn)
@@ -1023,7 +1048,7 @@ func _wire_arcade_extras() -> void:
 		_coin_plus_btn.pressed.connect(_on_coin_plus_pressed)
 	if is_instance_valid(_lives_plus_btn):
 		_lives_plus_btn.pressed.connect(_on_lives_plus_pressed)
-	for b in [_nav_home, _nav_levels, _nav_shop, _nav_trophy]:
+	for b in [_nav_home, _nav_journey, _nav_levels, _nav_shop, _nav_trophy]:
 		if is_instance_valid(b):
 			b.button_down.connect(_on_bottom_nav_down.bind(b))
 			b.button_up.connect(_on_bottom_nav_up.bind(b))
@@ -1031,13 +1056,13 @@ func _wire_arcade_extras() -> void:
 
 
 func _nav_base_scale(btn: Button) -> float:
-	return 1.08 if btn == _nav_levels else 1.0
+	return 1.12 if btn == _nav_levels else 1.0
 
 
 func _apply_levels_tab_selected_scale() -> void:
 	if is_instance_valid(_nav_levels):
 		_nav_levels.pivot_offset = _nav_levels.size * 0.5
-		_nav_levels.scale = Vector2(1.08, 1.08)
+		_nav_levels.scale = Vector2(1.12, 1.12)
 		_nav_levels.z_index = 2
 
 

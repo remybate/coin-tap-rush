@@ -20,9 +20,10 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var daily_bonus: DailyBonusScreen = $DailyBonusLayer
 @onready var stub_dialog: AcceptDialog = $StubDialog
 @onready var simple_popup: SimplePopup = $SimplePopupLayer
-## Shop/trophy scenes use `shop_popup.gd` / `trophies_popup.gd` — typed as Node so main menu parses even if global class registration is late.
+## Shop uses `shop_screen.tscn`; trophies use `trophies_popup.gd` — typed as Node so main menu parses even if global class registration is late.
 @onready var shop_popup: Node = $ShopPopupLayer
 @onready var trophies_popup: Node = $TrophiesPopupLayer
+@onready var rank_screen: Control = $LocalRankLayer
 @onready var cards_popup: Node = $CardsPopupLayer
 @onready var events_popup: Node = $EventsPopupLayer
 @onready var coin_value_label: Label = $MainColumn/VBox/TopBar/CoinPill/Margin/HBox/CoinValue
@@ -45,6 +46,8 @@ func _ready() -> void:
 	settings.progress_reset.connect(_on_progress_reset)
 	if shop_popup != null and shop_popup.has_signal("toast_requested"):
 		shop_popup.connect("toast_requested", Callable(self, "_open_popup"))
+	if is_instance_valid(rank_screen) and rank_screen.has_signal("trophies_requested"):
+		rank_screen.trophies_requested.connect(_open_trophies)
 	_clear_stale_retry_lock_in_save()
 	_refresh_currency_ui()
 	_try_auto_daily_bonus()
@@ -297,7 +300,10 @@ func _on_nav_shop_pressed() -> void:
 
 func _on_nav_trophy_pressed() -> void:
 	AudioService.play_button_click()
-	_open_trophies()
+	if is_instance_valid(rank_screen) and rank_screen.has_method("open_rank"):
+		rank_screen.open_rank()
+	else:
+		_open_trophies()
 
 
 func _on_nav_home_pressed() -> void:

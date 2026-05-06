@@ -16,10 +16,11 @@
 [ext_resource type="Texture2D" uid="uid://chcwpyq532d0v" path="res://ui/home_icons/home_house.svg" id="14"]
 [ext_resource type="Texture2D" uid="uid://b1aty7t3xgu1n" path="res://assets/backgrounds/home_bg.png" id="15"]
 [ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="16"]
-[ext_resource type="PackedScene" path="res://ui/shop_popup.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://ui/shop_screen.tscn" id="17"]
 [ext_resource type="PackedScene" path="res://ui/trophies_popup.tscn" id="18"]
 [ext_resource type="PackedScene" path="res://ui/cards_popup.tscn" id="19"]
 [ext_resource type="PackedScene" path="res://ui/events_popup.tscn" id="20"]
+[ext_resource type="PackedScene" path="res://ui/local_rank_screen.tscn" id="21"]
 
 [sub_resource type="Gradient" id="Gradient_overlay"]
 colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0)
@@ -637,6 +638,14 @@ size = Vector2i(520, 200)
 dialog_text = "Coming soon!"
 
 [node name="ShopPopupLayer" parent="." unique_id=1165537972 instance=ExtResource("17")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LocalRankLayer" parent="." unique_id=1124887321 instance=ExtResource("21")]
 layout_mode = 1
 
 [node name="TrophiesPopupLayer" parent="." unique_id=5061485 instance=ExtResource("18")]

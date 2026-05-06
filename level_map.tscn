@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://level_map.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="2"]
@@ -8,10 +8,12 @@
 [ext_resource type="Script" path="res://ui/level_map_ambience.gd" id="6"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/level_map_bg.png" id="7"]
 [ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="8"]
-[ext_resource type="PackedScene" path="res://ui/shop_popup.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://ui/shop_screen.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://ui/trophies_popup.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://ui/events_popup.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://ui/pregame_boosters_popup.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://ui/journey_rewards_screen.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://ui/local_rank_screen.tscn" id="14"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.42, 0.78, 1)
@@ -224,7 +226,7 @@ anchor_bottom = 1.0
 offset_left = 84.0
 offset_top = 96.0
 offset_right = -84.0
-offset_bottom = -238.0
+offset_bottom = -262.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
@@ -423,7 +425,7 @@ anchor_bottom = 1.0
 offset_left = 8.0
 offset_top = 120.0
 offset_right = 76.0
-offset_bottom = -242.0
+offset_bottom = -262.0
 grow_vertical = 2
 theme_override_constants/separation = 10
 alignment = 1
@@ -519,7 +521,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 0.0
-offset_top = -118.0
+offset_top = -138.0
 offset_right = 0.0
 offset_bottom = 0.0
 grow_horizontal = 2
@@ -528,14 +530,14 @@ theme_override_styles/panel = SubResource("StyleBottomBar")
 
 [node name="NavMargin" type="MarginContainer" parent="BottomNav"]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
 [node name="NavRow" type="HBoxContainer" parent="BottomNav/NavMargin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="BtnHome" type="Button" parent="BottomNav/NavMargin/NavRow"]
@@ -544,11 +546,15 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 focus_mode = 0
 clip_contents = false
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.02, 0.18, 1)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 15
-text = "Home"
+text = ""
+
+[node name="BtnJourney" type="Button" parent="BottomNav/NavMargin/NavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+focus_mode = 0
+clip_contents = false
+text = ""
 
 [node name="BtnLevels" type="Button" parent="BottomNav/NavMargin/NavRow"]
 layout_mode = 2
@@ -556,11 +562,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 focus_mode = 0
 clip_contents = false
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.04, 0.02, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 16
-text = "Levels"
+text = ""
 
 [node name="BtnShop" type="Button" parent="BottomNav/NavMargin/NavRow"]
 layout_mode = 2
@@ -568,11 +570,7 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 focus_mode = 0
 clip_contents = false
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.02, 0.18, 1)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 15
-text = "Shop"
+text = ""
 
 [node name="NotifBadge" type="PanelContainer" parent="BottomNav/NavMargin/NavRow/BtnShop"]
 z_index = 3
@@ -580,10 +578,10 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = 18.0
-offset_top = -4.0
-offset_right = 44.0
-offset_bottom = 20.0
+offset_left = 26.0
+offset_top = -2.0
+offset_right = 52.0
+offset_bottom = 24.0
 grow_horizontal = 2
 mouse_filter = 2
 
@@ -608,17 +606,21 @@ size_flags_horizontal = 3
 size_flags_vertical = 4
 focus_mode = 0
 clip_contents = false
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.02, 0.18, 1)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 15
-text = "Trophy"
+text = ""
 
 [node name="StubDialog" type="AcceptDialog" parent="."]
 title = "Coin Tap Rush"
 size = Vector2i(520, 200)
 
 [node name="ShopPopupLayer" parent="." instance=ExtResource("9")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LocalRankLayer" parent="." instance=ExtResource("14")]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -666,10 +668,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="JourneyRewardsLayer" parent="." instance=ExtResource("13")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [connection signal="pressed" from="SideRail/SideShop" to="." method="_on_side_shop_pressed"]
 [connection signal="pressed" from="SideRail/SideRewards" to="." method="_on_side_rewards_pressed"]
 [connection signal="pressed" from="SideRail/SideEvents" to="." method="_on_side_events_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnHome" to="." method="_on_home_pressed"]
+[connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnJourney" to="." method="_on_nav_journey_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnLevels" to="." method="_on_levels_tab_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnShop" to="." method="_on_nav_shop_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnTrophy" to="." method="_on_nav_trophy_pressed"]
