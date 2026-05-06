@@ -28,6 +28,8 @@ var phase2: float = 0.0
 ## Spin (rad/s); sign = direction
 var spin_rad_per_sec: float = 2.5
 var time_falling: float = 0.0
+## Eases into target fall speed so spawns feel less stiff (gameplay path unchanged once settled).
+var _fall_vel_smooth: float = 0.0
 var _play_margin: float = 72.0
 var _play_w: float = 1080.0
 
@@ -107,12 +109,12 @@ func _on_pressed() -> void:
 		AudioService.play_bomb_tap()
 	else:
 		AudioService.play_coin_tap()
+	if main and main.has_method("play_collect_burst"):
+		main.play_collect_burst(global_position, kind)
 	if main and main.has_method("register_collectible"):
 		main.register_collectible(kind)
 	if kind != Kind.BOMB and main and main.has_method("set_magnet_focus"):
 		main.set_magnet_focus(global_position.x)
-	if kind != Kind.BOMB and main and main.has_method("play_collect_burst"):
-		main.play_collect_burst(global_position, kind)
 	_pick_random_path(false)
 
 
@@ -169,6 +171,8 @@ func _pick_random_path(first_spawn: bool = false) -> void:
 	rotation = rng.randf() * TAU
 
 	time_falling = 0.0
+	_fall_vel_smooth = 0.0
+	scale = Vector2.ONE
 	var y_top: float = -140.0
 	var y_bot: float = -24.0
 	if main and main.has_method("get_spawn_depth_range"):
@@ -183,6 +187,8 @@ func _x_at_time(t: float) -> float:
 	var x: float = base_x
 	x += sin(t * zig_angular_speed + phase) * zig_amplitude
 	x += sin(t * zig_angular_speed2 + phase2) * zig_amplitude2
+	## Extra slow drift so the path feels less like a single rigid waveform.
+	x += sin(t * zig_angular_speed * 0.41 + phase2 * 1.07) * (zig_amplitude * 0.09)
 	return clamp(x, _play_margin, _play_w - _play_margin)
 
 
@@ -202,9 +208,23 @@ func _process(delta: float) -> void:
 		vm = main.get_collectible_vertical_mult()
 
 	time_falling += delta * vm
-	position.y += fall_speed * delta * vm
-	position.x = _x_at_time(time_falling)
+	var target_v: float = fall_speed * vm
+	if vm <= 0.0001:
+		_fall_vel_smooth = lerpf(_fall_vel_smooth, 0.0, clampf(14.0 * delta, 0.0, 1.0))
+	else:
+		_fall_vel_smooth = lerpf(_fall_vel_smooth, target_v, clampf(9.0 * delta, 0.0, 1.0))
+	position.y += _fall_vel_smooth * delta
+
+	var target_x: float = _x_at_time(time_falling)
+	var x_lerp: float = 10.0 if vm <= 0.0001 else 17.0
+	position.x = lerpf(position.x, target_x, clampf(x_lerp * delta, 0.0, 1.0))
 	rotation += spin_rad_per_sec * delta * vm
+
+	if vm > 0.0001:
+		var breathe: float = 1.0 + 0.026 * sin(time_falling * 3.05 + phase * 0.41)
+		scale = Vector2(breathe, breathe)
+	else:
+		scale = Vector2.ONE
 
 	if main and main.has_method("apply_magnet_to_collectible"):
 		main.apply_magnet_to_collectible(self, delta)

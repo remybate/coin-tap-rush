@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
 [ext_resource type="Script" path="res://game.gd" id="3_game"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://ui/level_complete_screen.tscn" id="8_lvl"]
 [ext_resource type="Script" path="res://collect_burst_fx.gd" id="9_burst"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/game_bg.png" id="10_bg"]
+[ext_resource type="Script" path="res://shake_pause_fix.gd" id="11_shakepf"]
 
 [sub_resource type="Gradient" id="Grad_Playfield"]
 offsets = PackedFloat32Array(0, 0.35, 0.62, 1)
@@ -119,6 +120,9 @@ corner_radius_bottom_left = 20
 
 [node name="Game" type="Node2D" unique_id=1231411710]
 script = ExtResource("3_game")
+
+[node name="ShakePauseFix" type="Node" parent="."]
+script = ExtResource("11_shakepf")
 
 [node name="PlayfieldBg" type="TextureRect" parent="." unique_id=214866011]
 layout_mode = 1

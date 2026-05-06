@@ -37,6 +37,8 @@ const MAX_RETRY_CHARGES: int = 5
 const RETRY_COOLDOWN_SEC: int = 3 * 3600
 ## Every N good taps without a miss raises combo tier: x2 at 5, x3 at 10, …
 const COMBO_STEP: int = 5
+const HIT_SHAKE_DURATION_SEC: float = 0.11
+const HIT_SHAKE_MAG_PX: float = 5.0
 var score: int = 0
 var best_score: int = 0
 ## Bank coins (persisted in saved_score). Only grows after a level completes (fly animation).
@@ -102,6 +104,8 @@ var _collectibles: Array[Collectible] = []
 var _last_slot_count: int = -1
 ## When true, gameplay was paused only because Settings was opened from the HUD (not Pause / level-up).
 var _paused_for_hud_settings: bool = false
+var _hit_shake_time: float = 0.0
+var _hit_shake_mag: float = 0.0
 
 @onready var score_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ScoreLabel
 @onready var best_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/BestLabel
@@ -207,6 +211,7 @@ func _level_targets_met() -> bool:
 
 
 func _process(delta: float) -> void:
+	_update_hit_shake(delta)
 	if _booster_slow_timer > 0.0:
 		_booster_slow_timer = maxf(0.0, _booster_slow_timer - delta)
 	if _ingame_slow_timer > 0.0:
@@ -225,6 +230,69 @@ func _process(delta: float) -> void:
 	_try_apply_pending_bomb_clear()
 	if game_over and game_over_screen.visible:
 		game_over_screen.refresh_retry_ui(retry_charges, _retry_wait_seconds())
+
+
+func _trigger_subtle_hit_shake() -> void:
+	_hit_shake_time = maxf(_hit_shake_time, HIT_SHAKE_DURATION_SEC)
+	_hit_shake_mag = maxf(_hit_shake_mag, HIT_SHAKE_MAG_PX)
+
+
+func _update_hit_shake(delta: float) -> void:
+	if _hit_shake_time <= 0.0:
+		position = Vector2.ZERO
+		_hit_shake_mag = 0.0
+		return
+	_hit_shake_time = maxf(0.0, _hit_shake_time - delta)
+	var t: float = clampf(_hit_shake_time / HIT_SHAKE_DURATION_SEC, 0.0, 1.0)
+	var mag: float = _hit_shake_mag * t
+	position = Vector2(_reward_rng.randf_range(-mag, mag), _reward_rng.randf_range(-mag, mag))
+	if _hit_shake_time <= 0.0:
+		position = Vector2.ZERO
+		_hit_shake_mag = 0.0
+
+
+func _maybe_combo_tier_celebrate(prev_streak: int, new_streak: int) -> void:
+	if game_over or level_complete_screen.visible:
+		return
+	var prev_tier: int = 1 + prev_streak / COMBO_STEP
+	var new_tier: int = 1 + new_streak / COMBO_STEP
+	if new_tier <= prev_tier or new_tier < 2:
+		return
+	_spawn_combo_float(new_tier)
+
+
+func _spawn_combo_float(tier: int) -> void:
+	var cl: CanvasLayer = $CanvasLayer as CanvasLayer
+	if cl == null:
+		return
+	var lbl := Label.new()
+	lbl.text = "Combo x%d!" % tier
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 52)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.93, 0.42))
+	lbl.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.22, 0.96))
+	lbl.add_theme_constant_override("outline_size", 10)
+	cl.add_child(lbl)
+	var vp: Vector2 = get_viewport_rect().size
+	lbl.position = Vector2(vp.x * 0.5, vp.y * 0.27)
+	_animate_combo_label(lbl)
+
+
+func _animate_combo_label(lbl: Label) -> void:
+	await get_tree().process_frame
+	if not is_instance_valid(lbl):
+		return
+	lbl.pivot_offset = lbl.size * 0.5
+	lbl.position.x -= lbl.size.x * 0.5
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "scale", Vector2(1.14, 1.14), 0.22).from(Vector2(0.32, 0.32)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "position:y", lbl.position.y - 88.0, 0.78).set_delay(0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var tw_fade := create_tween()
+	tw_fade.tween_property(lbl, "modulate:a", 0.0, 0.38).set_delay(0.58)
+	tw_fade.finished.connect(lbl.queue_free)
 
 
 ## Scales fall speed from collectibles when slow charms are active (spawn jitter + live motion).
@@ -400,15 +468,27 @@ func _sync_collectible_slots() -> void:
 func play_collect_burst(world_pos: Vector2, k: Collectible.Kind) -> void:
 	if game_over or _collect_burst == null:
 		return
-	var tint := Color(1, 0.9, 0.38)
+	var inner := Color(1.0, 0.96, 0.58, 1)
+	var outer := Color(1.0, 0.62, 0.12, 1)
+	var bscale: float = 1.05
 	match k:
 		Collectible.Kind.SILVER_BIG:
-			tint = Color(0.92, 0.96, 1.0)
+			inner = Color(0.96, 0.99, 1.0, 1)
+			outer = Color(0.52, 0.74, 1.0, 1)
+			bscale = 1.0
 		Collectible.Kind.DIAMOND:
-			tint = Color(0.45, 0.92, 1.0)
-		_:
+			inner = Color(0.52, 0.96, 1.0, 1)
+			outer = Color(0.12, 0.42, 1.0, 1)
+			bscale = 1.14
+		Collectible.Kind.BOMB:
+			inner = Color(1.0, 0.5, 0.22, 1)
+			outer = Color(0.82, 0.12, 0.04, 1)
+			bscale = 1.2
+		Collectible.Kind.GOLD:
 			pass
-	_collect_burst.burst_at(world_pos, tint)
+		_:
+			return
+	_collect_burst.burst_at(world_pos, inner, outer, bscale)
 
 
 func register_collectible(k: Collectible.Kind) -> void:
@@ -423,6 +503,7 @@ func register_collectible(k: Collectible.Kind) -> void:
 			_save_progress_file()
 			return
 		lives -= 1
+		_trigger_subtle_hit_shake()
 		_refresh_ui()
 		if lives <= 0:
 			_trigger_game_over()
@@ -438,7 +519,9 @@ func register_collectible(k: Collectible.Kind) -> void:
 		_:
 			_refresh_ui()
 			return
+	var prev_streak: int = combo_streak
 	combo_streak += 1
+	_maybe_combo_tier_celebrate(prev_streak, combo_streak)
 	stat_gleams_collected += 1
 	stat_max_combo_streak = maxi(stat_max_combo_streak, combo_streak)
 	var combo_mult: int = 1 + combo_streak / COMBO_STEP
@@ -471,6 +554,7 @@ func register_miss() -> void:
 	AudioService.play_miss()
 	combo_streak = 0
 	lives -= 1
+	_trigger_subtle_hit_shake()
 	missed_coins += 1
 	_refresh_ui()
 	if lives <= 0:
