@@ -6,7 +6,11 @@ const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
 const SAVE_SECTION: String = "progress"
 const KEY_SAVED_SCORE: String = "saved_score"
 const KEY_PROGRESSION: String = "saved_progression_level"
+## Must match game.gd — primary unlock depth for the map.
+const KEY_FURTHEST_LEVEL: String = "furthest_level_unlocked"
+const KEY_CURRENT_LEVEL: String = "current_level_playing"
 const MAX_LIVES_DISPLAY: int = 5
+const DEBUG_LEVEL_MAP_FLOW: bool = true
 
 @export var level_spacing: float = 108.0
 @export var path_wave_amplitude: float = 86.0
@@ -34,6 +38,8 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var _pregame_popup: Control = $PreGameBoostersPopup
 
 var _furthest_level: int = 1
+## From save `current_level_playing` (next level to play / last selection).
+var _saved_current_level: int = 0
 var _selected_level: int = 1
 var _display_levels: int = 32
 ## First level index shown in the sliding map window (1-based).
@@ -51,7 +57,17 @@ func _ready() -> void:
 	if _shop_popup != null and _shop_popup.has_signal("toast_requested"):
 		_shop_popup.connect("toast_requested", Callable(self, "_open_info_popup"))
 	_load_save_summary()
-	_selected_level = _furthest_level
+	var requested: int = LevelSelectState.consume_pending_level()
+	if requested > 0:
+		_selected_level = clampi(requested, 1, _furthest_level)
+	else:
+		# No explicit pending map request: use saved current level (never a hardcoded level index).
+		if _saved_current_level > 0:
+			_selected_level = clampi(_saved_current_level, 1, _furthest_level)
+		else:
+			_selected_level = _furthest_level
+	if DEBUG_LEVEL_MAP_FLOW:
+		print("[LevelMap] selected_level=", _selected_level, " (requested=", requested, " saved_current=", _saved_current_level, ") unlocked_level=", _furthest_level)
 	_settings_btn.pressed.connect(_on_settings_pressed)
 	_main_play.pressed.connect(_on_main_play_pressed)
 	if _pregame_popup != null:
@@ -92,8 +108,15 @@ func _load_save_summary() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		_furthest_level = 1
+		_saved_current_level = 1
 		return
-	_furthest_level = clampi(int(cfg.get_value(SAVE_SECTION, KEY_PROGRESSION, 1)), 1, 999_999)
+	# Prefer furthest_level_unlocked (same as game.gd); fall back to legacy key.
+	var from_furthest: int = int(cfg.get_value(SAVE_SECTION, KEY_FURTHEST_LEVEL, -1))
+	var from_prog: int = int(cfg.get_value(SAVE_SECTION, KEY_PROGRESSION, 1))
+	_furthest_level = clampi(from_furthest if from_furthest > 0 else from_prog, 1, 999_999)
+	_saved_current_level = clampi(int(cfg.get_value(SAVE_SECTION, KEY_CURRENT_LEVEL, _furthest_level)), 1, _furthest_level)
+	if DEBUG_LEVEL_MAP_FLOW:
+		print("[LevelMap] load save: furthest_unlocked=", _furthest_level, " key_progression=", from_prog, " saved_current_level=", _saved_current_level)
 
 
 func _refresh_hud() -> void:

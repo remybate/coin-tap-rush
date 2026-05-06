@@ -1,40 +1,28 @@
-[gd_scene load_steps=30 format=3]
+[gd_scene format=3 uid="uid://doemdeo34fl15"]
 
-[ext_resource type="Script" path="res://main_menu.gd" id="1"]
+[ext_resource type="Script" uid="uid://b1jh37kdfvwaj" path="res://main_menu.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/how_to_play_screen.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://ui/daily_bonus_screen.tscn" id="4"]
+[ext_resource type="Texture2D" uid="uid://cyyjyo8iu3jp7" path="res://gold_coin.svg" id="5"]
+[ext_resource type="Texture2D" uid="uid://dssf4amlmj3r5" path="res://ui/home_icons/profile_ring.svg" id="6"]
+[ext_resource type="Texture2D" uid="uid://cpt6kbvupopth" path="res://ui/home_icons/gear.svg" id="7"]
+[ext_resource type="Texture2D" uid="uid://cajqdbeafxo8c" path="res://ui/home_icons/trophy.svg" id="8"]
+[ext_resource type="Texture2D" uid="uid://bt8h4gffyw1xm" path="res://ui/home_icons/shop_bag.svg" id="9"]
+[ext_resource type="Texture2D" uid="uid://xp514j460jiq" path="res://ui/home_icons/gift.svg" id="10"]
+[ext_resource type="Texture2D" uid="uid://cv1j3j4twrui5" path="res://ui/home_icons/cards.svg" id="11"]
+[ext_resource type="Texture2D" uid="uid://dtnuqq86celfy" path="res://ui/home_icons/spark_burst.svg" id="12"]
+[ext_resource type="Texture2D" uid="uid://cafguphlxani2" path="res://ui/home_icons/star_bonus.svg" id="13"]
+[ext_resource type="Texture2D" uid="uid://chcwpyq532d0v" path="res://ui/home_icons/home_house.svg" id="14"]
+[ext_resource type="Texture2D" uid="uid://b1aty7t3xgu1n" path="res://assets/backgrounds/home_bg.png" id="15"]
 [ext_resource type="PackedScene" path="res://ui/simple_popup.tscn" id="16"]
 [ext_resource type="PackedScene" path="res://ui/shop_popup.tscn" id="17"]
 [ext_resource type="PackedScene" path="res://ui/trophies_popup.tscn" id="18"]
 [ext_resource type="PackedScene" path="res://ui/cards_popup.tscn" id="19"]
 [ext_resource type="PackedScene" path="res://ui/events_popup.tscn" id="20"]
-[ext_resource type="Texture2D" path="res://gold_coin.svg" id="5"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/profile_ring.svg" id="6"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/gear.svg" id="7"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/trophy.svg" id="8"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/shop_bag.svg" id="9"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/gift.svg" id="10"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/cards.svg" id="11"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/spark_burst.svg" id="12"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/star_bonus.svg" id="13"]
-[ext_resource type="Texture2D" path="res://ui/home_icons/home_house.svg" id="14"]
-[ext_resource type="Texture2D" path="res://assets/backgrounds/home_bg.png" id="15"]
-
-[sub_resource type="Gradient" id="Gradient_bg"]
-offsets = PackedFloat32Array(0, 0.38, 0.72, 1)
-colors = PackedColorArray(0.72, 0.48, 1, 1, 0.28, 0.55, 0.98, 1, 0.1, 0.35, 0.62, 1, 0.06, 0.12, 0.32, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTex_bg"]
-gradient = SubResource("Gradient_bg")
-width = 4
-height = 1024
-fill_from = Vector2(0.5, 0)
-fill_to = Vector2(0.5, 1)
 
 [sub_resource type="Gradient" id="Gradient_overlay"]
-offsets = PackedFloat32Array(0, 1)
-colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.32)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0)
 
 [sub_resource type="GradientTexture2D" id="GradientTex_overlay"]
 gradient = SubResource("Gradient_overlay")
@@ -88,18 +76,6 @@ shadow_color = Color(0.05, 0.1, 0.25, 0.45)
 shadow_size = 5
 shadow_offset = Vector2(0, 3)
 
-[sub_resource type="StyleBoxFlat" id="StyleSideH"]
-bg_color = Color(0.32, 0.58, 1, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 9
-border_color = Color(0.16, 0.3, 0.62, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
 [sub_resource type="StyleBoxFlat" id="StyleSideP"]
 bg_color = Color(0.14, 0.32, 0.72, 1)
 border_width_left = 2
@@ -112,57 +88,17 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxFlat" id="StylePlayN"]
-bg_color = Color(0.32, 0.88, 0.52, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 16
-border_color = Color(0.08, 0.48, 0.22, 1)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
-shadow_color = Color(0.02, 0.22, 0.1, 0.65)
-shadow_size = 14
-shadow_offset = Vector2(0, 8)
-
-[sub_resource type="StyleBoxFlat" id="StylePlayH"]
-bg_color = Color(0.42, 0.96, 0.62, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 16
-border_color = Color(0.1, 0.52, 0.26, 1)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
-
-[sub_resource type="StyleBoxFlat" id="StylePlayP"]
-bg_color = Color(0.22, 0.68, 0.4, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 12
-border_color = Color(0.05, 0.32, 0.14, 1)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
-
-[sub_resource type="StyleBoxFlat" id="StyleBottomBar"]
-bg_color = Color(0.06, 0.04, 0.14, 0.98)
-border_width_top = 4
-border_width_left = 0
-border_width_right = 0
-border_width_bottom = 0
-border_color = Color(1, 0.82, 0.38, 1)
-corner_radius_top_left = 22
-corner_radius_top_right = 22
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 14
-shadow_offset = Vector2(0, -6)
+[sub_resource type="StyleBoxFlat" id="StyleSideH"]
+bg_color = Color(0.32, 0.58, 1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 9
+border_color = Color(0.16, 0.3, 0.62, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleTitlePlate"]
 bg_color = Color(0.1, 0.06, 0.2, 0.72)
@@ -179,7 +115,56 @@ shadow_color = Color(0.4, 0.2, 0.85, 0.25)
 shadow_size = 12
 shadow_offset = Vector2(0, 5)
 
-[node name="MainMenu" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StylePlayN"]
+bg_color = Color(0.32, 0.88, 0.52, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 16
+border_color = Color(0.08, 0.48, 0.22, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+shadow_color = Color(0.02, 0.22, 0.1, 0.65)
+shadow_size = 14
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="StylePlayP"]
+bg_color = Color(0.22, 0.68, 0.4, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 12
+border_color = Color(0.05, 0.32, 0.14, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StylePlayH"]
+bg_color = Color(0.42, 0.96, 0.62, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 16
+border_color = Color(0.1, 0.52, 0.26, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBottomBar"]
+bg_color = Color(0.06, 0.04, 0.14, 0.98)
+border_width_top = 4
+border_color = Color(1, 0.82, 0.38, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 14
+shadow_offset = Vector2(0, -6)
+
+[node name="MainMenu" type="Control" unique_id=247072613]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -188,11 +173,9 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="BackgroundGradient" type="TextureRect" parent="."]
+[node name="BackgroundGradient" type="TextureRect" parent="." unique_id=423683397]
 layout_mode = 1
 anchors_preset = 15
-anchor_left = 0.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
@@ -201,7 +184,7 @@ texture = ExtResource("15")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="BackgroundReadabilityOverlay" type="TextureRect" parent="."]
+[node name="BackgroundReadabilityOverlay" type="TextureRect" parent="." unique_id=854008989]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -213,7 +196,7 @@ texture = SubResource("GradientTex_overlay")
 expand_mode = 1
 stretch_mode = 1
 
-[node name="GlowBlob" type="ColorRect" parent="."]
+[node name="GlowBlob" type="ColorRect" parent="." unique_id=978288189]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -229,7 +212,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0.82, 0.42, 0.14)
 
-[node name="VaultRimLight" type="ColorRect" parent="."]
+[node name="VaultRimLight" type="ColorRect" parent="." unique_id=160875355]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -239,7 +222,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.95, 0.65, 0.25, 0.06)
 
-[node name="FloorTreasureTint" type="ColorRect" parent="."]
+[node name="FloorTreasureTint" type="ColorRect" parent="." unique_id=434808945]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -251,7 +234,7 @@ grow_vertical = 0
 mouse_filter = 2
 color = Color(0.15, 0.55, 0.38, 0.18)
 
-[node name="SparkleField" type="Control" parent="."]
+[node name="SparkleField" type="Control" parent="." unique_id=2099960771]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -260,7 +243,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MainColumn" type="MarginContainer" parent="."]
+[node name="MainColumn" type="MarginContainer" parent="." unique_id=1916185562]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -272,49 +255,49 @@ theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 118
 
-[node name="VBox" type="VBoxContainer" parent="MainColumn"]
+[node name="VBox" type="VBoxContainer" parent="MainColumn" unique_id=1327473847]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TopBar" type="HBoxContainer" parent="MainColumn/VBox"]
+[node name="TopBar" type="HBoxContainer" parent="MainColumn/VBox" unique_id=1862690822]
 custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="ProfileButton" type="Button" parent="MainColumn/VBox/TopBar"]
+[node name="ProfileButton" type="Button" parent="MainColumn/VBox/TopBar" unique_id=1206624954]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-flat = true
 icon = ExtResource("6")
+flat = true
 expand_icon = true
 
-[node name="CoinPill" type="PanelContainer" parent="MainColumn/VBox/TopBar"]
+[node name="CoinPill" type="PanelContainer" parent="MainColumn/VBox/TopBar" unique_id=793943441]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StylePillCoin")
 
-[node name="Margin" type="MarginContainer" parent="MainColumn/VBox/TopBar/CoinPill"]
+[node name="Margin" type="MarginContainer" parent="MainColumn/VBox/TopBar/CoinPill" unique_id=1876627198]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="MainColumn/VBox/TopBar/CoinPill/Margin"]
+[node name="HBox" type="HBoxContainer" parent="MainColumn/VBox/TopBar/CoinPill/Margin" unique_id=1861859716]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="CoinIcon" type="TextureRect" parent="MainColumn/VBox/TopBar/CoinPill/Margin/HBox"]
+[node name="CoinIcon" type="TextureRect" parent="MainColumn/VBox/TopBar/CoinPill/Margin/HBox" unique_id=1780007099]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("5")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CoinValue" type="Label" parent="MainColumn/VBox/TopBar/CoinPill/Margin/HBox"]
+[node name="CoinValue" type="Label" parent="MainColumn/VBox/TopBar/CoinPill/Margin/HBox" unique_id=20389244]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
 theme_override_colors/font_outline_color = Color(0.25, 0.12, 0.45, 1)
@@ -323,29 +306,29 @@ theme_override_font_sizes/font_size = 26
 text = "0"
 vertical_alignment = 1
 
-[node name="LivesPill" type="PanelContainer" parent="MainColumn/VBox/TopBar"]
+[node name="LivesPill" type="PanelContainer" parent="MainColumn/VBox/TopBar" unique_id=1891740573]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StylePillLives")
 
-[node name="Margin" type="MarginContainer" parent="MainColumn/VBox/TopBar/LivesPill"]
+[node name="Margin" type="MarginContainer" parent="MainColumn/VBox/TopBar/LivesPill" unique_id=919024060]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="MainColumn/VBox/TopBar/LivesPill/Margin"]
+[node name="HBox" type="HBoxContainer" parent="MainColumn/VBox/TopBar/LivesPill/Margin" unique_id=1536183064]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="HeartIcon" type="Label" parent="MainColumn/VBox/TopBar/LivesPill/Margin/HBox"]
+[node name="HeartIcon" type="Label" parent="MainColumn/VBox/TopBar/LivesPill/Margin/HBox" unique_id=1314092218]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "❤️"
 vertical_alignment = 1
 
-[node name="LivesValue" type="Label" parent="MainColumn/VBox/TopBar/LivesPill/Margin/HBox"]
+[node name="LivesValue" type="Label" parent="MainColumn/VBox/TopBar/LivesPill/Margin/HBox" unique_id=1385911114]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.9, 1)
 theme_override_colors/font_outline_color = Color(0.35, 0.1, 0.2, 1)
@@ -354,30 +337,30 @@ theme_override_font_sizes/font_size = 26
 text = "5"
 vertical_alignment = 1
 
-[node name="TopSpacer" type="Control" parent="MainColumn/VBox/TopBar"]
+[node name="TopSpacer" type="Control" parent="MainColumn/VBox/TopBar" unique_id=1747369757]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="SettingsTop" type="Button" parent="MainColumn/VBox/TopBar"]
+[node name="SettingsTop" type="Button" parent="MainColumn/VBox/TopBar" unique_id=1021765271]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 focus_mode = 0
-flat = true
 icon = ExtResource("7")
+flat = true
 expand_icon = true
 
-[node name="MainRow" type="HBoxContainer" parent="MainColumn/VBox"]
+[node name="MainRow" type="HBoxContainer" parent="MainColumn/VBox" unique_id=187878557]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 
-[node name="LeftRail" type="VBoxContainer" parent="MainColumn/VBox/MainRow"]
+[node name="LeftRail" type="VBoxContainer" parent="MainColumn/VBox/MainRow" unique_id=2078548848]
 custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="DailySide" type="Button" parent="MainColumn/VBox/MainRow/LeftRail"]
+[node name="DailySide" type="Button" parent="MainColumn/VBox/MainRow/LeftRail" unique_id=375545929]
 custom_minimum_size = Vector2(120, 92)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -385,15 +368,16 @@ theme_override_colors/font_outline_color = Color(0.08, 0.18, 0.45, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleSideN")
-theme_override_styles/hover = SubResource("StyleSideH")
 theme_override_styles/pressed = SubResource("StyleSideP")
-text = "Daily\nReward"
+theme_override_styles/hover = SubResource("StyleSideH")
+text = "Daily
+Reward"
 icon = ExtResource("10")
 icon_alignment = 1
 vertical_icon_alignment = 0
 expand_icon = true
 
-[node name="ShopSide" type="Button" parent="MainColumn/VBox/MainRow/LeftRail"]
+[node name="ShopSide" type="Button" parent="MainColumn/VBox/MainRow/LeftRail" unique_id=185591761]
 custom_minimum_size = Vector2(120, 92)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -401,44 +385,44 @@ theme_override_colors/font_outline_color = Color(0.08, 0.18, 0.45, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleSideN")
-theme_override_styles/hover = SubResource("StyleSideH")
 theme_override_styles/pressed = SubResource("StyleSideP")
+theme_override_styles/hover = SubResource("StyleSideH")
 text = "Shop"
 icon = ExtResource("9")
 icon_alignment = 1
 vertical_icon_alignment = 0
 expand_icon = true
 
-[node name="CenterColumn" type="VBoxContainer" parent="MainColumn/VBox/MainRow"]
+[node name="CenterColumn" type="VBoxContainer" parent="MainColumn/VBox/MainRow" unique_id=350366593]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="TitlePlate" type="PanelContainer" parent="MainColumn/VBox/MainRow/CenterColumn"]
+[node name="TitlePlate" type="PanelContainer" parent="MainColumn/VBox/MainRow/CenterColumn" unique_id=205859873]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("StyleTitlePlate")
 
-[node name="TitleMargin" type="MarginContainer" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate"]
+[node name="TitleMargin" type="MarginContainer" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate" unique_id=1137993721]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 22
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 22
 
-[node name="TitleVBox" type="VBoxContainer" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin"]
+[node name="TitleVBox" type="VBoxContainer" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin" unique_id=1380740744]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ArcadeTag" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox"]
+[node name="ArcadeTag" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox" unique_id=1992919162]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.9, 1, 1)
 theme_override_font_sizes/font_size = 22
 text = "ARCADE • TREASURE RUSH"
 horizontal_alignment = 1
 
-[node name="Title" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox"]
+[node name="Title" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox" unique_id=1906910601]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.86, 0.38, 1)
 theme_override_colors/font_outline_color = Color(0.42, 0.22, 0.75, 1)
@@ -447,7 +431,7 @@ theme_override_font_sizes/font_size = 52
 text = "COIN TAP RUSH"
 horizontal_alignment = 1
 
-[node name="Tagline" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox"]
+[node name="Tagline" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox" unique_id=796571087]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
 theme_override_font_sizes/font_size = 22
@@ -455,18 +439,18 @@ text = "Tap the rush — chase the shine!"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="SpacerMid" type="Control" parent="MainColumn/VBox/MainRow/CenterColumn"]
+[node name="SpacerMid" type="Control" parent="MainColumn/VBox/MainRow/CenterColumn" unique_id=1415246756]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="RightRail" type="VBoxContainer" parent="MainColumn/VBox/MainRow"]
+[node name="RightRail" type="VBoxContainer" parent="MainColumn/VBox/MainRow" unique_id=1592723248]
 custom_minimum_size = Vector2(128, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="BonusSide" type="Button" parent="MainColumn/VBox/MainRow/RightRail"]
+[node name="BonusSide" type="Button" parent="MainColumn/VBox/MainRow/RightRail" unique_id=940301810]
 custom_minimum_size = Vector2(120, 92)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -474,15 +458,15 @@ theme_override_colors/font_outline_color = Color(0.08, 0.18, 0.45, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleSideN")
-theme_override_styles/hover = SubResource("StyleSideH")
 theme_override_styles/pressed = SubResource("StyleSideP")
+theme_override_styles/hover = SubResource("StyleSideH")
 text = "Bonus"
 icon = ExtResource("13")
 icon_alignment = 1
 vertical_icon_alignment = 0
 expand_icon = true
 
-[node name="EventsSide" type="Button" parent="MainColumn/VBox/MainRow/RightRail"]
+[node name="EventsSide" type="Button" parent="MainColumn/VBox/MainRow/RightRail" unique_id=251970385]
 custom_minimum_size = Vector2(120, 92)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -490,65 +474,60 @@ theme_override_colors/font_outline_color = Color(0.08, 0.18, 0.45, 1)
 theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleSideN")
-theme_override_styles/hover = SubResource("StyleSideH")
 theme_override_styles/pressed = SubResource("StyleSideP")
+theme_override_styles/hover = SubResource("StyleSideH")
 text = "Events"
 icon = ExtResource("12")
 icon_alignment = 1
 vertical_icon_alignment = 0
 expand_icon = true
 
-[node name="PlaySection" type="CenterContainer" parent="MainColumn/VBox"]
+[node name="PlaySection" type="CenterContainer" parent="MainColumn/VBox" unique_id=1893384201]
 custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="MainColumn/VBox/PlaySection"]
+[node name="PlayButton" type="Button" parent="MainColumn/VBox/PlaySection" unique_id=60273591]
 custom_minimum_size = Vector2(520, 118)
 layout_mode = 2
-focus_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.06, 0.22, 0.12, 1)
 theme_override_constants/outline_size = 11
 theme_override_font_sizes/font_size = 44
 theme_override_styles/normal = SubResource("StylePlayN")
-theme_override_styles/hover = SubResource("StylePlayH")
 theme_override_styles/pressed = SubResource("StylePlayP")
+theme_override_styles/hover = SubResource("StylePlayH")
 text = "PLAY"
 
-[node name="BottomNav" type="PanelContainer" parent="."]
+[node name="BottomNav" type="PanelContainer" parent="." unique_id=135792771]
 layout_mode = 1
-anchors_preset = 15
-anchor_left = 0.0
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 0.0
 offset_top = -112.0
-offset_right = 0.0
-offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_styles/panel = SubResource("StyleBottomBar")
 
-[node name="NavMargin" type="MarginContainer" parent="BottomNav"]
+[node name="NavMargin" type="MarginContainer" parent="BottomNav" unique_id=2006468161]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 10
 
-[node name="NavRow" type="HBoxContainer" parent="BottomNav/NavMargin"]
+[node name="NavRow" type="HBoxContainer" parent="BottomNav/NavMargin" unique_id=200747492]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="NavShop" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow"]
+[node name="NavShop" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow" unique_id=278322041]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavShop"]
+[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavShop" unique_id=875377021]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -557,20 +536,20 @@ texture_normal = ExtResource("9")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavShop"]
+[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavShop" unique_id=1956771691]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
 theme_override_font_sizes/font_size = 16
 text = "Shop"
 horizontal_alignment = 1
 
-[node name="NavTrophy" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow"]
+[node name="NavTrophy" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow" unique_id=1395812622]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavTrophy"]
+[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavTrophy" unique_id=260895934]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -579,20 +558,20 @@ texture_normal = ExtResource("8")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavTrophy"]
+[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavTrophy" unique_id=222327773]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
 theme_override_font_sizes/font_size = 16
 text = "Trophy"
 horizontal_alignment = 1
 
-[node name="NavHome" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow"]
+[node name="NavHome" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow" unique_id=2127963480]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavHome"]
+[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavHome" unique_id=1095900928]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -601,20 +580,20 @@ texture_normal = ExtResource("14")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavHome"]
+[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavHome" unique_id=461833780]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
 theme_override_font_sizes/font_size = 16
 text = "Home"
 horizontal_alignment = 1
 
-[node name="NavRewards" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow"]
+[node name="NavRewards" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow" unique_id=1706183834]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavRewards"]
+[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavRewards" unique_id=224229082]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -623,20 +602,20 @@ texture_normal = ExtResource("10")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavRewards"]
+[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavRewards" unique_id=126807847]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
 theme_override_font_sizes/font_size = 16
 text = "Rewards"
 horizontal_alignment = 1
 
-[node name="NavCards" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow"]
+[node name="NavCards" type="VBoxContainer" parent="BottomNav/NavMargin/NavRow" unique_id=1844255396]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavCards"]
+[node name="Btn" type="TextureButton" parent="BottomNav/NavMargin/NavRow/NavCards" unique_id=769942180]
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -645,81 +624,41 @@ texture_normal = ExtResource("11")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavCards"]
+[node name="Cap" type="Label" parent="BottomNav/NavMargin/NavRow/NavCards" unique_id=1079086296]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.55, 1)
 theme_override_font_sizes/font_size = 16
 text = "Cards"
 horizontal_alignment = 1
 
-[node name="StubDialog" type="AcceptDialog" parent="."]
+[node name="StubDialog" type="AcceptDialog" parent="." unique_id=273783017]
 title = "Coin Tap Rush"
 size = Vector2i(520, 200)
 dialog_text = "Coming soon!"
 
-[node name="ShopPopupLayer" parent="." instance=ExtResource("17")]
+[node name="ShopPopupLayer" parent="." unique_id=1165537972 instance=ExtResource("17")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="TrophiesPopupLayer" parent="." instance=ExtResource("18")]
+[node name="TrophiesPopupLayer" parent="." unique_id=5061485 instance=ExtResource("18")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="CardsPopupLayer" parent="." instance=ExtResource("19")]
+[node name="CardsPopupLayer" parent="." unique_id=1658355861 instance=ExtResource("19")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="EventsPopupLayer" parent="." instance=ExtResource("20")]
+[node name="EventsPopupLayer" parent="." unique_id=2113598334 instance=ExtResource("20")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="SimplePopupLayer" parent="." instance=ExtResource("16")]
+[node name="SimplePopupLayer" parent="." unique_id=994559494 instance=ExtResource("16")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="SettingsLayer" parent="." instance=ExtResource("3")]
+[node name="SettingsLayer" parent="." unique_id=141436336 instance=ExtResource("3")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="DailyBonusLayer" parent="." instance=ExtResource("4")]
+[node name="DailyBonusLayer" parent="." unique_id=1124840259 instance=ExtResource("4")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
-[node name="HowToPlayLayer" parent="." instance=ExtResource("2")]
+[node name="HowToPlayLayer" parent="." unique_id=1645513065 instance=ExtResource("2")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [connection signal="pressed" from="MainColumn/VBox/TopBar/ProfileButton" to="." method="_on_profile_pressed"]
 [connection signal="pressed" from="MainColumn/VBox/TopBar/SettingsTop" to="." method="_on_top_settings_pressed"]

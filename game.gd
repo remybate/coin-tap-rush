@@ -30,6 +30,8 @@ const KEY_RETRY_BLOCK_UNTIL: String = "retry_block_until_unix"
 const KEY_STAT_GLEAMS: String = "stat_gleams_collected"
 const KEY_STAT_BOMBS_DODGED: String = "stat_bombs_dodged"
 const KEY_STAT_MAX_COMBO: String = "stat_max_combo_streak"
+## Temporary debug for level-complete → map flow (set false to silence).
+const DEBUG_LEVEL_COMPLETE_FLOW: bool = true
 ## Retries after Level Failed before a long cooldown (each Retry tap uses one).
 const MAX_RETRY_CHARGES: int = 5
 const RETRY_COOLDOWN_SEC: int = 3 * 3600
@@ -43,6 +45,7 @@ var vault_coins: int = 0
 var level_coins_collected: int = 0
 var _cached_level_bonus: Dictionary = {}
 var _level_payout_ready: bool = false
+var _level_coin_fly_in_progress: bool = false
 ## Consecutive gold / silver / diamond taps; resets on miss or bomb tap.
 var combo_streak: int = 0
 var lives: int = MAX_LIVES
@@ -563,32 +566,76 @@ func _on_settings_closed() -> void:
 		_paused_for_hud_settings = false
 
 
-func _on_level_continue_pressed() -> void:
-	if not _level_payout_ready:
-		return
-	AudioService.play_button_click()
-	_level_payout_ready = false
-	progression_level += 1
-	furthest_level_unlocked = maxi(furthest_level_unlocked, progression_level)
-	level_complete_screen.hide_screen()
-	get_tree().paused = false
-	_last_slot_count = -1
-	_begin_level_segment(true)
-	_refresh_ui()
-	_save_progress_file()
-	call_deferred("_try_offer_level_gate")
+func _deferred_change_to_level_map() -> void:
+	var err: Error = get_tree().change_scene_to_file(LEVEL_MAP_SCENE)
+	if DEBUG_LEVEL_COMPLETE_FLOW:
+		print("[LevelComplete] change_scene_to_file(", LEVEL_MAP_SCENE, ") -> ", err)
 
+
+func _on_level_continue_pressed() -> void:
+	if _level_coin_fly_in_progress:
+		return
+
+	AudioService.play_button_click()
+
+	var completed_level: int = progression_level
+	var next_level: int = completed_level + 1
+
+	print("[LevelComplete] Continue clicked: ", completed_level, " -> ", next_level)
+
+	_level_coin_fly_in_progress = true
+	level_complete_screen.set_continue_enabled(false)
+
+	# Unpause the whole tree so scene changing is not blocked
+	get_tree().paused = false
+
+	# Play coin fly animation
+	_begin_level_complete_fly(func() -> void:
+		print("[LevelComplete] coin fly callback finished")
+	)
+
+	# Wait briefly, then force navigation
+	await get_tree().create_timer(1.0, true, false, true).timeout
+
+	_go_to_level_map_after_continue(next_level)
+
+
+func _go_to_level_map_after_continue(next_level: int) -> void:
+	print("[LevelComplete] forcing level map navigation to level: ", next_level)
+
+	_commit_level_complete_payout()
+
+	progression_level = next_level
+	furthest_level_unlocked = maxi(furthest_level_unlocked, next_level)
+
+	LevelSelectState.request_start_at_level(next_level)
+
+	_save_progress_file()
+
+	_level_payout_ready = false
+	_level_coin_fly_in_progress = false
+
+	if level_complete_screen:
+		level_complete_screen.hide_screen()
+
+	get_tree().paused = false
+
+	var err: Error = get_tree().change_scene_to_file(LEVEL_MAP_SCENE)
+	print("[LevelComplete] change scene result: ", err)
+
+	if err != OK:
+		push_error("Failed to go to Level Map. Error: %s" % err)
 
 func _on_level_complete_home_pressed() -> void:
-	if not _level_payout_ready:
+	if _level_coin_fly_in_progress:
 		return
 	AudioService.play_button_click()
 	_level_payout_ready = false
+	_level_coin_fly_in_progress = false
 	progression_level += 1
 	furthest_level_unlocked = maxi(furthest_level_unlocked, progression_level)
 	level_complete_screen.hide_screen()
 	get_tree().paused = false
-	_begin_level_segment(true)
 	_save_progress_file()
 	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
 
@@ -654,21 +701,15 @@ func _commit_level_complete_payout() -> void:
 	_save_progress_file()
 
 
-func _begin_level_complete_fly() -> void:
+func _begin_level_complete_fly(done: Callable) -> void:
 	if not is_instance_valid(level_complete_screen) or not level_complete_screen.visible:
+		done.call()
 		return
 	if vault_coins_label == null:
-		_on_level_complete_fly_finished()
+		done.call()
 		return
 	var target: Vector2 = vault_coins_label.get_global_rect().get_center()
-	level_complete_screen.play_coin_fly(level_coins_collected, target, Callable(self, "_on_level_complete_fly_finished"))
-
-
-func _on_level_complete_fly_finished() -> void:
-	_commit_level_complete_payout()
-	_level_payout_ready = true
-	level_complete_screen.set_continue_enabled(true)
-	_refresh_ui()
+	level_complete_screen.play_coin_fly(level_coins_collected, target, done)
 
 
 func _try_offer_level_gate() -> void:
@@ -682,9 +723,9 @@ func _try_offer_level_gate() -> void:
 	_cached_level_bonus = BoosterManager.roll_level_complete_bonus(_reward_rng)
 	var rewards_txt: String = _format_level_bonus_for_ui(_cached_level_bonus)
 	level_complete_screen.show_for(progression_level, score, progression_level + 1, level_coins_collected, rewards_txt)
-	_level_payout_ready = false
+	_level_payout_ready = true
+	_level_coin_fly_in_progress = false
 	get_tree().paused = true
-	call_deferred("_begin_level_complete_fly")
 
 
 func _on_pause_button_pressed() -> void:

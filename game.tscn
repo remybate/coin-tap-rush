@@ -23,7 +23,7 @@ fill_to = Vector2(0.5, 1)
 
 [sub_resource type="Gradient" id="Gradient_overlay"]
 offsets = PackedFloat32Array(0, 1)
-colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.36)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.0)
 
 [sub_resource type="GradientTexture2D" id="GradientTex_overlay"]
 gradient = SubResource("Gradient_overlay")
@@ -150,7 +150,7 @@ stretch_mode = 1
 offset_right = 1080.0
 offset_bottom = 1920.0
 mouse_filter = 2
-color = Color(0.02, 0, 0.08, 0.42)
+color = Color(0.02, 0, 0.08, 0.0)
 
 [node name="TreasureFloorGlow" type="ColorRect" parent="."]
 offset_top = 1180.0
