@@ -1,5 +1,8 @@
 extends Control
 
+const PlayerProfileResolve = preload("res://player_profile_resolve.gd")
+const WorldThemesResolve = preload("res://world_themes_resolve.gd")
+
 const LEVEL_MAP_SCENE: String = "res://level_map.tscn"
 const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
 const SAVE_SECTION: String = "progress"
@@ -7,6 +10,8 @@ const KEY_BEST: String = "best_score"
 const KEY_SAVED_SCORE: String = "saved_score"
 const KEY_RETRY_CHARGES: String = "retry_charges"
 const KEY_RETRY_BLOCK_UNTIL: String = "retry_block_until_unix"
+const KEY_FURTHEST_LEVEL: String = "furthest_level_unlocked"
+const KEY_PROGRESSION: String = "saved_progression_level"
 const KEY_DAILY_LAST_CLAIM_DAY: String = "daily_bonus_last_claim_day"
 const KEY_DAILY_STREAK: String = "daily_bonus_streak"
 const KEY_BOOST_LIGHTNING: String = "booster_lightning"
@@ -26,10 +31,17 @@ const MAX_LIVES_DISPLAY: int = 5
 @onready var rank_screen: Control = $LocalRankLayer
 @onready var cards_popup: Node = $CardsPopupLayer
 @onready var events_popup: Node = $EventsPopupLayer
+@onready var profile_button: Button = $MainColumn/VBox/TopBar/ProfileButton
+@onready var profile_screen: Control = $PlayerProfileScreen
 @onready var coin_value_label: Label = $MainColumn/VBox/TopBar/CoinPill/Margin/HBox/CoinValue
 @onready var lives_value_label: Label = $MainColumn/VBox/TopBar/LivesPill/Margin/HBox/LivesValue
 @onready var play_button: Button = $MainColumn/VBox/PlaySection/PlayButton
 @onready var _sparkle_host: Control = $SparkleField
+@onready var _menu_bg: TextureRect = $BackgroundGradient
+@onready var _menu_readability: TextureRect = $BackgroundReadabilityOverlay
+@onready var _menu_glow: ColorRect = $GlowBlob
+@onready var _menu_rim: ColorRect = $VaultRimLight
+@onready var _menu_floor: ColorRect = $FloorTreasureTint
 
 var _sp_nodes: Array[TextureRect] = []
 var _sp_phase: Array[float] = []
@@ -48,7 +60,12 @@ func _ready() -> void:
 		shop_popup.connect("toast_requested", Callable(self, "_open_popup"))
 	if is_instance_valid(rank_screen) and rank_screen.has_signal("trophies_requested"):
 		rank_screen.trophies_requested.connect(_open_trophies)
+	if is_instance_valid(profile_screen) and profile_screen.has_signal("closed"):
+		profile_screen.connect("closed", Callable(self, "_refresh_profile_avatar_ui"))
+	if is_instance_valid(profile_screen) and profile_screen.has_signal("avatar_changed"):
+		profile_screen.connect("avatar_changed", Callable(self, "_refresh_profile_avatar_ui"))
 	_clear_stale_retry_lock_in_save()
+	_apply_menu_world_theme()
 	_refresh_currency_ui()
 	_try_auto_daily_bonus()
 	_build_menu_sparkles()
@@ -77,6 +94,37 @@ func _process(delta: float) -> void:
 		i += 1
 
 
+func _furthest_unlocked_level() -> int:
+	var cfg := ConfigFile.new()
+	if cfg.load(SAVE_PATH) != OK:
+		return 1
+	var f: int = int(cfg.get_value(SAVE_SECTION, KEY_FURTHEST_LEVEL, -1))
+	var p: int = int(cfg.get_value(SAVE_SECTION, KEY_PROGRESSION, 1))
+	return clampi(f if f > 0 else p, 1, 999_999)
+
+
+func _apply_menu_world_theme() -> void:
+	var furthest: int = _furthest_unlocked_level()
+	var t: Dictionary = WorldThemesResolve.theme_for_level(furthest)
+	if _menu_bg != null:
+		var bp: String = str(t.get("menu_bg_texture", ""))
+		if bp != "" and ResourceLoader.exists(bp):
+			var btex: Texture2D = load(bp) as Texture2D
+			if btex != null:
+				_menu_bg.texture = btex
+		_menu_bg.modulate = t.get("menu_bg_modulate", Color.WHITE) as Color
+	if _menu_readability != null:
+		var rt: Color = t.get("menu_readability_top", Color(0, 0, 0, 0)) as Color
+		var rb: Color = t.get("menu_readability_bottom", Color(0, 0, 0, 0)) as Color
+		_menu_readability.texture = WorldThemesResolve.create_vertical_readability_texture(rt, rb)
+	if _menu_glow != null:
+		_menu_glow.color = t.get("menu_glow_blob", Color.WHITE) as Color
+	if _menu_rim != null:
+		_menu_rim.color = t.get("menu_vault_rim", Color.WHITE) as Color
+	if _menu_floor != null:
+		_menu_floor.color = t.get("menu_floor_tint", Color.WHITE) as Color
+
+
 func _build_menu_sparkles() -> void:
 	if _sparkle_host == null:
 		return
@@ -85,6 +133,7 @@ func _build_menu_sparkles() -> void:
 		return
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
+	var st: Color = WorldThemesResolve.theme_for_level(_furthest_unlocked_level()).get("menu_sparkle_tint", Color.WHITE) as Color
 	var w: float = maxf(get_viewport_rect().size.x, 400.0)
 	var h: float = maxf(get_viewport_rect().size.y, 600.0)
 	for j in 10:
@@ -96,7 +145,8 @@ func _build_menu_sparkles() -> void:
 		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var p := Vector2(rng.randf_range(16.0, w - 36.0), rng.randf_range(72.0, h - 260.0))
 		tr.position = p
-		tr.modulate = Color(1, 1, 0.92, rng.randf_range(0.25, 0.42))
+		var a: float = rng.randf_range(0.25, 0.42)
+		tr.modulate = Color(st.r, st.g, st.b * 0.92, a)
 		_sparkle_host.add_child(tr)
 		_sp_nodes.append(tr)
 		_sp_phase.append(rng.randf() * TAU)
@@ -106,6 +156,7 @@ func _build_menu_sparkles() -> void:
 func _notification(what: int) -> void:
 	# Can run before @onready assigns node paths — avoid touching labels until ready.
 	if what == NOTIFICATION_VISIBILITY_CHANGED and is_visible_in_tree() and is_node_ready():
+		_apply_menu_world_theme()
 		_refresh_currency_ui()
 
 
@@ -128,6 +179,15 @@ func _refresh_currency_ui() -> void:
 		coins = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_SAVED_SCORE, 0)))
 	coin_value_label.text = _fmt_num(coins)
 	lives_value_label.text = str(MAX_LIVES_DISPLAY)
+	_refresh_profile_avatar_ui()
+
+
+func _refresh_profile_avatar_ui() -> void:
+	if not is_instance_valid(profile_button):
+		return
+	var pp: Node = PlayerProfileResolve.node()
+	if pp != null:
+		pp.refresh_profile_button(profile_button)
 
 
 func _fmt_num(n: int) -> String:
@@ -263,10 +323,10 @@ func _on_play_pressed() -> void:
 
 func _on_profile_pressed() -> void:
 	AudioService.play_button_click()
-	_open_popup(
-		"Vault profile",
-		"Your portrait frame, trail sparkles, and signature tap burst will live here. Customize your look between runs in a future update."
-	)
+	if is_instance_valid(profile_screen) and profile_screen.has_method("open_profile"):
+		profile_screen.call("open_profile")
+	else:
+		_open_popup("Vault profile", "Profile screen is unavailable.")
 
 
 func _on_top_settings_pressed() -> void:

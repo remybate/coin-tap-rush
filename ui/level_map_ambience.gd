@@ -50,7 +50,7 @@ func _point_on_polyline(pts: PackedVector2Array, dist: float) -> Vector2:
 	return pts[pts.size() - 1]
 
 
-func build(map_w: float, map_h: float, anchor_pts: PackedVector2Array, path_polyline: PackedVector2Array) -> void:
+func build(map_w: float, map_h: float, anchor_pts: PackedVector2Array, path_polyline: PackedVector2Array, ambient_coin_tint: Color = Color.WHITE, ambient_spark_tint: Color = Color.WHITE) -> void:
 	clear_all()
 	var coin_tex: Texture2D = load("res://ui/map_art/coin_small.svg") as Texture2D
 	var spark_tex: Texture2D = load("res://ui/map_art/sparkle.svg") as Texture2D
@@ -71,7 +71,8 @@ func build(map_w: float, map_h: float, anchor_pts: PackedVector2Array, path_poly
 		var x: float = clampf(map_w * 0.5 + side * rng.randf_range(100, map_w * 0.42), 8, map_w - 36)
 		var y: float = rng.randf_range(40, map_h - 80)
 		tr.position = Vector2(x, y)
-		tr.modulate = Color(1, 1, 0.95, rng.randf_range(0.38, 0.58))
+		var a0: float = rng.randf_range(0.38, 0.58)
+		tr.modulate = Color(ambient_coin_tint.r, ambient_coin_tint.g, ambient_coin_tint.b, a0)
 		add_child(tr)
 		_float_nodes.append(tr)
 		_float_base.append(Vector2(x, y))
@@ -92,7 +93,8 @@ func build(map_w: float, map_h: float, anchor_pts: PackedVector2Array, path_poly
 			tr2.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			tr2.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			tr2.position = base_p + off - Vector2(7, 7)
-			tr2.modulate = Color(1, 0.95, 0.75, rng.randf_range(0.35, 0.55))
+			var a1: float = rng.randf_range(0.35, 0.55)
+			tr2.modulate = Color(ambient_spark_tint.r, ambient_spark_tint.g, ambient_spark_tint.b, a1)
 			add_child(tr2)
 			_path_nodes.append(tr2)
 			_path_base.append(base_p + off)
@@ -108,7 +110,7 @@ func build(map_w: float, map_h: float, anchor_pts: PackedVector2Array, path_poly
 		sp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		sp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		sp.position = Vector2(rng.randf_range(6, map_w - 24), rng.randf_range(20, map_h - 40))
-		sp.modulate = Color(1, 1, 1, 0.22)
+		sp.modulate = Color(ambient_spark_tint.r, ambient_spark_tint.g, ambient_spark_tint.b, 0.22)
 		add_child(sp)
 		_spark_nodes.append(sp)
 		_spark_phase.append(rng.randf() * TAU)

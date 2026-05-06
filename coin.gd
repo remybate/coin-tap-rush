@@ -32,10 +32,21 @@ var time_falling: float = 0.0
 var _fall_vel_smooth: float = 0.0
 var _play_margin: float = 72.0
 var _play_w: float = 1080.0
+var _spark_trail: Line2D
+const TRAIL_MAX_PTS: int = 14
 
 
 func _ready() -> void:
 	add_to_group("coin")
+	_spark_trail = Line2D.new()
+	_spark_trail.width = 5.0
+	_spark_trail.default_color = Color(1.0, 0.95, 0.65, 0.42)
+	_spark_trail.antialiased = true
+	_spark_trail.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	_spark_trail.end_cap_mode = Line2D.LINE_CAP_ROUND
+	_spark_trail.joint_mode = Line2D.LINE_JOINT_ROUND
+	_spark_trail.z_index = -1
+	add_child(_spark_trail)
 	rng.randomize()
 	flat = true
 	expand_icon = true
@@ -85,16 +96,63 @@ func _apply_kind() -> void:
 		Kind.GOLD:
 			icon = TEX_GOLD
 			custom_minimum_size = Vector2(76, 76)
+			if _spark_trail:
+				_spark_trail.default_color = Color(1.0, 0.92, 0.45, 0.48)
+				_spark_trail.width = 5.0
 		Kind.SILVER_BIG:
 			icon = TEX_SILVER
 			custom_minimum_size = Vector2(96, 96)
+			if _spark_trail:
+				_spark_trail.default_color = Color(0.78, 0.92, 1.0, 0.5)
+				_spark_trail.width = 6.0
 		Kind.DIAMOND:
 			icon = TEX_DIAMOND
 			custom_minimum_size = Vector2(84, 84)
+			if _spark_trail:
+				_spark_trail.default_color = Color(0.55, 0.98, 1.0, 0.62)
+				_spark_trail.width = 6.5
 		Kind.BOMB:
 			icon = TEX_BOMB
 			custom_minimum_size = Vector2(88, 88)
+			if _spark_trail:
+				_spark_trail.clear_points()
+				_spark_trail.width = 0.0
 	_update_pivot()
+	_apply_world_style_overrides()
+
+
+func apply_world_visuals() -> void:
+	_apply_kind()
+
+
+func _apply_world_style_overrides() -> void:
+	var main: Node = get_tree().get_first_node_in_group("main")
+	if main == null or not main.has_method("get_active_world_theme"):
+		modulate = Color.WHITE
+		return
+	var t: Dictionary = main.get_active_world_theme()
+	if t.is_empty():
+		modulate = Color.WHITE
+		return
+	match kind:
+		Kind.GOLD:
+			modulate = t.get("coin_mod_gold", Color.WHITE) as Color
+		Kind.SILVER_BIG:
+			modulate = t.get("coin_mod_silver", Color.WHITE) as Color
+		Kind.DIAMOND:
+			modulate = t.get("coin_mod_diamond", Color.WHITE) as Color
+		Kind.BOMB:
+			modulate = t.get("coin_mod_bomb", Color.WHITE) as Color
+	if _spark_trail and kind != Kind.BOMB:
+		var tk: String = "trail_gold"
+		match kind:
+			Kind.SILVER_BIG:
+				tk = "trail_silver"
+			Kind.DIAMOND:
+				tk = "trail_diamond"
+			_:
+				pass
+		_spark_trail.default_color = t.get(tk, _spark_trail.default_color) as Color
 
 
 func _update_pivot() -> void:
@@ -112,7 +170,7 @@ func _on_pressed() -> void:
 	if main and main.has_method("play_collect_burst"):
 		main.play_collect_burst(global_position, kind)
 	if main and main.has_method("register_collectible"):
-		main.register_collectible(kind)
+		main.register_collectible(kind, global_position)
 	if kind != Kind.BOMB and main and main.has_method("set_magnet_focus"):
 		main.set_magnet_focus(global_position.x)
 	_pick_random_path(false)
@@ -181,6 +239,8 @@ func _pick_random_path(first_spawn: bool = false) -> void:
 		y_bot = yr.y
 	position.y = rng.randf_range(y_top, y_bot) if not first_spawn else rng.randf_range(minf(y_bot, -10.0), 0.0)
 	position.x = _x_at_time(0.0)
+	if _spark_trail != null:
+		_spark_trail.clear_points()
 
 
 func _x_at_time(t: float) -> float:
@@ -196,6 +256,8 @@ func _process(delta: float) -> void:
 	var main: Node = get_tree().get_first_node_in_group("main")
 	if main and main.has_method("is_game_over") and main.is_game_over():
 		return
+
+	var trail_anchor_global := global_position
 
 	var rect := get_viewport_rect()
 	var h: float = max(rect.size.y, 600.0)
@@ -225,6 +287,14 @@ func _process(delta: float) -> void:
 		scale = Vector2(breathe, breathe)
 	else:
 		scale = Vector2.ONE
+
+	if _spark_trail != null and kind != Kind.BOMB and vm > 0.0001 and visible:
+		var local_pt: Vector2 = _spark_trail.get_global_transform().affine_inverse() * trail_anchor_global
+		_spark_trail.add_point(local_pt)
+		while _spark_trail.get_point_count() > TRAIL_MAX_PTS:
+			_spark_trail.remove_point(0)
+	elif _spark_trail != null:
+		_spark_trail.clear_points()
 
 	if main and main.has_method("apply_magnet_to_collectible"):
 		main.apply_magnet_to_collectible(self, delta)

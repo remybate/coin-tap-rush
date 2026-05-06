@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://ui/cards_popup.tscn" id="19"]
 [ext_resource type="PackedScene" path="res://ui/events_popup.tscn" id="20"]
 [ext_resource type="PackedScene" path="res://ui/local_rank_screen.tscn" id="21"]
+[ext_resource type="PackedScene" path="res://ui/player_profile_screen.tscn" id="22"]
 
 [sub_resource type="Gradient" id="Gradient_overlay"]
 colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0)
@@ -639,11 +640,6 @@ dialog_text = "Coming soon!"
 
 [node name="ShopPopupLayer" parent="." unique_id=1165537972 instance=ExtResource("17")]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="LocalRankLayer" parent="." unique_id=1124887321 instance=ExtResource("21")]
 layout_mode = 1
@@ -667,6 +663,9 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="HowToPlayLayer" parent="." unique_id=1645513065 instance=ExtResource("2")]
+layout_mode = 1
+
+[node name="PlayerProfileScreen" parent="." unique_id=390181343 instance=ExtResource("22")]
 layout_mode = 1
 
 [connection signal="pressed" from="MainColumn/VBox/TopBar/ProfileButton" to="." method="_on_profile_pressed"]

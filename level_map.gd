@@ -1,5 +1,8 @@
 extends Control
 
+const PlayerProfileResolve = preload("res://player_profile_resolve.gd")
+const WorldThemesResolve = preload("res://world_themes_resolve.gd")
+
 const HOME_SCENE: String = "res://main_menu.tscn"
 const GAME_SCENE: String = "res://game.tscn"
 const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
@@ -37,10 +40,17 @@ const DEBUG_LEVEL_MAP_FLOW: bool = true
 @onready var _events_popup: Node = $EventsPopupLayer
 @onready var _pregame_popup: Control = $PreGameBoostersPopup
 @onready var _journey_layer: Control = $JourneyRewardsLayer
+@onready var _daily_missions_layer: Control = $DailyMissionsLayer
 @onready var _rank_layer: Control = $LocalRankLayer
+@onready var _side_missions: Button = $SideRail/SideMissions
 @onready var _profile_btn: Button = $TopBar/HBox/ProfileBtn
 @onready var _coin_plus_btn: Button = $TopBar/HBox/CoinPill/Margin/HBox/CoinPlusBtn
 @onready var _lives_plus_btn: Button = $TopBar/HBox/LivesPill/Margin/HBox/LivesPlusBtn
+@onready var _chest_btn: Button = $TopBar/HBox/ChestBtn
+@onready var _chest_badge: PanelContainer = $TopBar/HBox/ChestBtn/NotifBadge
+@onready var _chest_badge_lbl: Label = $TopBar/HBox/ChestBtn/NotifBadge/Margin/Label
+@onready var _treasure_popup: TreasureChestPopup = $TreasureChestPopup
+@onready var _profile_screen: Control = $PlayerProfileScreen
 @onready var _nav_home: Button = $BottomNav/NavMargin/NavRow/BtnHome
 @onready var _nav_journey: Button = $BottomNav/NavMargin/NavRow/BtnJourney
 @onready var _nav_levels: Button = $BottomNav/NavMargin/NavRow/BtnLevels
@@ -72,6 +82,18 @@ func _ready() -> void:
 		_shop_popup.connect("toast_requested", Callable(self, "_open_info_popup"))
 	if is_instance_valid(_rank_layer) and _rank_layer.has_signal("trophies_requested"):
 		_rank_layer.trophies_requested.connect(_on_rank_layer_trophies_requested)
+	if is_instance_valid(_treasure_popup):
+		_treasure_popup.finished.connect(_on_treasure_chest_finished)
+		_treasure_popup.chest_opened_applied.connect(_refresh_chest_badge)
+	if is_instance_valid(_profile_screen) and _profile_screen.has_signal("closed"):
+		_profile_screen.connect("closed", Callable(self, "_on_profile_screen_closed"))
+	if is_instance_valid(_profile_screen) and _profile_screen.has_signal("avatar_changed"):
+		_profile_screen.connect("avatar_changed", Callable(self, "_refresh_profile_avatar_only"))
+	if is_instance_valid(_daily_missions_layer):
+		if _daily_missions_layer.has_signal("info_requested"):
+			_daily_missions_layer.info_requested.connect(_on_daily_missions_info)
+		if _daily_missions_layer.has_signal("closed"):
+			_daily_missions_layer.closed.connect(_on_daily_missions_closed)
 	_load_save_summary()
 	var requested: int = LevelSelectState.consume_pending_level()
 	if requested > 0:
@@ -157,6 +179,73 @@ func _refresh_hud() -> void:
 		coins = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_SAVED_SCORE, 0)))
 	_coin_value.text = str(coins)
 	_lives_value.text = str(MAX_LIVES_DISPLAY)
+	_refresh_missions_nav_highlight()
+	_refresh_chest_badge()
+	_refresh_profile_avatar_only()
+
+
+func _daily_missions_node() -> Node:
+	var st: SceneTree = get_tree()
+	if st == null or st.root == null:
+		return null
+	return st.root.get_node_or_null("DailyMissions")
+
+
+func _refresh_missions_nav_highlight() -> void:
+	if not is_instance_valid(_side_missions):
+		return
+	var dm: Node = _daily_missions_node()
+	if dm == null:
+		return
+	dm.call("ensure_current_day")
+	var claimable: bool = bool(dm.call("has_claimable_reward"))
+	_side_missions.modulate = Color(1.12, 1.08, 0.72, 1) if claimable else Color.WHITE
+
+
+func _on_daily_missions_info(title: String, msg: String) -> void:
+	_open_info_popup(title, msg)
+
+
+func _on_daily_missions_closed() -> void:
+	_refresh_missions_nav_highlight()
+
+
+func _refresh_chest_badge() -> void:
+	if not is_instance_valid(_chest_badge) or not is_instance_valid(_chest_badge_lbl):
+		return
+	var v: Vector2i = TreasureChestProgress.read_streak_and_pending()
+	var pending: int = v.y
+	_chest_badge.visible = pending > 0
+	if pending > 9:
+		_chest_badge_lbl.text = "9+"
+	else:
+		_chest_badge_lbl.text = str(maxi(1, pending))
+
+
+func _on_chest_btn_pressed() -> void:
+	if is_instance_valid(_treasure_popup) and _treasure_popup.visible:
+		return
+	AudioService.play_button_click()
+	var v: Vector2i = TreasureChestProgress.read_streak_and_pending()
+	if v.y < 1:
+		var need: int = TreasureChestProgress.levels_until_next_chest()
+		_open_info_popup(
+			"Treasure Chest",
+			"Fill your chest meter by clearing levels on the map — %d more win%s earns the next gleaming chest!" % [need, "" if need == 1 else "s"]
+		)
+		return
+	if is_instance_valid(_treasure_popup):
+		_treasure_popup.open_chest()
+
+
+func _on_treasure_chest_finished() -> void:
+	_refresh_hud()
+
+
+func _on_side_missions_pressed() -> void:
+	AudioService.play_button_click()
+	if is_instance_valid(_daily_missions_layer) and _daily_missions_layer.has_method("open_missions"):
+		_daily_missions_layer.open_missions()
 
 
 func _map_content_width() -> float:
@@ -202,19 +291,21 @@ func _make_gradient_tex(width_px: int, height_px: int, colors: PackedColorArray,
 	return gtx
 
 
-func _build_background_layers(w: float, total_h: float) -> void:
+func _build_background_layers(w: float, total_h: float, theme: Dictionary) -> void:
 	for c in _background_layer.get_children():
 		c.queue_free()
 
 	var sky_h: float = total_h * 0.42
+	var sky_colors: PackedColorArray = theme.get("map_sky_colors", PackedColorArray()) as PackedColorArray
+	var sky_offs: PackedFloat32Array = theme.get("map_sky_offsets", PackedFloat32Array()) as PackedFloat32Array
+	if sky_colors.size() < 2:
+		sky_colors = PackedColorArray([Color(0.55, 0.78, 1.0, 1), Color(0.42, 0.55, 0.98, 1), Color(0.55, 0.35, 0.92, 0.35)])
+	if sky_offs.size() != sky_colors.size():
+		sky_offs = PackedFloat32Array([0.0, 0.45, 1.0])
+
 	var sky := TextureRect.new()
 	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sky.texture = _make_gradient_tex(
-		int(w),
-		int(sky_h),
-		PackedColorArray([Color(0.55, 0.78, 1.0, 1), Color(0.42, 0.55, 0.98, 1), Color(0.55, 0.35, 0.92, 0.35)]),
-		PackedFloat32Array([0.0, 0.45, 1.0])
-	)
+	sky.texture = _make_gradient_tex(int(w), int(sky_h), sky_colors, sky_offs)
 	sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	sky.stretch_mode = TextureRect.STRETCH_SCALE
 	sky.position = Vector2.ZERO
@@ -223,23 +314,24 @@ func _build_background_layers(w: float, total_h: float) -> void:
 
 	var band := ColorRect.new()
 	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	band.color = Color(0.28, 0.62, 0.38, 0.55)
+	band.color = theme.get("map_band", Color(0.28, 0.62, 0.38, 0.55)) as Color
 	band.position = Vector2(0, sky_h * 0.55)
 	band.size = Vector2(w, total_h * 0.12)
 	_background_layer.add_child(band)
 
 	var ground := ColorRect.new()
 	ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ground.color = Color(0.12, 0.48, 0.28, 1)
+	ground.color = theme.get("map_ground", Color(0.12, 0.48, 0.28, 1)) as Color
 	ground.position = Vector2(0, total_h * 0.3)
 	ground.size = Vector2(w, total_h * 0.72)
 	_background_layer.add_child(ground)
 
+	var stripe_rgb: Color = theme.get("map_stripe", Color(0.18, 0.58, 0.32, 1)) as Color
 	var stripe_y: float = total_h * 0.32
 	for k in range(5):
 		var stripe := ColorRect.new()
 		stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		stripe.color = Color(0.18, 0.58, 0.32, 0.22 + float(k) * 0.04)
+		stripe.color = Color(stripe_rgb.r, stripe_rgb.g, stripe_rgb.b, 0.22 + float(k) * 0.04)
 		stripe.position = Vector2(0, stripe_y + float(k) * 70.0)
 		stripe.size = Vector2(w, 26.0)
 		_background_layer.add_child(stripe)
@@ -247,6 +339,9 @@ func _build_background_layers(w: float, total_h: float) -> void:
 	var coin_pile_tex: Texture2D = load("res://ui/map_art/coin_small.svg") as Texture2D
 	var rng_bg := RandomNumberGenerator.new()
 	rng_bg.seed = hash(Vector2i(int(w), int(total_h))) ^ 0x5EED
+	var dec_coin: Color = theme.get("map_dec_coin_mod", Color(1, 0.92, 0.5, 1)) as Color
+	var dec_gem: Color = theme.get("map_dec_gem_mod", Color(0.75, 0.92, 1.0, 1)) as Color
+	var dec_spark: Color = theme.get("map_dec_spark_mod", Color(1, 1, 0.92, 1)) as Color
 	if coin_pile_tex != null:
 		for _pi in range(10):
 			var cx: float = rng_bg.randf_range(24, w - 40)
@@ -260,7 +355,7 @@ func _build_background_layers(w: float, total_h: float) -> void:
 				pc.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 				pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				pc.position = Vector2(cx + float(u) * 5 + rng_bg.randf_range(-2, 2), cy + float(u % 3) * 4)
-				pc.modulate = Color(1, 0.92, 0.5, rng_bg.randf_range(0.55, 0.85))
+				pc.modulate = Color(dec_coin.r, dec_coin.g, dec_coin.b, rng_bg.randf_range(0.55, 0.85))
 				pc.rotation_degrees = rng_bg.randf_range(-14, 14)
 				_background_layer.add_child(pc)
 
@@ -274,7 +369,7 @@ func _build_background_layers(w: float, total_h: float) -> void:
 			g.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			g.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			g.position = Vector2(rng_bg.randf_range(16, w - 36), rng_bg.randf_range(80, total_h - 100))
-			g.modulate = Color(0.75, 0.92, 1.0, rng_bg.randf_range(0.45, 0.75))
+			g.modulate = Color(dec_gem.r, dec_gem.g, dec_gem.b, rng_bg.randf_range(0.45, 0.75))
 			_background_layer.add_child(g)
 			_add_sway_tex(g, rng_bg.randf() * TAU)
 
@@ -289,12 +384,12 @@ func _build_background_layers(w: float, total_h: float) -> void:
 			st.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			st.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			st.position = Vector2(rng_bg.randf_range(4, w - 28), rng_bg.randf_range(30, total_h - 50))
-			st.modulate = Color(1, 1, 0.92, rng_bg.randf_range(0.25, 0.5))
+			st.modulate = Color(dec_spark.r, dec_spark.g, dec_spark.b, rng_bg.randf_range(0.25, 0.5))
 			_background_layer.add_child(st)
 
 	var hill := ColorRect.new()
 	hill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hill.color = Color(0.1, 0.42, 0.24, 0.88)
+	hill.color = theme.get("map_hill", Color(0.1, 0.42, 0.24, 0.88)) as Color
 	hill.position = Vector2(-40, total_h * 0.26)
 	hill.size = Vector2(w + 80, total_h * 0.14)
 	hill.rotation_degrees = -1.2
@@ -531,12 +626,20 @@ func _build_visual_map() -> void:
 
 	var smooth_pts: PackedVector2Array = _smooth_path(raw_pts, 12)
 
-	_build_background_layers(w, total_h)
+	var map_theme: Dictionary = WorldThemesResolve.theme_for_level(_selected_level)
+	_build_background_layers(w, total_h, map_theme)
 	_path_drawer.set_path_points(smooth_pts)
 	_place_path_tiles_on_curve(smooth_pts)
 	_place_world_props(smooth_pts, w, total_h)
 	_place_treasure_checkpoints()
-	_ambience.build(w, total_h, raw_pts, smooth_pts)
+	_ambience.build(
+		w,
+		total_h,
+		raw_pts,
+		smooth_pts,
+		map_theme.get("map_ambience_coin_tint", Color.WHITE) as Color,
+		map_theme.get("map_ambience_spark_tint", Color.WHITE) as Color,
+	)
 
 	for i in range(_display_levels):
 		var lv: int = _window_level_start + i
@@ -722,7 +825,12 @@ func _refresh_all_level_styles() -> void:
 
 
 func _update_main_play_label() -> void:
-	_main_play.text = "LEVEL %d" % _selected_level
+	var wt: Dictionary = WorldThemesResolve.theme_for_level(_selected_level)
+	var wname: String = str(wt.get("hud_name", ""))
+	if wname != "":
+		_main_play.text = "LEVEL %d  ·  %s" % [_selected_level, wname]
+	else:
+		_main_play.text = "LEVEL %d" % _selected_level
 
 
 func _scroll_to_selected() -> void:
@@ -927,7 +1035,6 @@ func _apply_top_bar_arcade_styles() -> void:
 	_profile_btn.add_theme_stylebox_override("hover", prof_h)
 	_profile_btn.add_theme_stylebox_override("pressed", prof_h)
 	_profile_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	_profile_btn.add_theme_font_size_override("font_size", 26)
 	_settings_btn.add_theme_stylebox_override("normal", gear_n)
 	_settings_btn.add_theme_stylebox_override("hover", gear_h)
 	_settings_btn.add_theme_stylebox_override("pressed", gear_h)
@@ -955,6 +1062,20 @@ func _apply_top_bar_arcade_styles() -> void:
 	var heart := $TopBar/HBox/LivesPill/Margin/HBox/HeartLbl as Label
 	if heart:
 		heart.add_theme_font_size_override("font_size", 28)
+	if is_instance_valid(_chest_btn):
+		var ch_n := _make_flat_style(Color(0.44, 0.28, 0.14, 1), Color(0.98, 0.78, 0.28, 1), 3, 16, 8, Color(0, 0, 0, 0.38))
+		var ch_h := ch_n.duplicate() as StyleBoxFlat
+		ch_h.bg_color = Color(0.55, 0.36, 0.18, 1)
+		var ch_p := ch_n.duplicate() as StyleBoxFlat
+		ch_p.bg_color = Color(0.34, 0.2, 0.1, 1)
+		_chest_btn.add_theme_stylebox_override("normal", ch_n)
+		_chest_btn.add_theme_stylebox_override("hover", ch_h)
+		_chest_btn.add_theme_stylebox_override("pressed", ch_p)
+		_chest_btn.add_theme_stylebox_override("focus", ch_n)
+	if is_instance_valid(_chest_badge):
+		var bn := _make_flat_style(Color(0.92, 0.18, 0.22, 1), Color(1, 1, 1, 0.9), 2, 99, 3, Color(0, 0, 0, 0.35))
+		_chest_badge.add_theme_stylebox_override("panel", bn)
+	_refresh_profile_avatar_only()
 
 
 func _apply_bottom_nav_arcade_styles() -> void:
@@ -1068,7 +1189,22 @@ func _apply_levels_tab_selected_scale() -> void:
 
 func _on_profile_avatar_pressed() -> void:
 	AudioService.play_button_click()
-	_open_info_popup("Adventurer", "Profile perks are on the way — keep clearing levels!")
+	if is_instance_valid(_profile_screen) and _profile_screen.has_method("open_profile"):
+		_profile_screen.call("open_profile")
+	else:
+		_open_info_popup("Adventurer", "Profile is unavailable right now.")
+
+
+func _on_profile_screen_closed() -> void:
+	_refresh_profile_avatar_only()
+
+
+func _refresh_profile_avatar_only() -> void:
+	if not is_instance_valid(_profile_btn):
+		return
+	var pp: Node = PlayerProfileResolve.node()
+	if pp != null:
+		pp.refresh_profile_button(_profile_btn)
 
 
 func _on_coin_plus_pressed() -> void:
@@ -1094,7 +1230,7 @@ func _apply_side_rail_arcade_styles() -> void:
 	rail_h.bg_color = Color(0.44, 0.28, 0.88, 1)
 	var rail_p := rail_n.duplicate() as StyleBoxFlat
 	rail_p.bg_color = Color(0.28, 0.14, 0.58, 1)
-	for nm in [&"SideShop", &"SideRewards", &"SideEvents"]:
+	for nm in [&"SideShop", &"SideRewards", &"SideMissions", &"SideEvents"]:
 		var sb: Button = $SideRail.get_node(NodePath(str(nm))) as Button
 		if sb == null:
 			continue

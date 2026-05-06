@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 AudioManager="*res://audio_manager.gd"
 BoosterManager="*res://booster_manager.gd"
+DailyMissions="*res://daily_missions.gd"
+PlayerProfile="*res://player_profile.gd"
 
 [display]
 

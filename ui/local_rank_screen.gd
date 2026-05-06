@@ -1,5 +1,7 @@
 extends Control
 
+const PlayerProfileResolve = preload("res://player_profile_resolve.gd")
+
 ## Offline leaderboard with placeholder rivals; real stats from save for "You".
 
 signal closed
@@ -77,12 +79,32 @@ func _read_you_stats() -> Dictionary:
 	var cfg := ConfigFile.new()
 	var best: int = 0
 	var lvl: int = 1
+	var xp: int = 0
+	var av: int = 0
+	var pp: Node = PlayerProfileResolve.node()
 	if cfg.load(SAVE_PATH) == OK:
 		best = maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_BEST, 0)))
 		var f: int = int(cfg.get_value(SAVE_SECTION, KEY_FURTHEST, -1))
 		var p: int = int(cfg.get_value(SAVE_SECTION, KEY_PROGRESSION, 1))
 		lvl = clampi(f if f > 0 else p, 1, 999_999)
-	return {"name": "You", "best": best, "level": lvl, "hue": 0.14, "is_you": true}
+		if pp != null:
+			xp = pp.read_xp_from_cfg(cfg)
+			av = pp.read_avatar_from_cfg(cfg)
+	var pl: int = pp.player_level_from_xp(xp) if pp != null else 1
+	av = pp.clamp_avatar_to_unlocked(av, pl) if pp != null else 0
+	var tit: String = pp.title_for_level(pl) if pp != null else "Coin Rookie"
+	var bd: Dictionary = pp.rank_badge_for_level(pl) if pp != null else {"tier": "BRONZE", "rank": "III", "accent": Color.WHITE}
+	return {
+		"name": "You",
+		"best": best,
+		"level": lvl,
+		"plevel": pl,
+		"title": tit,
+		"badge": "%s %s" % [str(bd.get("tier", "")), str(bd.get("rank", ""))],
+		"emoji": pp.avatar_emoji(av) if pp != null else "👤",
+		"hue": 0.14,
+		"is_you": true,
+	}
 
 
 func _placeholder_roster() -> Array[Dictionary]:
@@ -189,7 +211,10 @@ func _make_row(place: int, d: Dictionary) -> PanelContainer:
 	var av_ctr := CenterContainer.new()
 	av.add_child(av_ctr)
 	var ini := Label.new()
-	ini.text = _initial(str(d["name"]))
+	if str(d.get("emoji", "")).length() > 0:
+		ini.text = str(d["emoji"])
+	else:
+		ini.text = _initial(str(d["name"]))
 	ini.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ini.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	ini.add_theme_font_size_override("font_size", 22)
@@ -209,9 +234,14 @@ func _make_row(place: int, d: Dictionary) -> PanelContainer:
 	nm.add_theme_constant_override("outline_size", 3)
 	mid.add_child(nm)
 	var st := Label.new()
-	st.text = "Lv. %d  ·  Best %s" % [int(d["level"]), _fmt_num(int(d["best"]))]
 	if is_you:
+		var pl: int = int(d.get("plevel", int(d["level"])))
+		var tit: String = str(d.get("title", ""))
+		var bd: String = str(d.get("badge", ""))
+		st.text = "Rank %s  ·  %s  ·  P.Lv. %d  ·  Stage %d  ·  Best %s" % [bd, tit, pl, int(d["level"]), _fmt_num(int(d["best"]))]
 		st.text += "  ·  This device"
+	else:
+		st.text = "Lv. %d  ·  Best %s" % [int(d["level"]), _fmt_num(int(d["best"]))]
 	st.add_theme_font_size_override("font_size", 15)
 	st.add_theme_color_override("font_color", Color(0.78, 0.84, 0.95, 1))
 	mid.add_child(st)

@@ -21,6 +21,9 @@ var _stream_miss: AudioStream
 var _stream_game_over: AudioStream
 var _stream_click: AudioStream
 var _stream_level: AudioStream
+var _current_bgm_path: String = ""
+
+const DEFAULT_BGM: String = "res://audio/music_loop.wav"
 
 
 func _ready() -> void:
@@ -45,7 +48,28 @@ func _ready() -> void:
 	if music_stream:
 		music_stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	_music.stream = music_stream
+	_current_bgm_path = DEFAULT_BGM
 	if music_enabled and music_stream:
+		_music.play()
+
+
+## Swap loop BGM when entering a world theme. Empty or missing path keeps default `music_loop.wav`.
+func play_world_bgm(resource_path: String) -> void:
+	if not _music:
+		return
+	var use_path: String = DEFAULT_BGM
+	if resource_path != "" and ResourceLoader.exists(resource_path):
+		use_path = resource_path
+	if use_path == _current_bgm_path and _music.stream != null and _music.playing:
+		return
+	var stream: AudioStream = load(use_path) as AudioStream
+	if stream == null:
+		return
+	if stream is AudioStreamWAV:
+		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+	_current_bgm_path = use_path
+	_music.stream = stream
+	if music_enabled:
 		_music.play()
 
 

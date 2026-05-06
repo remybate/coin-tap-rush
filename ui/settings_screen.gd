@@ -90,6 +90,8 @@ func _on_reset_pressed() -> void:
 	cfg.load(SAVE_PATH)
 	if cfg.has_section("progress"):
 		cfg.erase_section("progress")
+	if cfg.has_section("daily_missions"):
+		cfg.erase_section("daily_missions")
 	cfg.save(SAVE_PATH)
 
 	_reset_armed = false

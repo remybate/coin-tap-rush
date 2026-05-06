@@ -1,5 +1,8 @@
 extends Node2D
 
+const PlayerProfileResolve = preload("res://player_profile_resolve.gd")
+const WorldThemesResolve = preload("res://world_themes_resolve.gd")
+
 const MAIN_MENU_SCENE: String = "res://main_menu.tscn"
 const LEVEL_MAP_SCENE: String = "res://level_map.tscn"
 
@@ -39,6 +42,10 @@ const RETRY_COOLDOWN_SEC: int = 3 * 3600
 const COMBO_STEP: int = 5
 const HIT_SHAKE_DURATION_SEC: float = 0.11
 const HIT_SHAKE_MAG_PX: float = 5.0
+## Juice-only screen shake (does not affect physics or scoring).
+const COMBO_SHAKE_BASE_MAG_PX: float = 6.0
+const COMBO_SHAKE_PER_TIER_PX: float = 2.35
+const COMBO_SHAKE_DURATION_SEC: float = 0.34
 var score: int = 0
 var best_score: int = 0
 ## Bank coins (persisted in saved_score). Only grows after a level completes (fly animation).
@@ -48,6 +55,8 @@ var level_coins_collected: int = 0
 var _cached_level_bonus: Dictionary = {}
 var _level_payout_ready: bool = false
 var _level_coin_fly_in_progress: bool = false
+## Cleared stage index for meta XP; applied inside `_save_progress_file`.
+var _pending_xp_cleared_level: int = 0
 ## Consecutive gold / silver / diamond taps; resets on miss or bomb tap.
 var combo_streak: int = 0
 var lives: int = MAX_LIVES
@@ -104,12 +113,16 @@ var _collectibles: Array[Collectible] = []
 var _last_slot_count: int = -1
 ## When true, gameplay was paused only because Settings was opened from the HUD (not Pause / level-up).
 var _paused_for_hud_settings: bool = false
-var _hit_shake_time: float = 0.0
-var _hit_shake_mag: float = 0.0
+var _screen_shake_rem: float = 0.0
+var _screen_shake_dur_cap: float = 0.11
+var _screen_shake_mag_peak: float = 0.0
+var _combo_hud_glow_timer: float = 0.0
+var _active_world_theme: Dictionary = {}
 
 @onready var score_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ScoreLabel
 @onready var best_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/BestLabel
 @onready var combo_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ComboLabel
+@onready var combo_meter: ProgressBar = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ComboMeter
 @onready var vault_coins_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/VaultCoinsLabel
 @onready var level_coins_hud_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/LevelCoinsHudLabel
 @onready var lives_label: Label = $CanvasLayer/TopBar/Margin/Row/LivesLabel
@@ -129,6 +142,12 @@ var _hit_shake_mag: float = 0.0
 @onready var settings_button: Button = $CanvasLayer/TopBar/Margin/Row/SettingsButton
 @onready var level_complete_screen: Control = $CanvasLayer/LevelCompleteScreen
 @onready var _collect_burst: CPUParticles2D = $CollectBurst
+@onready var _juice_sparkles: CPUParticles2D = $JuiceSparkles
+@onready var _diamond_flash: ColorRect = $CanvasLayer/DiamondFlash
+@onready var _playfield_bg: TextureRect = $PlayfieldBg
+@onready var _playfield_readability: TextureRect = $BackgroundReadabilityOverlay
+@onready var _playfield_vignette: ColorRect = $PlayfieldVignette
+@onready var _floor_glow_rect: ColorRect = $TreasureFloorGlow
 
 
 func _ready() -> void:
@@ -169,7 +188,40 @@ func _ready() -> void:
 	_collectibles.sort_custom(func(a: Collectible, b: Collectible) -> bool: return a.get_index() < b.get_index())
 	_last_slot_count = -1
 	set_process(true)
+	_apply_world_theme()
 	_refresh_ui()
+
+
+func get_active_world_theme() -> Dictionary:
+	return _active_world_theme
+
+
+func _apply_world_theme() -> void:
+	_active_world_theme = WorldThemesResolve.theme_for_level(progression_level)
+	var t: Dictionary = _active_world_theme
+	if _playfield_bg != null:
+		var p: String = str(t.get("playfield_texture", ""))
+		if p != "" and ResourceLoader.exists(p):
+			var tex: Texture2D = load(p) as Texture2D
+			if tex != null:
+				_playfield_bg.texture = tex
+		_playfield_bg.modulate = t.get("playfield_modulate", Color.WHITE) as Color
+	if _playfield_readability != null:
+		var rt: Color = t.get("readability_top", Color(0, 0, 0, 0)) as Color
+		var rb: Color = t.get("readability_bottom", Color(0, 0, 0, 0)) as Color
+		_playfield_readability.texture = WorldThemesResolve.create_vertical_readability_texture(rt, rb)
+	if _playfield_vignette != null:
+		_playfield_vignette.color = t.get("vignette", Color(0, 0, 0, 0)) as Color
+	if _floor_glow_rect != null:
+		_floor_glow_rect.color = t.get("floor_glow", Color(1, 1, 1, 0)) as Color
+	if _juice_sparkles != null:
+		_juice_sparkles.color = t.get("juice_particle_color", Color.WHITE) as Color
+	var am: Node = get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("play_world_bgm"):
+		am.call("play_world_bgm", str(t.get("music_path", "")))
+	for c in _collectibles:
+		if c.has_method("apply_world_visuals"):
+			c.apply_world_visuals()
 
 
 func _on_progress_reset() -> void:
@@ -190,6 +242,13 @@ func get_level() -> int:
 	return progression_level
 
 
+func _daily_missions_node() -> Node:
+	var st: SceneTree = get_tree()
+	if st == null or st.root == null:
+		return null
+	return st.root.get_node_or_null("DailyMissions")
+
+
 func _begin_level_segment(update_floor_from_score: bool) -> void:
 	_cached_cfg = LevelProgression.get_level_config(progression_level)
 	if update_floor_from_score:
@@ -197,6 +256,7 @@ func _begin_level_segment(update_floor_from_score: bool) -> void:
 	var tl: float = float(_cached_cfg.get("time_limit", 0.0))
 	_level_time_remaining = tl if tl > 0.05 else -1.0
 	_last_slot_count = -1
+	_apply_world_theme()
 
 
 func _level_targets_met() -> bool:
@@ -211,7 +271,8 @@ func _level_targets_met() -> bool:
 
 
 func _process(delta: float) -> void:
-	_update_hit_shake(delta)
+	_update_screen_shake(delta)
+	_update_combo_hud_glow(delta)
 	if _booster_slow_timer > 0.0:
 		_booster_slow_timer = maxf(0.0, _booster_slow_timer - delta)
 	if _ingame_slow_timer > 0.0:
@@ -233,22 +294,51 @@ func _process(delta: float) -> void:
 
 
 func _trigger_subtle_hit_shake() -> void:
-	_hit_shake_time = maxf(_hit_shake_time, HIT_SHAKE_DURATION_SEC)
-	_hit_shake_mag = maxf(_hit_shake_mag, HIT_SHAKE_MAG_PX)
+	_add_screen_shake(HIT_SHAKE_DURATION_SEC, HIT_SHAKE_MAG_PX)
 
 
-func _update_hit_shake(delta: float) -> void:
-	if _hit_shake_time <= 0.0:
-		position = Vector2.ZERO
-		_hit_shake_mag = 0.0
+func _add_screen_shake(duration: float, magnitude: float) -> void:
+	if duration <= 0.0 or magnitude <= 0.0:
 		return
-	_hit_shake_time = maxf(0.0, _hit_shake_time - delta)
-	var t: float = clampf(_hit_shake_time / HIT_SHAKE_DURATION_SEC, 0.0, 1.0)
-	var mag: float = _hit_shake_mag * t
-	position = Vector2(_reward_rng.randf_range(-mag, mag), _reward_rng.randf_range(-mag, mag))
-	if _hit_shake_time <= 0.0:
+	_screen_shake_mag_peak = maxf(_screen_shake_mag_peak, magnitude)
+	_screen_shake_rem = maxf(_screen_shake_rem, duration)
+	_screen_shake_dur_cap = maxf(_screen_shake_dur_cap, duration)
+
+
+func _trigger_combo_screen_shake(tier: int) -> void:
+	if tier < 2:
+		return
+	var mag: float = COMBO_SHAKE_BASE_MAG_PX + float(tier - 2) * COMBO_SHAKE_PER_TIER_PX
+	mag = clampf(mag, COMBO_SHAKE_BASE_MAG_PX, 17.0)
+	var dur: float = COMBO_SHAKE_DURATION_SEC + clampf(float(tier - 2) * 0.045, 0.0, 0.22)
+	_add_screen_shake(dur, mag)
+
+
+func _update_screen_shake(delta: float) -> void:
+	if _screen_shake_rem <= 0.0:
 		position = Vector2.ZERO
-		_hit_shake_mag = 0.0
+		_screen_shake_mag_peak = 0.0
+		_screen_shake_dur_cap = HIT_SHAKE_DURATION_SEC
+		return
+	_screen_shake_rem = maxf(0.0, _screen_shake_rem - delta)
+	var k: float = clampf(_screen_shake_rem / maxf(_screen_shake_dur_cap, 0.0001), 0.0, 1.0)
+	var mag: float = _screen_shake_mag_peak * k
+	position = Vector2(_reward_rng.randf_range(-mag, mag), _reward_rng.randf_range(-mag, mag))
+	if _screen_shake_rem <= 0.0:
+		position = Vector2.ZERO
+		_screen_shake_mag_peak = 0.0
+		_screen_shake_dur_cap = HIT_SHAKE_DURATION_SEC
+
+
+func _update_combo_hud_glow(delta: float) -> void:
+	if combo_label == null:
+		return
+	if _combo_hud_glow_timer <= 0.0:
+		combo_label.modulate = Color.WHITE
+		return
+	_combo_hud_glow_timer = maxf(0.0, _combo_hud_glow_timer - delta)
+	var e: float = clampf(_combo_hud_glow_timer / 0.22, 0.0, 1.0)
+	combo_label.modulate = Color.WHITE.lerp(Color(1.22, 1.08, 1.18, 1.0), e)
 
 
 func _maybe_combo_tier_celebrate(prev_streak: int, new_streak: int) -> void:
@@ -258,41 +348,75 @@ func _maybe_combo_tier_celebrate(prev_streak: int, new_streak: int) -> void:
 	var new_tier: int = 1 + new_streak / COMBO_STEP
 	if new_tier <= prev_tier or new_tier < 2:
 		return
-	_spawn_combo_float(new_tier)
+	_spawn_combo_float(new_tier, new_streak)
+	_trigger_combo_screen_shake(new_tier)
 
 
-func _spawn_combo_float(tier: int) -> void:
+func _spawn_combo_float(tier: int, streak: int) -> void:
 	var cl: CanvasLayer = $CanvasLayer as CanvasLayer
 	if cl == null:
 		return
+	var host := Control.new()
+	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cl.add_child(host)
+	var vp: Vector2 = get_viewport_rect().size
+	host.position = Vector2.ZERO
+	host.size = vp
+	var ghost := Label.new()
+	ghost.text = "Combo x%d!" % tier
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ghost.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ghost.add_theme_font_size_override("font_size", 56)
+	ghost.add_theme_color_override("font_color", Color(1.0, 0.45, 0.85, 0.35))
+	ghost.add_theme_constant_override("outline_size", 14)
+	ghost.position = Vector2(vp.x * 0.5 + 5.0, vp.y * 0.265 + 6.0)
+	host.add_child(ghost)
 	var lbl := Label.new()
 	lbl.text = "Combo x%d!" % tier
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 52)
+	lbl.add_theme_font_size_override("font_size", 56)
 	lbl.add_theme_color_override("font_color", Color(1.0, 0.93, 0.42))
 	lbl.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.22, 0.96))
-	lbl.add_theme_constant_override("outline_size", 10)
-	cl.add_child(lbl)
-	var vp: Vector2 = get_viewport_rect().size
-	lbl.position = Vector2(vp.x * 0.5, vp.y * 0.27)
-	_animate_combo_label(lbl)
+	lbl.add_theme_constant_override("outline_size", 11)
+	lbl.position = Vector2(vp.x * 0.5, vp.y * 0.265)
+	host.add_child(lbl)
+	var sub := Label.new()
+	sub.text = "%d-tap streak · keep it glowing!" % streak
+	sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_font_size_override("font_size", 22)
+	sub.add_theme_color_override("font_color", Color(0.92, 0.88, 1.0, 0.95))
+	sub.add_theme_color_override("font_outline_color", Color(0.08, 0.04, 0.2, 1))
+	sub.add_theme_constant_override("outline_size", 5)
+	sub.position = Vector2(vp.x * 0.5, vp.y * 0.265 + 62.0)
+	host.add_child(sub)
+	_animate_combo_stack(host, lbl, ghost, sub)
 
 
-func _animate_combo_label(lbl: Label) -> void:
+func _animate_combo_stack(host: Control, lbl: Label, ghost: Label, sub: Label) -> void:
 	await get_tree().process_frame
-	if not is_instance_valid(lbl):
+	if not is_instance_valid(host):
 		return
-	lbl.pivot_offset = lbl.size * 0.5
-	lbl.position.x -= lbl.size.x * 0.5
+	for lb in [lbl, ghost, sub]:
+		if is_instance_valid(lb):
+			lb.pivot_offset = lb.size * 0.5
+			lb.position.x -= lb.size.x * 0.5
 	var tw := create_tween()
 	tw.set_parallel(true)
-	tw.tween_property(lbl, "scale", Vector2(1.14, 1.14), 0.22).from(Vector2(0.32, 0.32)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(lbl, "position:y", lbl.position.y - 88.0, 0.78).set_delay(0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "scale", Vector2(1.2, 1.2), 0.26).from(Vector2(0.2, 0.2)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(ghost, "scale", Vector2(1.22, 1.22), 0.28).from(Vector2(0.18, 0.18)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sub, "scale", Vector2(1.0, 1.0), 0.24).from(Vector2(0.5, 0.5)).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(host, "position:y", -96.0, 0.85).set_delay(0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).from(0.0)
+	var tw_rot := create_tween()
+	tw_rot.tween_property(lbl, "rotation_degrees", -4.0, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw_rot.tween_property(lbl, "rotation_degrees", 3.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw_rot.tween_property(lbl, "rotation_degrees", 0.0, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	var tw_fade := create_tween()
-	tw_fade.tween_property(lbl, "modulate:a", 0.0, 0.38).set_delay(0.58)
-	tw_fade.finished.connect(lbl.queue_free)
+	tw_fade.tween_property(host, "modulate:a", 0.0, 0.42).set_delay(0.62)
+	tw_fade.finished.connect(host.queue_free)
 
 
 ## Scales fall speed from collectibles when slow charms are active (spawn jitter + live motion).
@@ -468,6 +592,7 @@ func _sync_collectible_slots() -> void:
 func play_collect_burst(world_pos: Vector2, k: Collectible.Kind) -> void:
 	if game_over or _collect_burst == null:
 		return
+	var t: Dictionary = _active_world_theme
 	var inner := Color(1.0, 0.96, 0.58, 1)
 	var outer := Color(1.0, 0.62, 0.12, 1)
 	var bscale: float = 1.05
@@ -488,14 +613,111 @@ func play_collect_burst(world_pos: Vector2, k: Collectible.Kind) -> void:
 			pass
 		_:
 			return
+	if not t.is_empty():
+		match k:
+			Collectible.Kind.GOLD:
+				inner = t.get("burst_gold_inner", inner) as Color
+				outer = t.get("burst_gold_outer", outer) as Color
+			Collectible.Kind.SILVER_BIG:
+				inner = t.get("burst_silver_inner", inner) as Color
+				outer = t.get("burst_silver_outer", outer) as Color
+			Collectible.Kind.DIAMOND:
+				inner = t.get("burst_diamond_inner", inner) as Color
+				outer = t.get("burst_diamond_outer", outer) as Color
+			Collectible.Kind.BOMB:
+				inner = t.get("burst_bomb_inner", inner) as Color
+				outer = t.get("burst_bomb_outer", outer) as Color
+			_:
+				pass
 	_collect_burst.burst_at(world_pos, inner, outer, bscale)
+	if k != Collectible.Kind.BOMB and _juice_sparkles != null and _juice_sparkles.has_method("burst_sparkle_addon"):
+		_juice_sparkles.burst_sparkle_addon(world_pos, inner, outer, bscale)
+	if k == Collectible.Kind.DIAMOND:
+		_play_diamond_resonance_vfx()
 
 
-func register_collectible(k: Collectible.Kind) -> void:
+func _play_diamond_resonance_vfx() -> void:
+	if _diamond_flash == null:
+		return
+	var base: Color = Color(0.55, 0.92, 1.0, 0.0)
+	if not _active_world_theme.is_empty():
+		base = _active_world_theme.get("diamond_flash", base) as Color
+	_diamond_flash.visible = true
+	_diamond_flash.modulate = Color(base.r, base.g, base.b, 0.0)
+	var tw: Tween = create_tween()
+	tw.tween_property(_diamond_flash, "modulate:a", 0.26, 0.07)
+	tw.tween_property(_diamond_flash, "modulate:a", 0.0, 0.38).set_delay(0.05)
+	tw.finished.connect(func() -> void:
+		if is_instance_valid(_diamond_flash):
+			_diamond_flash.visible = false
+			_diamond_flash.modulate = Color(base.r, base.g, base.b, 0.0)
+	)
+
+
+func _spawn_floating_points(canvas_pos: Vector2, pts: int, combo_mult: int, k: Collectible.Kind) -> void:
+	if pts <= 0:
+		return
+	var cl: CanvasLayer = $CanvasLayer as CanvasLayer
+	if cl == null:
+		return
+	var lbl := Label.new()
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.text = "+%d" % pts
+	if combo_mult > 1:
+		lbl.text += "  (×%d)" % combo_mult
+	lbl.add_theme_font_size_override("font_size", 34)
+	var fc := Color(1.0, 0.95, 0.55, 1.0)
+	var fo := Color(0.12, 0.06, 0.22, 1)
+	match k:
+		Collectible.Kind.SILVER_BIG:
+			fc = Color(0.82, 0.94, 1.0, 1.0)
+		Collectible.Kind.DIAMOND:
+			fc = Color(0.65, 0.98, 1.0, 1.0)
+		_:
+			pass
+	var wt: Dictionary = _active_world_theme
+	if not wt.is_empty():
+		match k:
+			Collectible.Kind.GOLD:
+				fc = wt.get("float_pt_gold", fc) as Color
+			Collectible.Kind.SILVER_BIG:
+				fc = wt.get("float_pt_silver", fc) as Color
+			Collectible.Kind.DIAMOND:
+				fc = wt.get("float_pt_diamond", fc) as Color
+			_:
+				pass
+		fo = wt.get("float_pt_outline", fo) as Color
+	lbl.add_theme_color_override("font_color", fc)
+	lbl.add_theme_color_override("font_outline_color", fo)
+	lbl.add_theme_constant_override("outline_size", 7)
+	cl.add_child(lbl)
+	lbl.position = canvas_pos + Vector2(-20.0, -40.0)
+	var tw := create_tween()
+	tw.set_parallel(true)
+	lbl.pivot_offset = Vector2(40.0, 24.0)
+	tw.tween_property(lbl, "position:y", lbl.position.y - 118.0, 0.72).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "scale", Vector2(1.18, 1.18), 0.2).from(Vector2(0.55, 0.55)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var tw2 := create_tween()
+	tw2.tween_property(lbl, "modulate:a", 0.0, 0.35).set_delay(0.42)
+	tw2.finished.connect(lbl.queue_free)
+
+
+func _pulse_score_hud() -> void:
+	if score_label == null:
+		return
+	score_label.pivot_offset = score_label.size * 0.5
+	var tw := create_tween()
+	tw.tween_property(score_label, "scale", Vector2(1.1, 1.1), 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(score_label, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+func register_collectible(k: Collectible.Kind, tap_global: Vector2 = Vector2.ZERO) -> void:
 	if game_over:
 		return
 	if k == Collectible.Kind.BOMB:
 		combo_streak = 0
+		_combo_hud_glow_timer = 0.0
 		if _shield_blocks_next > 0:
 			_shield_blocks_next -= 1
 			_flash_booster("Aegis — blast absorbed!")
@@ -523,13 +745,25 @@ func register_collectible(k: Collectible.Kind) -> void:
 	combo_streak += 1
 	_maybe_combo_tier_celebrate(prev_streak, combo_streak)
 	stat_gleams_collected += 1
+	var dm: Node = _daily_missions_node()
+	if dm != null:
+		dm.call("add_coin_collects", 1)
 	stat_max_combo_streak = maxi(stat_max_combo_streak, combo_streak)
 	var combo_mult: int = 1 + combo_streak / COMBO_STEP
+	if dm != null:
+		dm.call("mark_combo_multiplier_at_least", combo_mult)
 	var level_bonus: int = mini(maxi(0, progression_level - 1) * 2, 50)
 	var pts: int = base_pts * combo_mult + level_bonus
 	score += pts
 	level_coins_collected += base_pts
+	_combo_hud_glow_timer = 0.24
 	_refresh_ui()
+	var cpos: Vector2 = get_viewport().get_canvas_transform() * tap_global
+	if tap_global == Vector2.ZERO:
+		var vp: Vector2 = get_viewport_rect().size
+		cpos = Vector2(vp.x * 0.5, vp.y * 0.4)
+	_spawn_floating_points(cpos, pts, combo_mult, k)
+	call_deferred("_pulse_score_hud")
 	_save_progress_file()
 
 
@@ -546,6 +780,7 @@ func register_miss() -> void:
 	if _shield_blocks_next > 0:
 		_shield_blocks_next -= 1
 		combo_streak = 0
+		_combo_hud_glow_timer = 0.0
 		AudioService.play_coin_tap()
 		_flash_booster("Aegis — missed drop absorbed!")
 		_refresh_ui()
@@ -553,6 +788,7 @@ func register_miss() -> void:
 		return
 	AudioService.play_miss()
 	combo_streak = 0
+	_combo_hud_glow_timer = 0.0
 	lives -= 1
 	_trigger_subtle_hit_shake()
 	missed_coins += 1
@@ -688,6 +924,10 @@ func _go_to_level_map_after_continue(next_level: int) -> void:
 	print("[LevelComplete] forcing level map navigation to level: ", next_level)
 
 	_commit_level_complete_payout()
+	TreasureChestProgress.record_level_cleared()
+	var dm_done: Node = _daily_missions_node()
+	if dm_done != null:
+		dm_done.call("record_level_cleared")
 
 	progression_level = next_level
 	furthest_level_unlocked = maxi(furthest_level_unlocked, next_level)
@@ -716,8 +956,19 @@ func _on_level_complete_home_pressed() -> void:
 	AudioService.play_button_click()
 	_level_payout_ready = false
 	_level_coin_fly_in_progress = false
+	var cleared_stage: int = progression_level
 	progression_level += 1
 	furthest_level_unlocked = maxi(furthest_level_unlocked, progression_level)
+	var dm_home: Node = _daily_missions_node()
+	if dm_home != null:
+		dm_home.call("record_level_cleared")
+	TreasureChestProgress.record_level_cleared()
+	var cfg_xp := ConfigFile.new()
+	if cfg_xp.load(SAVE_PATH) == OK:
+		var pp: Node = PlayerProfileResolve.node()
+		if pp != null:
+			pp.grant_xp_for_level_cleared(cfg_xp, cleared_stage)
+		cfg_xp.save(SAVE_PATH)
 	level_complete_screen.hide_screen()
 	get_tree().paused = false
 	_save_progress_file()
@@ -782,6 +1033,7 @@ func _commit_level_complete_payout() -> void:
 	level_coins_collected = 0
 	_apply_level_bonus_dictionary(_cached_level_bonus)
 	_cached_level_bonus = {}
+	_pending_xp_cleared_level = progression_level
 	_save_progress_file()
 
 
@@ -989,6 +1241,11 @@ func _load_progress_from_disk() -> void:
 func _save_progress_file() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(SAVE_PATH)
+	if _pending_xp_cleared_level > 0:
+		var pp: Node = PlayerProfileResolve.node()
+		if pp != null:
+			pp.grant_xp_for_level_cleared(cfg, _pending_xp_cleared_level)
+		_pending_xp_cleared_level = 0
 	if score > best_score:
 		best_score = score
 	cfg.set_value(SAVE_SECTION, KEY_BEST, best_score)
@@ -1056,6 +1313,12 @@ func _refresh_ui() -> void:
 			var mult: int = 1 + combo_streak / COMBO_STEP
 			var until_next: int = (1 + combo_streak / COMBO_STEP) * COMBO_STEP - combo_streak
 			combo_label.text = "Combo x%d · streak %d (%d to x%d)" % [mult, combo_streak, until_next, mult + 1]
+	if combo_meter != null:
+		var into: int = combo_streak % COMBO_STEP
+		var pct: float = float(into) / float(COMBO_STEP)
+		if combo_streak > 0 and into == 0:
+			pct = 0.0
+		combo_meter.value = pct * 100.0
 	if lives_label:
 		lives_label.text = _lives_text()
 	if not game_over:

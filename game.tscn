@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
 [ext_resource type="Script" path="res://game.gd" id="3_game"]
@@ -118,6 +118,33 @@ corner_radius_bottom_left = 20
 
 [sub_resource type="Theme" id="Theme_0xm2m"]
 
+[sub_resource type="StyleBoxFlat" id="StyleComboMeterBg"]
+bg_color = Color(0.08, 0.06, 0.16, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.45, 0.35, 0.65, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleComboMeterFill"]
+bg_color = Color(0.35, 0.95, 0.62, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.88, 0.35, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0.2, 0.85, 0.55, 0.45)
+shadow_size = 6
+shadow_offset = Vector2(0, 2)
+
 [node name="Game" type="Node2D" unique_id=1231411710]
 script = ExtResource("3_game")
 
@@ -166,6 +193,17 @@ color = Color(0.25, 0.55, 0.35, 0.22)
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=979960685]
 process_mode = 3
 layer = 10
+
+[node name="DiamondFlash" type="ColorRect" parent="CanvasLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+color = Color(0.48, 0.9, 1, 1)
 
 [node name="TopBar" type="PanelContainer" parent="CanvasLayer" unique_id=1091089218]
 anchors_preset = 10
@@ -222,6 +260,15 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 20
 text = "Combo x1 · 0 streak"
 vertical_alignment = 1
+
+[node name="ComboMeter" type="ProgressBar" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 14)
+max_value = 100.0
+value = 0.0
+show_percentage = false
+theme_override_styles/background = SubResource("StyleComboMeterBg")
+theme_override_styles/fill = SubResource("StyleComboMeterFill")
 
 [node name="VaultCoinsLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012874]
 layout_mode = 2
@@ -574,13 +621,33 @@ one_shot = true
 explosiveness = 0.9
 randomness = 0.35
 local_coords = true
-direction = Vector3(0, -1, 0)
+direction = Vector2(0, -1)
 spread = 150.0
-gravity = Vector3(0, 280, 0)
+gravity = Vector2(0, 280)
 initial_velocity_min = 90.0
 initial_velocity_max = 280.0
 angular_velocity_min = -4.0
 angular_velocity_max = 4.0
 scale_amount_min = 1.8
 scale_amount_max = 4.5
+script = ExtResource("9_burst")
+
+[node name="JuiceSparkles" type="CPUParticles2D" parent="."]
+z_index = 29
+emitting = false
+amount = 40
+lifetime = 0.55
+one_shot = true
+explosiveness = 0.55
+randomness = 0.42
+local_coords = true
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, 140)
+initial_velocity_min = 50.0
+initial_velocity_max = 240.0
+angular_velocity_min = -5.0
+angular_velocity_max = 5.0
+scale_amount_min = 1.2
+scale_amount_max = 3.8
 script = ExtResource("9_burst")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=25 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://level_map.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/settings_screen.tscn" id="2"]
@@ -14,6 +14,10 @@
 [ext_resource type="PackedScene" path="res://ui/pregame_boosters_popup.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://ui/journey_rewards_screen.tscn" id="13"]
 [ext_resource type="PackedScene" path="res://ui/local_rank_screen.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://ui/daily_missions_screen.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://ui/treasure_chest_popup.tscn" id="16"]
+[ext_resource type="Texture2D" path="res://ui/map_art/treasure_chest.svg" id="17"]
+[ext_resource type="PackedScene" path="res://ui/player_profile_screen.tscn" id="18"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.42, 0.78, 1)
@@ -406,6 +410,45 @@ focus_mode = 0
 theme_override_font_sizes/font_size = 22
 text = "+"
 
+[node name="ChestBtn" type="Button" parent="TopBar/HBox"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_constants/icon_max_width = 40
+text = ""
+icon = ExtResource("17")
+expand_icon = true
+
+[node name="NotifBadge" type="PanelContainer" parent="TopBar/HBox/ChestBtn"]
+visible = false
+z_index = 3
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = 20.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 20.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="Margin" type="MarginContainer" parent="TopBar/HBox/ChestBtn/NotifBadge"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 2
+
+[node name="Label" type="Label" parent="TopBar/HBox/ChestBtn/NotifBadge/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="TopSpacer" type="Control" parent="TopBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -453,6 +496,18 @@ theme_override_styles/normal = SubResource("StyleSideBtnN")
 theme_override_styles/hover = SubResource("StyleSideBtnH")
 theme_override_styles/pressed = SubResource("StyleSideBtnP")
 text = "Rewards"
+
+[node name="SideMissions" type="Button" parent="SideRail"]
+custom_minimum_size = Vector2(68, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.15, 0.05, 0.35, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleSideBtnN")
+theme_override_styles/hover = SubResource("StyleSideBtnH")
+theme_override_styles/pressed = SubResource("StyleSideBtnP")
+text = "Daily"
 
 [node name="SideEvents" type="Button" parent="SideRail"]
 custom_minimum_size = Vector2(68, 52)
@@ -676,11 +731,37 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="DailyMissionsLayer" parent="." instance=ExtResource("15")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TreasureChestPopup" parent="." instance=ExtResource("16")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayerProfileScreen" parent="." instance=ExtResource("18")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
 [connection signal="pressed" from="SideRail/SideShop" to="." method="_on_side_shop_pressed"]
 [connection signal="pressed" from="SideRail/SideRewards" to="." method="_on_side_rewards_pressed"]
+[connection signal="pressed" from="SideRail/SideMissions" to="." method="_on_side_missions_pressed"]
 [connection signal="pressed" from="SideRail/SideEvents" to="." method="_on_side_events_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnHome" to="." method="_on_home_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnJourney" to="." method="_on_nav_journey_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnLevels" to="." method="_on_levels_tab_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnShop" to="." method="_on_nav_shop_pressed"]
 [connection signal="pressed" from="BottomNav/NavMargin/NavRow/BtnTrophy" to="." method="_on_nav_trophy_pressed"]
+[connection signal="pressed" from="TopBar/HBox/ChestBtn" to="." method="_on_chest_btn_pressed"]
