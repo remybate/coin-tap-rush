@@ -1,11 +1,14 @@
 extends Control
 class_name LevelMapAmbience
 
-## Subtle floating coins + soft sparkle breathing (single _process).
+## Floating coins, path sparkles, and soft star twinkle (single _process).
 
 var _float_nodes: Array[TextureRect] = []
 var _float_base: Array[Vector2] = []
 var _float_phase: Array[float] = []
+var _path_nodes: Array[TextureRect] = []
+var _path_base: Array[Vector2] = []
+var _path_phase: Array[float] = []
 var _spark_nodes: Array[TextureRect] = []
 var _spark_phase: Array[float] = []
 var _t: float = 0.0
@@ -17,21 +20,46 @@ func clear_all() -> void:
 	_float_nodes.clear()
 	_float_base.clear()
 	_float_phase.clear()
+	_path_nodes.clear()
+	_path_base.clear()
+	_path_phase.clear()
 	_spark_nodes.clear()
 	_spark_phase.clear()
 	set_process(false)
 
 
-func build(map_w: float, map_h: float, curve_points: PackedVector2Array) -> void:
+func _polyline_length(pts: PackedVector2Array) -> float:
+	var L: float = 0.0
+	for i in range(pts.size() - 1):
+		L += pts[i].distance_to(pts[i + 1])
+	return L
+
+
+func _point_on_polyline(pts: PackedVector2Array, dist: float) -> Vector2:
+	if pts.size() < 2:
+		return pts[0] if pts.size() > 0 else Vector2.ZERO
+	var acc: float = 0.0
+	for i in range(pts.size() - 1):
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[i + 1]
+		var seg: float = a.distance_to(b)
+		if acc + seg >= dist - 0.001:
+			var t: float = (dist - acc) / seg if seg > 0.001 else 0.0
+			return a.lerp(b, clampf(t, 0.0, 1.0))
+		acc += seg
+	return pts[pts.size() - 1]
+
+
+func build(map_w: float, map_h: float, anchor_pts: PackedVector2Array, path_polyline: PackedVector2Array) -> void:
 	clear_all()
 	var coin_tex: Texture2D = load("res://ui/map_art/coin_small.svg") as Texture2D
 	var spark_tex: Texture2D = load("res://ui/map_art/sparkle.svg") as Texture2D
 	if coin_tex == null or spark_tex == null:
 		return
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(Vector2i(int(map_w), int(map_h))) + curve_points.size()
+	rng.seed = hash(Vector2i(int(map_w), int(map_h))) + anchor_pts.size()
 
-	var n_float: int = 6
+	var n_float: int = 8
 	for i in range(n_float):
 		var tr := TextureRect.new()
 		tr.texture = coin_tex
@@ -49,16 +77,38 @@ func build(map_w: float, map_h: float, curve_points: PackedVector2Array) -> void
 		_float_base.append(Vector2(x, y))
 		_float_phase.append(rng.randf() * TAU)
 
-	var n_spark: int = 8
+	var plen: float = _polyline_length(path_polyline)
+	if plen > 4.0:
+		var spacing: float = rng.randf_range(52.0, 78.0)
+		var d: float = rng.randf() * spacing
+		while d < plen - 2.0:
+			var base_p: Vector2 = _point_on_polyline(path_polyline, d)
+			var side2: float = -1.0 if rng.randf() < 0.5 else 1.0
+			var off := Vector2(side2 * rng.randf_range(10, 26), rng.randf_range(-5, 7))
+			var tr2 := TextureRect.new()
+			tr2.texture = spark_tex
+			tr2.custom_minimum_size = Vector2(14, 14)
+			tr2.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tr2.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			tr2.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tr2.position = base_p + off - Vector2(7, 7)
+			tr2.modulate = Color(1, 0.95, 0.75, rng.randf_range(0.35, 0.55))
+			add_child(tr2)
+			_path_nodes.append(tr2)
+			_path_base.append(base_p + off)
+			_path_phase.append(rng.randf() * TAU)
+			d += spacing
+
+	var n_spark: int = 14
 	for j in range(n_spark):
 		var sp := TextureRect.new()
 		sp.texture = spark_tex
-		sp.custom_minimum_size = Vector2(16, 16)
+		sp.custom_minimum_size = Vector2(14 + (j % 3) * 2, 14 + (j % 3) * 2)
 		sp.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		sp.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		sp.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		sp.position = Vector2(rng.randf_range(6, map_w - 24), rng.randf_range(20, map_h - 40))
-		sp.modulate = Color(1, 1, 1, 0.26)
+		sp.modulate = Color(1, 1, 1, 0.22)
 		add_child(sp)
 		_spark_nodes.append(sp)
 		_spark_phase.append(rng.randf() * TAU)
@@ -78,10 +128,25 @@ func _process(delta: float) -> void:
 			continue
 		var base: Vector2 = _float_base[i]
 		var ph: float = _float_phase[i]
-		# Slow, small figure-eight–style drift (no cumulative error)
 		tr.position.x = base.x + sin(_t * 0.85 + ph) * 5.0
 		tr.position.y = base.y + sin(_t * 1.05 + ph * 1.03 + 0.7) * 7.0
 		i += 1
+
+	var pi := 0
+	while pi < _path_nodes.size():
+		var pr: TextureRect = _path_nodes[pi]
+		if not is_instance_valid(pr):
+			_path_nodes.remove_at(pi)
+			_path_base.remove_at(pi)
+			_path_phase.remove_at(pi)
+			continue
+		var b2: Vector2 = _path_base[pi]
+		var ph2: float = _path_phase[pi]
+		pr.position.x = b2.x + sin(_t * 1.25 + ph2) * 3.0
+		pr.position.y = b2.y + sin(_t * 1.55 + ph2 * 0.9) * 3.5
+		var a2: float = 0.32 + 0.22 * sin(_t * 2.1 + ph2)
+		pr.modulate.a = clampf(a2, 0.2, 0.62)
+		pi += 1
 
 	var j := 0
 	while j < _spark_nodes.size():
@@ -90,6 +155,6 @@ func _process(delta: float) -> void:
 			_spark_nodes.remove_at(j)
 			_spark_phase.remove_at(j)
 			continue
-		var a: float = 0.2 + 0.14 * sin(_t * 1.05 + _spark_phase[j])
-		sp.modulate.a = clampf(a, 0.14, 0.36)
+		var a: float = 0.18 + 0.16 * sin(_t * 1.15 + _spark_phase[j])
+		sp.modulate.a = clampf(a, 0.12, 0.42)
 		j += 1

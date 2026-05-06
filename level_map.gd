@@ -36,6 +36,14 @@ const DEBUG_LEVEL_MAP_FLOW: bool = true
 @onready var _trophies_popup: Node = $TrophiesPopupLayer
 @onready var _events_popup: Node = $EventsPopupLayer
 @onready var _pregame_popup: Control = $PreGameBoostersPopup
+@onready var _profile_btn: Button = $TopBar/HBox/ProfileBtn
+@onready var _coin_plus_btn: Button = $TopBar/HBox/CoinPill/Margin/HBox/CoinPlusBtn
+@onready var _lives_plus_btn: Button = $TopBar/HBox/LivesPill/Margin/HBox/LivesPlusBtn
+@onready var _nav_home: Button = $BottomNav/NavMargin/NavRow/BtnHome
+@onready var _nav_levels: Button = $BottomNav/NavMargin/NavRow/BtnLevels
+@onready var _nav_shop: Button = $BottomNav/NavMargin/NavRow/BtnShop
+@onready var _nav_trophy: Button = $BottomNav/NavMargin/NavRow/BtnTrophy
+@onready var _shop_notif_badge: PanelContainer = $BottomNav/NavMargin/NavRow/BtnShop/NotifBadge
 
 var _furthest_level: int = 1
 ## From save `current_level_playing` (next level to play / last selection).
@@ -46,13 +54,16 @@ var _display_levels: int = 32
 var _window_level_start: int = 1
 var _node_center_x: float = 260.0
 var _level_centers: Array[Vector2] = []
-var _pulse_btn: Button = null
+## Highest unlocked level node — gentle pulse + glow (may differ from selection when replaying).
+var _pulse_frontier_btn: Button = null
 var _pulse_t: float = 0.0
 var _sway_nodes: Array[TextureRect] = []
+var _lock_tex: Texture2D
 
 
 func _ready() -> void:
 	set_process(false)
+	_lock_tex = load("res://ui/map_art/lock_map.svg") as Texture2D
 	_settings_layer.visible = false
 	if _shop_popup != null and _shop_popup.has_signal("toast_requested"):
 		_shop_popup.connect("toast_requested", Callable(self, "_open_info_popup"))
@@ -77,14 +88,27 @@ func _ready() -> void:
 			_pregame_popup.closed_popup.connect(_on_pregame_closed)
 	_settings_layer.progress_reset.connect(_on_map_progress_reset)
 	call_deferred("_deferred_build_map")
+	call_deferred("_setup_arcade_ui")
 
 
 func _process(delta: float) -> void:
 	_pulse_t += delta
-	if _pulse_btn != null and is_instance_valid(_pulse_btn):
-		var s: float = 1.0 + 0.055 * sin(_pulse_t * 2.35)
-		_pulse_btn.pivot_offset = _pulse_btn.size * 0.5
-		_pulse_btn.scale = Vector2(s, s)
+	if _pulse_frontier_btn != null and is_instance_valid(_pulse_frontier_btn):
+		var s: float = 1.0 + 0.095 * sin(_pulse_t * 2.05)
+		_pulse_frontier_btn.pivot_offset = _pulse_frontier_btn.size * 0.5
+		_pulse_frontier_btn.scale = Vector2(s, s)
+		var gl: float = 1.0 + 0.1 * sin(_pulse_t * 3.05)
+		var g2: float = 1.0 + 0.06 * sin(_pulse_t * 4.2 + 0.8)
+		_pulse_frontier_btn.modulate = Color(minf(1.12, gl * g2), minf(1.1, gl * 0.99 * g2), minf(1.08, gl * 1.02), 1.0)
+	if is_instance_valid(_main_play):
+		var mp: float = 1.0 + 0.042 * sin(_pulse_t * 2.4)
+		_main_play.pivot_offset = _main_play.size * 0.5
+		_main_play.scale = Vector2(mp, mp)
+	for c in _levels_layer.get_children():
+		if c is Button and c != _pulse_frontier_btn:
+			var b: Button = c as Button
+			b.scale = Vector2.ONE
+			b.modulate = Color.WHITE
 	for tr in _sway_nodes:
 		if is_instance_valid(tr) and tr.has_meta(&"sway_ph"):
 			var ph: float = float(tr.get_meta(&"sway_ph"))
@@ -101,7 +125,7 @@ func _deferred_build_map() -> void:
 	_refresh_hud()
 	_update_main_play_label()
 	_scroll_to_selected()
-	set_process(_pulse_btn != null or not _sway_nodes.is_empty())
+	set_process(_pulse_frontier_btn != null or not _sway_nodes.is_empty() or is_instance_valid(_main_play))
 
 
 func _load_save_summary() -> void:
@@ -135,6 +159,29 @@ func _map_content_width() -> float:
 	if w < 120.0:
 		w = get_viewport_rect().size.x - 184.0
 	return maxf(300.0, w)
+
+
+func _catmull_rom(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: float) -> Vector2:
+	var t2: float = t * t
+	var t3: float = t2 * t
+	return 0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
+
+
+func _smooth_path(pts: PackedVector2Array, steps_per_seg: int) -> PackedVector2Array:
+	if pts.size() < 2:
+		return pts
+	var out: PackedVector2Array = PackedVector2Array()
+	var n: int = pts.size()
+	for i in range(n - 1):
+		var p0: Vector2 = pts[i - 1] if i > 0 else pts[i] + (pts[i] - pts[i + 1])
+		var p1: Vector2 = pts[i]
+		var p2: Vector2 = pts[i + 1]
+		var p3: Vector2 = pts[i + 2] if i + 2 < n else pts[i + 1] + (pts[i + 1] - pts[i])
+		for s in range(steps_per_seg):
+			var u: float = float(s) / float(steps_per_seg)
+			out.append(_catmull_rom(p0, p1, p2, p3, u))
+	out.append(pts[n - 1])
+	return out
 
 
 func _make_gradient_tex(width_px: int, height_px: int, colors: PackedColorArray, offsets: PackedFloat32Array) -> GradientTexture2D:
@@ -192,6 +239,54 @@ func _build_background_layers(w: float, total_h: float) -> void:
 		stripe.size = Vector2(w, 26.0)
 		_background_layer.add_child(stripe)
 
+	var coin_pile_tex: Texture2D = load("res://ui/map_art/coin_small.svg") as Texture2D
+	var rng_bg := RandomNumberGenerator.new()
+	rng_bg.seed = hash(Vector2i(int(w), int(total_h))) ^ 0x5EED
+	if coin_pile_tex != null:
+		for _pi in range(10):
+			var cx: float = rng_bg.randf_range(24, w - 40)
+			var cy: float = rng_bg.randf_range(total_h * 0.35, total_h - 120)
+			var n_c: int = rng_bg.randi_range(4, 7)
+			for u in range(n_c):
+				var pc := TextureRect.new()
+				pc.texture = coin_pile_tex
+				pc.custom_minimum_size = Vector2(20, 20)
+				pc.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				pc.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+				pc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				pc.position = Vector2(cx + float(u) * 5 + rng_bg.randf_range(-2, 2), cy + float(u % 3) * 4)
+				pc.modulate = Color(1, 0.92, 0.5, rng_bg.randf_range(0.55, 0.85))
+				pc.rotation_degrees = rng_bg.randf_range(-14, 14)
+				_background_layer.add_child(pc)
+
+	var gem_tex: Texture2D = load("res://diamond.svg") as Texture2D
+	if gem_tex != null:
+		for _gi in range(6):
+			var g := TextureRect.new()
+			g.texture = gem_tex
+			g.custom_minimum_size = Vector2(26, 26)
+			g.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			g.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			g.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			g.position = Vector2(rng_bg.randf_range(16, w - 36), rng_bg.randf_range(80, total_h - 100))
+			g.modulate = Color(0.75, 0.92, 1.0, rng_bg.randf_range(0.45, 0.75))
+			_background_layer.add_child(g)
+			_add_sway_tex(g, rng_bg.randf() * TAU)
+
+	var star_tex: Texture2D = load("res://ui/map_art/sparkle.svg") as Texture2D
+	if star_tex != null:
+		for _si in range(12):
+			var st := TextureRect.new()
+			st.texture = star_tex
+			var ssz: float = rng_bg.randf_range(12, 22)
+			st.custom_minimum_size = Vector2(ssz, ssz)
+			st.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			st.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			st.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			st.position = Vector2(rng_bg.randf_range(4, w - 28), rng_bg.randf_range(30, total_h - 50))
+			st.modulate = Color(1, 1, 0.92, rng_bg.randf_range(0.25, 0.5))
+			_background_layer.add_child(st)
+
 	var hill := ColorRect.new()
 	hill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hill.color = Color(0.1, 0.42, 0.24, 0.88)
@@ -225,7 +320,7 @@ func _place_path_tiles_on_curve(pts: PackedVector2Array) -> void:
 			tr.pivot_offset = Vector2(22, 22)
 			tr.rotation = ang
 			tr.position = p - Vector2(22, 22)
-			tr.modulate = Color(1.05, 0.98, 0.82, 0.92)
+			tr.modulate = Color(1.12, 0.94, 0.48, 0.94)
 			tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			_path_tile_layer.add_child(tr)
 			var sh := TextureRect.new()
@@ -247,12 +342,57 @@ func _add_sway_tex(tr: TextureRect, phase: float) -> void:
 	_sway_nodes.append(tr)
 
 
+func _place_treasure_checkpoints() -> void:
+	var chest: Texture2D = load("res://ui/map_art/treasure_chest.svg") as Texture2D
+	if chest == null:
+		return
+	for i in range(_display_levels):
+		var lv: int = _window_level_start + i
+		if lv <= 0:
+			continue
+		var is_milestone_50: bool = (lv % 50 == 0)
+		var is_milestone_10: bool = (lv % 10 == 0)
+		if not is_milestone_50 and not is_milestone_10:
+			continue
+		var p: Vector2 = _level_centers[i]
+		var tr := TextureRect.new()
+		tr.texture = chest
+		tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sz: Vector2
+		if is_milestone_50:
+			sz = Vector2(78, 60)
+			tr.modulate = Color(1.15, 0.92, 0.42, 1)
+		else:
+			sz = Vector2(48, 38)
+			tr.modulate = Color(1.05, 0.98, 0.88, 1)
+		tr.custom_minimum_size = sz
+		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tr.pivot_offset = sz * 0.5
+		var off_x: float = (-sz.x * 0.5 - 46.0) if is_milestone_50 else (-sz.x * 0.5 - 38.0)
+		var off_y: float = (-sz.y * 0.5 + 2.0) if is_milestone_50 else (-sz.y * 0.5 - 4.0)
+		tr.position = p + Vector2(off_x, off_y)
+		tr.z_index = 4
+		_decor_layer.add_child(tr)
+		if is_milestone_50:
+			_add_sway_tex(tr, float(lv) * 0.07)
+		var crown := Label.new()
+		crown.text = "★" if is_milestone_50 else "◇"
+		crown.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		crown.add_theme_font_size_override("font_size", 22 if is_milestone_50 else 16)
+		crown.add_theme_color_override("font_color", Color(1, 0.92, 0.45, 0.95) if is_milestone_50 else Color(0.85, 0.95, 1, 0.9))
+		crown.position = tr.position + Vector2(sz.x * 0.5 - 10.0, -20.0 if is_milestone_50 else -16.0)
+		crown.z_index = 5
+		_decor_layer.add_child(crown)
+
+
 func _place_world_props(pts: PackedVector2Array, w: float, total_h: float) -> void:
 	var bush: Texture2D = load("res://ui/map_art/bush.svg") as Texture2D
 	var chest: Texture2D = load("res://ui/map_art/treasure_chest.svg") as Texture2D
 	var coin_s: Texture2D = load("res://ui/map_art/coin_small.svg") as Texture2D
 	var lantern: Texture2D = load("res://ui/map_art/lantern.svg") as Texture2D
 	var stone: Texture2D = load("res://ui/map_art/stone.svg") as Texture2D
+	var gem_tex: Texture2D = load("res://diamond.svg") as Texture2D
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(Vector2i(int(w), int(total_h))) + pts.size()
 
@@ -316,6 +456,17 @@ func _place_world_props(pts: PackedVector2Array, w: float, total_h: float) -> vo
 			st.modulate = Color(0.9, 0.92, 1, 0.75)
 			_decor_layer.add_child(st)
 
+		if i % 4 == 2 and gem_tex != null:
+			var gm := TextureRect.new()
+			gm.texture = gem_tex
+			gm.custom_minimum_size = Vector2(22, 22)
+			gm.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			gm.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			gm.position = p + Vector2(rng.randf_range(-96, -72), rng.randf_range(8, 22))
+			gm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			gm.modulate = Color(0.7, 0.9, 1.0, 0.82)
+			_decor_layer.add_child(gm)
+
 	# A few extra sparkles as static sprites (animated alpha handled in AmbienceHost)
 	var spark_tex: Texture2D = load("res://ui/map_art/sparkle.svg") as Texture2D
 	if spark_tex != null:
@@ -332,7 +483,7 @@ func _place_world_props(pts: PackedVector2Array, w: float, total_h: float) -> vo
 
 
 func _build_visual_map() -> void:
-	_pulse_btn = null
+	_pulse_frontier_btn = null
 	_sway_nodes.clear()
 	for c in _background_layer.get_children():
 		c.queue_free()
@@ -359,20 +510,28 @@ func _build_visual_map() -> void:
 	var total_h: float = map_top_padding + float(_display_levels) * level_spacing + 240.0
 	_map_root.custom_minimum_size = Vector2(w, total_h)
 
-	var pts: PackedVector2Array = []
+	## Lower level numbers sit at the bottom of the scroll; locked future levels climb upward.
+	var raw_pts: PackedVector2Array = PackedVector2Array()
 	for i in range(_display_levels):
 		var t: float = float(i)
-		var y: float = map_top_padding + t * level_spacing
-		var x: float = _node_center_x + sin(t * path_wave_frequency) * path_wave_amplitude
+		var row_from_bottom: float = float(_display_levels - 1 - i)
+		var y: float = map_top_padding + row_from_bottom * level_spacing
+		var x: float = _node_center_x \
+			+ sin(t * path_wave_frequency) * path_wave_amplitude \
+			+ sin(t * path_wave_frequency * 0.33 + 0.95) * (path_wave_amplitude * 0.48) \
+			+ sin(t * 0.31 + 0.22) * (path_wave_amplitude * 0.2)
 		var p := Vector2(x, y)
-		pts.append(p)
+		raw_pts.append(p)
 		_level_centers.append(p)
 
+	var smooth_pts: PackedVector2Array = _smooth_path(raw_pts, 12)
+
 	_build_background_layers(w, total_h)
-	_path_drawer.set_path_points(pts)
-	_place_path_tiles_on_curve(pts)
-	_place_world_props(pts, w, total_h)
-	_ambience.build(w, total_h, pts)
+	_path_drawer.set_path_points(smooth_pts)
+	_place_path_tiles_on_curve(smooth_pts)
+	_place_world_props(smooth_pts, w, total_h)
+	_place_treasure_checkpoints()
+	_ambience.build(w, total_h, raw_pts, smooth_pts)
 
 	for i in range(_display_levels):
 		var lv: int = _window_level_start + i
@@ -387,8 +546,40 @@ func _build_visual_map() -> void:
 		_apply_level_button_style(btn, lv)
 		btn.pressed.connect(_on_level_node_pressed.bind(lv))
 		_levels_layer.add_child(btn)
-		if lv == _selected_level:
-			_pulse_btn = btn
+		if lv == _furthest_level:
+			_pulse_frontier_btn = btn
+
+
+func _apply_locked_face(btn: Button, lv: int) -> void:
+	btn.text = ""
+	var num := btn.get_node_or_null("LockedNum") as Label
+	if num == null:
+		num = Label.new()
+		num.name = "LockedNum"
+		num.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		num.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		btn.add_child(num)
+	num.text = str(lv)
+	num.add_theme_font_size_override("font_size", 17)
+	num.add_theme_color_override("font_color", Color(0.72, 0.74, 0.82, 0.88))
+	num.add_theme_color_override("font_outline_color", Color(0.08, 0.08, 0.12, 0.92))
+	num.add_theme_constant_override("outline_size", 4)
+	num.size = Vector2(btn.custom_minimum_size.x, 22)
+	num.position = Vector2(0, btn.custom_minimum_size.y - 26)
+
+	var ic := btn.get_node_or_null("LockIcon") as TextureRect
+	if ic == null:
+		ic = TextureRect.new()
+		ic.name = "LockIcon"
+		ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		btn.add_child(ic)
+	if _lock_tex != null:
+		ic.texture = _lock_tex
+	ic.custom_minimum_size = Vector2(30, 30)
+	ic.position = Vector2((btn.custom_minimum_size.x - 30) * 0.5, 10)
 
 
 func _apply_level_button_style(btn: Button, lv: int) -> void:
@@ -398,6 +589,18 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 	elif lv == _furthest_level:
 		state = "current"
 	btn.disabled = state == "locked"
+
+	for decal_name in ["LockIcon", "LockedNum"]:
+		var rm: Node = btn.get_node_or_null(decal_name)
+		if rm != null:
+			btn.remove_child(rm)
+			rm.free()
+
+	if state == "locked":
+		btn.text = ""
+	else:
+		btn.text = str(lv)
+
 	btn.add_theme_font_size_override("font_size", 22)
 	btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
 	btn.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.22, 1))
@@ -417,33 +620,39 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 
 	match state:
 		"locked":
-			n.bg_color = Color(0.42, 0.44, 0.52, 1)
-			n.border_color = Color(0.28, 0.3, 0.36, 1)
-			h.bg_color = Color(0.48, 0.5, 0.58, 1)
-			p.bg_color = Color(0.36, 0.38, 0.46, 1)
+			n.bg_color = Color(0.3, 0.32, 0.38, 1)
+			n.border_color = Color(0.18, 0.19, 0.24, 1)
+			h.bg_color = Color(0.34, 0.36, 0.42, 1)
+			p.bg_color = Color(0.26, 0.28, 0.34, 1)
 		"done":
-			n.bg_color = Color(0.28, 0.78, 0.48, 1)
-			n.border_color = Color(0.1, 0.45, 0.22, 1)
-			h.bg_color = Color(0.34, 0.88, 0.55, 1)
-			p.bg_color = Color(0.22, 0.62, 0.38, 1)
-			n.shadow_size = 7
-			n.shadow_color = Color(0.05, 0.25, 0.1, 0.45)
+			n.bg_color = Color(0.16, 0.78, 0.46, 1)
+			n.border_color = Color(1.0, 0.9, 0.28, 1)
+			h.bg_color = Color(0.22, 0.88, 0.52, 1)
+			p.bg_color = Color(0.12, 0.62, 0.36, 1)
+			n.shadow_size = 12
+			n.shadow_color = Color(0.75, 0.55, 0.12, 0.42)
+			h.shadow_size = 11
+			h.shadow_color = Color(0.85, 0.65, 0.15, 0.35)
 		"current":
-			n.bg_color = Color(1, 0.88, 0.35, 1)
-			n.border_color = Color(0.62, 0.32, 1, 1)
-			h.bg_color = Color(1, 0.94, 0.52, 1)
-			p.bg_color = Color(0.95, 0.74, 0.22, 1)
-			n.shadow_size = 16
-			n.shadow_color = Color(0.85, 0.5, 1.0, 0.62)
-			h.shadow_size = 14
-			h.shadow_color = Color(0.9, 0.58, 1.0, 0.48)
+			n.bg_color = Color(1.0, 0.93, 0.38, 1)
+			n.border_color = Color(1.0, 0.78, 0.12, 1)
+			h.bg_color = Color(1.0, 0.97, 0.52, 1)
+			p.bg_color = Color(0.98, 0.82, 0.22, 1)
+			n.shadow_size = 28
+			n.shadow_color = Color(1.0, 0.72, 0.18, 0.62)
+			h.shadow_size = 24
+			h.shadow_color = Color(1.0, 0.78, 0.35, 0.5)
+			p.shadow_size = 18
+			p.shadow_color = Color(0.85, 0.5, 0.05, 0.45)
 
 	if state == "current":
 		for s in [n, h, p]:
-			s.border_width_left = 5
-			s.border_width_top = 5
-			s.border_width_right = 5
-			s.border_width_bottom = 8
+			s.border_width_left = 6
+			s.border_width_top = 6
+			s.border_width_right = 6
+			s.border_width_bottom = 9
+		btn.add_theme_font_size_override("font_size", 24)
+		btn.add_theme_constant_override("outline_size", 8)
 	else:
 		for s in [n, h, p]:
 			s.border_width_left = 3
@@ -451,19 +660,48 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 			s.border_width_right = 3
 			s.border_width_bottom = 5
 
+	var sel: bool = (lv == _selected_level and state != "locked")
+	if sel:
+		for s in [n, h, p]:
+			s.border_width_left += 2
+			s.border_width_top += 2
+			s.border_width_right += 2
+			s.border_width_bottom += 2
+			s.border_color = s.border_color.lerp(Color(1, 0.95, 0.55, 1), 0.35)
+
 	btn.add_theme_stylebox_override("normal", n)
 	btn.add_theme_stylebox_override("hover", h)
 	btn.add_theme_stylebox_override("pressed", p)
+	if state == "done":
+		btn.add_theme_constant_override("outline_size", 7)
 	if state == "locked":
 		var d := n.duplicate() as StyleBoxFlat
-		d.bg_color = Color(0.38, 0.4, 0.48, 0.72)
+		d.bg_color = Color(0.34, 0.36, 0.44, 0.88)
 		btn.add_theme_stylebox_override("disabled", d)
-		btn.add_theme_color_override("font_color", Color(0.88, 0.88, 0.92, 0.65))
+		btn.add_theme_color_override("font_color", Color(0.55, 0.56, 0.62, 0.5))
+		_apply_locked_face(btn, lv)
+
+
+func _level_button_for(lv: int) -> Button:
+	for c in _levels_layer.get_children():
+		if c is Button and int((c as Button).get_meta(&"level_id", 0)) == lv:
+			return c as Button
+	return null
+
+
+func _play_level_tap_bounce(btn: Button) -> void:
+	if btn == null or not is_instance_valid(btn):
+		return
+	var y0: float = btn.position.y
+	var tw := create_tween()
+	tw.tween_property(btn, "position:y", y0 - 11.0, 0.07).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(btn, "position:y", y0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
 
 
 func _on_level_node_pressed(lv: int) -> void:
 	if lv > _furthest_level:
 		return
+	_play_level_tap_bounce(_level_button_for(lv))
 	_selected_level = lv
 	_update_main_play_label()
 	_refresh_all_level_styles()
@@ -595,3 +833,281 @@ func _on_map_progress_reset() -> void:
 	_selected_level = clampi(_furthest_level, 1, 999_999)
 	_refresh_hud()
 	call_deferred("_deferred_build_map")
+
+
+func _make_flat_style(bg: Color, border: Color, border_w: int, radius: int, shadow_sz: int, shadow: Color) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.border_width_left = border_w
+	s.border_width_top = border_w
+	s.border_width_right = border_w
+	s.border_width_bottom = border_w
+	s.corner_radius_top_left = radius
+	s.corner_radius_top_right = radius
+	s.corner_radius_bottom_right = radius
+	s.corner_radius_bottom_left = radius
+	s.shadow_size = shadow_sz
+	s.shadow_offset = Vector2(0, 6)
+	s.shadow_color = shadow
+	return s
+
+
+func _make_play_style(bg: Color, border: Color) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.border_width_left = 9
+	s.border_width_top = 9
+	s.border_width_right = 9
+	s.border_width_bottom = 13
+	s.corner_radius_top_left = 36
+	s.corner_radius_top_right = 36
+	s.corner_radius_bottom_right = 36
+	s.corner_radius_bottom_left = 36
+	s.shadow_size = 28
+	s.shadow_offset = Vector2(0, 10)
+	s.shadow_color = Color(0.02, 0.12, 0.06, 0.65)
+	return s
+
+
+func _apply_main_play_arcade_styles() -> void:
+	if not is_instance_valid(_main_play):
+		return
+	var n := _make_play_style(Color(0.14, 0.98, 0.55, 1), Color(0.05, 0.12, 0.42, 1))
+	var h := _make_play_style(Color(0.28, 1.0, 0.62, 1), Color(0.06, 0.14, 0.48, 1))
+	var p := _make_play_style(Color(0.1, 0.78, 0.44, 1), Color(0.04, 0.1, 0.36, 1))
+	_main_play.add_theme_stylebox_override("normal", n)
+	_main_play.add_theme_stylebox_override("hover", h)
+	_main_play.add_theme_stylebox_override("pressed", p)
+	_main_play.add_theme_stylebox_override("focus", n)
+	_main_play.add_theme_font_size_override("font_size", 52)
+	_main_play.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	_main_play.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.06, 1))
+	_main_play.add_theme_constant_override("outline_size", 16)
+	_main_play.clip_contents = false
+
+
+func _apply_top_bar_arcade_styles() -> void:
+	if not is_instance_valid(_profile_btn):
+		return
+	var bar := _make_flat_style(Color(0.16, 0.38, 0.88, 0.96), Color(0.98, 0.82, 0.28, 1), 3, 22, 12, Color(0, 0, 0, 0.4))
+	var cream := _make_flat_style(Color(0.99, 0.97, 0.92, 1), Color(0.92, 0.72, 0.2, 1), 3, 20, 6, Color(0.08, 0.05, 0.02, 0.28))
+	var plus := _make_flat_style(Color(0.22, 0.78, 0.38, 1), Color(0.12, 0.48, 0.22, 1), 2, 14, 4, Color(0.02, 0.2, 0.06, 0.35))
+	var prof_n := _make_flat_style(Color(0.28, 0.55, 0.95, 1), Color(0.98, 0.8, 0.25, 1), 3, 99, 8, Color(0, 0, 0, 0.35))
+	var prof_h := prof_n.duplicate() as StyleBoxFlat
+	prof_h.bg_color = Color(0.38, 0.65, 1.0, 1)
+	var gear_n := _make_flat_style(Color(0.24, 0.48, 0.92, 1), Color(0.95, 0.78, 0.22, 1), 3, 99, 9, Color(0, 0, 0, 0.38))
+	var gear_h := gear_n.duplicate() as StyleBoxFlat
+	gear_h.bg_color = Color(0.34, 0.58, 1.0, 1)
+	$TopBar.add_theme_stylebox_override("panel", bar)
+	$TopBar/HBox/CoinPill.add_theme_stylebox_override("panel", cream)
+	$TopBar/HBox/LivesPill.add_theme_stylebox_override("panel", cream)
+	_profile_btn.add_theme_stylebox_override("normal", prof_n)
+	_profile_btn.add_theme_stylebox_override("hover", prof_h)
+	_profile_btn.add_theme_stylebox_override("pressed", prof_h)
+	_profile_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	_profile_btn.add_theme_font_size_override("font_size", 26)
+	_settings_btn.add_theme_stylebox_override("normal", gear_n)
+	_settings_btn.add_theme_stylebox_override("hover", gear_h)
+	_settings_btn.add_theme_stylebox_override("pressed", gear_h)
+	_settings_btn.add_theme_stylebox_override("focus", gear_n)
+	_coin_plus_btn.add_theme_stylebox_override("normal", plus)
+	_coin_plus_btn.add_theme_stylebox_override("hover", plus)
+	_coin_plus_btn.add_theme_stylebox_override("pressed", plus)
+	_coin_plus_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	_coin_plus_btn.add_theme_font_size_override("font_size", 22)
+	_lives_plus_btn.add_theme_stylebox_override("normal", plus)
+	_lives_plus_btn.add_theme_stylebox_override("hover", plus)
+	_lives_plus_btn.add_theme_stylebox_override("pressed", plus)
+	_lives_plus_btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	_lives_plus_btn.add_theme_font_size_override("font_size", 22)
+	if _coin_value:
+		_coin_value.add_theme_font_size_override("font_size", 26)
+		_coin_value.add_theme_color_override("font_color", Color(0.18, 0.14, 0.08, 1))
+		_coin_value.add_theme_color_override("font_outline_color", Color(1, 0.95, 0.8, 0.85))
+		_coin_value.add_theme_constant_override("outline_size", 5)
+	if _lives_value:
+		_lives_value.add_theme_font_size_override("font_size", 26)
+		_lives_value.add_theme_color_override("font_color", Color(0.22, 0.1, 0.1, 1))
+		_lives_value.add_theme_color_override("font_outline_color", Color(1, 0.85, 0.85, 0.9))
+		_lives_value.add_theme_constant_override("outline_size", 5)
+	var heart := $TopBar/HBox/LivesPill/Margin/HBox/HeartLbl as Label
+	if heart:
+		heart.add_theme_font_size_override("font_size", 28)
+
+
+func _apply_bottom_nav_arcade_styles() -> void:
+	var nav_n := _make_flat_style(Color(0.38, 0.22, 0.78, 1), Color(0.98, 0.78, 0.22, 1), 3, 18, 8, Color(0, 0, 0, 0.42))
+	var nav_h := nav_n.duplicate() as StyleBoxFlat
+	nav_h.bg_color = Color(0.48, 0.32, 0.92, 1)
+	var nav_p := nav_n.duplicate() as StyleBoxFlat
+	nav_p.bg_color = Color(0.28, 0.14, 0.62, 1)
+	var sel_n := _make_flat_style(Color(0.48, 0.32, 0.95, 1), Color(1, 0.88, 0.35, 1), 4, 20, 12, Color(0.55, 0.35, 1.0, 0.45))
+	var sel_h := sel_n.duplicate() as StyleBoxFlat
+	sel_h.bg_color = Color(0.55, 0.42, 1.0, 1)
+	var bottom := _make_flat_style(Color(0.07, 0.05, 0.18, 0.98), Color(0.95, 0.72, 0.2, 1), 0, 24, 14, Color(0, 0, 0, 0.55))
+	bottom.border_width_top = 5
+	bottom.border_width_left = 0
+	bottom.border_width_right = 0
+	bottom.border_width_bottom = 0
+	$BottomNav.add_theme_stylebox_override("panel", bottom)
+	var tex_home: Texture2D = load("res://ui/map_art/nav_home.svg") as Texture2D
+	var tex_map: Texture2D = load("res://ui/map_art/nav_map.svg") as Texture2D
+	var tex_shop: Texture2D = load("res://ui/map_art/nav_shop.svg") as Texture2D
+	var tex_trophy: Texture2D = load("res://ui/map_art/nav_trophy.svg") as Texture2D
+	for b: Button in [_nav_home, _nav_shop, _nav_trophy]:
+		b.add_theme_stylebox_override("normal", nav_n)
+		b.add_theme_stylebox_override("hover", nav_h)
+		b.add_theme_stylebox_override("pressed", nav_p)
+		b.add_theme_stylebox_override("focus", nav_n)
+		b.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		b.add_theme_color_override("font_outline_color", Color(0.06, 0.02, 0.18, 1))
+		b.add_theme_constant_override("outline_size", 5)
+		b.add_theme_font_size_override("font_size", 15)
+		b.custom_minimum_size = Vector2(72, 76)
+		b.clip_contents = false
+	_nav_levels.add_theme_stylebox_override("normal", sel_n)
+	_nav_levels.add_theme_stylebox_override("hover", sel_h)
+	_nav_levels.add_theme_stylebox_override("pressed", nav_p)
+	_nav_levels.add_theme_stylebox_override("focus", sel_n)
+	_nav_levels.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+	_nav_levels.add_theme_color_override("font_outline_color", Color(0.08, 0.04, 0.02, 1))
+	_nav_levels.add_theme_constant_override("outline_size", 6)
+	_nav_levels.add_theme_font_size_override("font_size", 16)
+	_nav_levels.custom_minimum_size = Vector2(80, 92)
+	_nav_levels.clip_contents = false
+	if tex_home:
+		_nav_home.icon = tex_home
+	if tex_map:
+		_nav_levels.icon = tex_map
+	if tex_shop:
+		_nav_shop.icon = tex_shop
+	if tex_trophy:
+		_nav_trophy.icon = tex_trophy
+	for b in [_nav_home, _nav_levels, _nav_shop, _nav_trophy]:
+		b.expand_icon = true
+		## Godot 4.x Button: horizontal icon position is `icon_alignment`, not `horizontal_icon_alignment`.
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	if is_instance_valid(_shop_notif_badge):
+		var bn := _make_flat_style(Color(0.92, 0.18, 0.22, 1), Color(1, 1, 1, 0.9), 2, 99, 3, Color(0, 0, 0, 0.35))
+		_shop_notif_badge.add_theme_stylebox_override("panel", bn)
+		var lbl := _shop_notif_badge.get_node_or_null("Margin/Label") as Label
+		if lbl:
+			lbl.add_theme_font_size_override("font_size", 13)
+			lbl.add_theme_color_override("font_color", Color.WHITE)
+
+
+func _on_bottom_nav_down(btn: Button) -> void:
+	if not is_instance_valid(btn):
+		return
+	btn.pivot_offset = btn.size * 0.5
+	var base: float = _nav_base_scale(btn)
+	var tw := create_tween()
+	tw.tween_property(btn, "scale", Vector2(base * 0.94, base * 0.94), 0.06).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _on_bottom_nav_up(btn: Button) -> void:
+	if not is_instance_valid(btn):
+		return
+	var base: float = _nav_base_scale(btn)
+	var tw := create_tween()
+	tw.tween_property(btn, "scale", Vector2(base, base), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _wire_arcade_extras() -> void:
+	if is_instance_valid(_profile_btn):
+		_profile_btn.pressed.connect(_on_profile_avatar_pressed)
+	if is_instance_valid(_coin_plus_btn):
+		_coin_plus_btn.pressed.connect(_on_coin_plus_pressed)
+	if is_instance_valid(_lives_plus_btn):
+		_lives_plus_btn.pressed.connect(_on_lives_plus_pressed)
+	for b in [_nav_home, _nav_levels, _nav_shop, _nav_trophy]:
+		if is_instance_valid(b):
+			b.button_down.connect(_on_bottom_nav_down.bind(b))
+			b.button_up.connect(_on_bottom_nav_up.bind(b))
+	call_deferred("_apply_levels_tab_selected_scale")
+
+
+func _nav_base_scale(btn: Button) -> float:
+	return 1.08 if btn == _nav_levels else 1.0
+
+
+func _apply_levels_tab_selected_scale() -> void:
+	if is_instance_valid(_nav_levels):
+		_nav_levels.pivot_offset = _nav_levels.size * 0.5
+		_nav_levels.scale = Vector2(1.08, 1.08)
+		_nav_levels.z_index = 2
+
+
+func _on_profile_avatar_pressed() -> void:
+	AudioService.play_button_click()
+	_open_info_popup("Adventurer", "Profile perks are on the way — keep clearing levels!")
+
+
+func _on_coin_plus_pressed() -> void:
+	_on_nav_shop_pressed()
+
+
+func _on_lives_plus_pressed() -> void:
+	_on_nav_shop_pressed()
+
+
+func _setup_arcade_ui() -> void:
+	_apply_main_play_arcade_styles()
+	_apply_top_bar_arcade_styles()
+	_apply_bottom_nav_arcade_styles()
+	_apply_side_rail_arcade_styles()
+	_apply_main_play_chrome_children()
+	_wire_arcade_extras()
+
+
+func _apply_side_rail_arcade_styles() -> void:
+	var rail_n := _make_flat_style(Color(0.36, 0.2, 0.74, 1), Color(0.96, 0.76, 0.22, 1), 2, 14, 5, Color(0, 0, 0, 0.32))
+	var rail_h := rail_n.duplicate() as StyleBoxFlat
+	rail_h.bg_color = Color(0.44, 0.28, 0.88, 1)
+	var rail_p := rail_n.duplicate() as StyleBoxFlat
+	rail_p.bg_color = Color(0.28, 0.14, 0.58, 1)
+	for nm in [&"SideShop", &"SideRewards", &"SideEvents"]:
+		var sb: Button = $SideRail.get_node(NodePath(str(nm))) as Button
+		if sb == null:
+			continue
+		sb.add_theme_stylebox_override("normal", rail_n)
+		sb.add_theme_stylebox_override("hover", rail_h)
+		sb.add_theme_stylebox_override("pressed", rail_p)
+		sb.add_theme_color_override("font_color", Color(1, 1, 1, 1))
+		sb.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.16, 1))
+		sb.add_theme_constant_override("outline_size", 4)
+
+
+func _apply_main_play_chrome_children() -> void:
+	if not is_instance_valid(_main_play):
+		return
+	var rim := _main_play.get_node_or_null("InnerGoldRim") as Panel
+	if rim != null:
+		var g := StyleBoxFlat.new()
+		g.draw_center = false
+		g.border_color = Color(0.98, 0.86, 0.2, 1)
+		g.border_width_left = 3
+		g.border_width_top = 3
+		g.border_width_right = 3
+		g.border_width_bottom = 3
+		g.corner_radius_top_left = 30
+		g.corner_radius_top_right = 30
+		g.corner_radius_bottom_right = 30
+		g.corner_radius_bottom_left = 30
+		rim.add_theme_stylebox_override("panel", g)
+	var shine := _main_play.get_node_or_null("TopShine") as Panel
+	if shine != null:
+		var sh := StyleBoxFlat.new()
+		sh.bg_color = Color(1, 1, 1, 0.22)
+		sh.border_width_left = 0
+		sh.border_width_top = 0
+		sh.border_width_right = 0
+		sh.border_width_bottom = 0
+		sh.corner_radius_top_left = 40
+		sh.corner_radius_top_right = 40
+		sh.corner_radius_bottom_right = 40
+		sh.corner_radius_bottom_left = 40
+		shine.add_theme_stylebox_override("panel", sh)
