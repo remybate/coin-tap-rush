@@ -234,7 +234,7 @@ offset_bottom = -262.0
 grow_horizontal = 2
 grow_vertical = 2
 horizontal_scroll_mode = 0
-vertical_scroll_mode = 2
+vertical_scroll_mode = 3
 
 [node name="Margin" type="MarginContainer" parent="MapScroll"]
 layout_mode = 2

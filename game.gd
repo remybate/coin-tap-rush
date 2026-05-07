@@ -200,11 +200,14 @@ func _apply_world_theme() -> void:
 	_active_world_theme = WorldThemesResolve.theme_for_level(progression_level)
 	var t: Dictionary = _active_world_theme
 	if _playfield_bg != null:
-		var p: String = str(t.get("playfield_texture", ""))
+		var p: String = str(t.get("world_backdrop_path", t.get("playfield_texture", "")))
+		var tex: Texture2D = null
 		if p != "" and ResourceLoader.exists(p):
-			var tex: Texture2D = load(p) as Texture2D
-			if tex != null:
-				_playfield_bg.texture = tex
+			tex = load(p) as Texture2D
+		if tex == null and ResourceLoader.exists(WorldThemesResolve.FALLBACK_BG):
+			tex = load(WorldThemesResolve.FALLBACK_BG) as Texture2D
+		if tex != null:
+			_playfield_bg.texture = tex
 		_playfield_bg.modulate = t.get("playfield_modulate", Color.WHITE) as Color
 	if _playfield_readability != null:
 		var rt: Color = t.get("readability_top", Color(0, 0, 0, 0)) as Color
@@ -1328,11 +1331,10 @@ func _refresh_ui() -> void:
 		var ts: int = int(_cached_cfg.get("target_score", 1))
 		var tc: int = int(_cached_cfg.get("target_coins", 1))
 		var dpts: int = maxi(0, score - _level_score_at_start)
-		var dn: String = str(_cached_cfg.get("difficulty_name", ""))
 		var time_bit: String = ""
 		if _level_time_remaining > 0.0:
 			time_bit = "  ·  %.0fs" % _level_time_remaining
-		level_label.text = "Lv %d %s  ·  %d/%d pts  ·  %d/%d coins%s" % [get_level(), dn, dpts, ts, level_coins_collected, tc, time_bit]
+		level_label.text = "Level %d  ·  %d/%d pts  ·  %d/%d coins%s" % [get_level(), dpts, ts, level_coins_collected, tc, time_bit]
 	if miss_summary_label:
 		miss_summary_label.text = "Missed coins: %d" % missed_coins
 	if warning_label:

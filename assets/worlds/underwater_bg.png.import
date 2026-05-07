@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c42xag7sgf735"
-path="res://.godot/imported/level_map_bg.png-0b66fe3173ae64ac4968daab22b1773b.ctex"
+uid="uid://bds706oqxd8kv"
+path="res://.godot/imported/underwater_bg.png-d6d87053c5d265671b715a461371212d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/level_map_bg.png"
-dest_files=["res://.godot/imported/level_map_bg.png-0b66fe3173ae64ac4968daab22b1773b.ctex"]
+source_file="res://assets/worlds/underwater_bg.png"
+dest_files=["res://.godot/imported/underwater_bg.png-d6d87053c5d265671b715a461371212d.ctex"]
 
 [params]
 

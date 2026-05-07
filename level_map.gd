@@ -20,6 +20,38 @@ const DEBUG_LEVEL_MAP_FLOW: bool = true
 @export var path_wave_frequency: float = 0.62
 @export var map_top_padding: float = 64.0
 
+## --- Snake path layout (independent of background road) ---
+## Buttons form an intentional S-curve from bottom to top.
+## Tune width with `snake_amplitude_px` (bigger = wider S).
+@export var snake_use_custom_points: bool = false
+@export var snake_amplitude_px: float = 168.0
+@export var snake_wavelength_levels: float = 8.0 # how many levels per left→right→left oscillation
+@export var snake_x_margin_px: float = 86.0
+@export var snake_phase: float = 0.0
+## Optional override: normalized 540×960 points (bottom→top). Used only when `snake_use_custom_points` is true.
+@export var path_points_base_size: Vector2 = Vector2(540.0, 960.0)
+@export var path_points: PackedVector2Array = PackedVector2Array([
+	Vector2(250, 785),
+	Vector2(205, 745),
+	Vector2(255, 705),
+	Vector2(315, 660),
+	Vector2(260, 610),
+	Vector2(205, 565),
+	Vector2(235, 515),
+	Vector2(300, 470),
+	Vector2(250, 425),
+	Vector2(195, 380),
+	Vector2(235, 335),
+	Vector2(305, 290),
+	Vector2(260, 245),
+	Vector2(210, 205),
+	Vector2(255, 165),
+	Vector2(310, 125),
+])
+
+## Level node visuals
+@export var level_button_size_px: float = 114.0 # ~1.5x the previous 76px nodes
+
 @onready var _map_scroll: ScrollContainer = $MapScroll
 @onready var _map_root: Control = $MapScroll/Margin/MapRoot
 @onready var _background_layer: Control = $MapScroll/Margin/MapRoot/BackgroundLayer
@@ -295,46 +327,72 @@ func _build_background_layers(w: float, total_h: float, theme: Dictionary) -> vo
 	for c in _background_layer.get_children():
 		c.queue_free()
 
-	var sky_h: float = total_h * 0.42
-	var sky_colors: PackedColorArray = theme.get("map_sky_colors", PackedColorArray()) as PackedColorArray
-	var sky_offs: PackedFloat32Array = theme.get("map_sky_offsets", PackedFloat32Array()) as PackedFloat32Array
-	if sky_colors.size() < 2:
-		sky_colors = PackedColorArray([Color(0.55, 0.78, 1.0, 1), Color(0.42, 0.55, 0.98, 1), Color(0.55, 0.35, 0.92, 0.35)])
-	if sky_offs.size() != sky_colors.size():
-		sky_offs = PackedFloat32Array([0.0, 0.45, 1.0])
+	var bp: String = str(theme.get("world_backdrop_path", theme.get("playfield_texture", "")))
+	var map_photo: Texture2D = null
+	if bp != "" and ResourceLoader.exists(bp):
+		map_photo = load(bp) as Texture2D
+	if map_photo == null and ResourceLoader.exists(WorldThemesResolve.FALLBACK_BG):
+		map_photo = load(WorldThemesResolve.FALLBACK_BG) as Texture2D
 
-	var sky := TextureRect.new()
-	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	sky.texture = _make_gradient_tex(int(w), int(sky_h), sky_colors, sky_offs)
-	sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	sky.stretch_mode = TextureRect.STRETCH_SCALE
-	sky.position = Vector2.ZERO
-	sky.size = Vector2(w, sky_h)
-	_background_layer.add_child(sky)
+	var use_photo: bool = map_photo != null
+	if use_photo:
+		var full := TextureRect.new()
+		full.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		full.texture = map_photo
+		full.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		full.stretch_mode = TextureRect.STRETCH_SCALE
+		full.position = Vector2.ZERO
+		full.size = Vector2(w, total_h)
+		full.modulate = theme.get("playfield_modulate", Color.WHITE) as Color
+		_background_layer.add_child(full)
+		# Mute any baked-in road art: our snake path is the primary guidance now.
+		var wash := ColorRect.new()
+		wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wash.color = Color(0.04, 0.03, 0.08, 0.22)
+		wash.position = Vector2.ZERO
+		wash.size = Vector2(w, total_h)
+		_background_layer.add_child(wash)
+	else:
+		var sky_h: float = total_h * 0.42
+		var sky_colors: PackedColorArray = theme.get("map_sky_colors", PackedColorArray()) as PackedColorArray
+		var sky_offs: PackedFloat32Array = theme.get("map_sky_offsets", PackedFloat32Array()) as PackedFloat32Array
+		if sky_colors.size() < 2:
+			sky_colors = PackedColorArray([Color(0.55, 0.78, 1.0, 1), Color(0.42, 0.55, 0.98, 1), Color(0.55, 0.35, 0.92, 0.35)])
+		if sky_offs.size() != sky_colors.size():
+			sky_offs = PackedFloat32Array([0.0, 0.45, 1.0])
 
-	var band := ColorRect.new()
-	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	band.color = theme.get("map_band", Color(0.28, 0.62, 0.38, 0.55)) as Color
-	band.position = Vector2(0, sky_h * 0.55)
-	band.size = Vector2(w, total_h * 0.12)
-	_background_layer.add_child(band)
+		var sky := TextureRect.new()
+		sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sky.texture = _make_gradient_tex(int(w), int(sky_h), sky_colors, sky_offs)
+		sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		sky.stretch_mode = TextureRect.STRETCH_SCALE
+		sky.position = Vector2.ZERO
+		sky.size = Vector2(w, sky_h)
+		_background_layer.add_child(sky)
 
-	var ground := ColorRect.new()
-	ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ground.color = theme.get("map_ground", Color(0.12, 0.48, 0.28, 1)) as Color
-	ground.position = Vector2(0, total_h * 0.3)
-	ground.size = Vector2(w, total_h * 0.72)
-	_background_layer.add_child(ground)
+		var band := ColorRect.new()
+		band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		band.color = theme.get("map_band", Color(0.28, 0.62, 0.38, 0.55)) as Color
+		band.position = Vector2(0, sky_h * 0.55)
+		band.size = Vector2(w, total_h * 0.12)
+		_background_layer.add_child(band)
 
-	var stripe_rgb: Color = theme.get("map_stripe", Color(0.18, 0.58, 0.32, 1)) as Color
-	var stripe_y: float = total_h * 0.32
-	for k in range(5):
-		var stripe := ColorRect.new()
-		stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		stripe.color = Color(stripe_rgb.r, stripe_rgb.g, stripe_rgb.b, 0.22 + float(k) * 0.04)
-		stripe.position = Vector2(0, stripe_y + float(k) * 70.0)
-		stripe.size = Vector2(w, 26.0)
-		_background_layer.add_child(stripe)
+		var ground := ColorRect.new()
+		ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ground.color = theme.get("map_ground", Color(0.12, 0.48, 0.28, 1)) as Color
+		ground.position = Vector2(0, total_h * 0.3)
+		ground.size = Vector2(w, total_h * 0.72)
+		_background_layer.add_child(ground)
+
+		var stripe_rgb: Color = theme.get("map_stripe", Color(0.18, 0.58, 0.32, 1)) as Color
+		var stripe_y: float = total_h * 0.32
+		for k in range(5):
+			var stripe := ColorRect.new()
+			stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			stripe.color = Color(stripe_rgb.r, stripe_rgb.g, stripe_rgb.b, 0.22 + float(k) * 0.04)
+			stripe.position = Vector2(0, stripe_y + float(k) * 70.0)
+			stripe.size = Vector2(w, 26.0)
+			_background_layer.add_child(stripe)
 
 	var coin_pile_tex: Texture2D = load("res://ui/map_art/coin_small.svg") as Texture2D
 	var rng_bg := RandomNumberGenerator.new()
@@ -387,13 +445,14 @@ func _build_background_layers(w: float, total_h: float, theme: Dictionary) -> vo
 			st.modulate = Color(dec_spark.r, dec_spark.g, dec_spark.b, rng_bg.randf_range(0.25, 0.5))
 			_background_layer.add_child(st)
 
-	var hill := ColorRect.new()
-	hill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hill.color = theme.get("map_hill", Color(0.1, 0.42, 0.24, 0.88)) as Color
-	hill.position = Vector2(-40, total_h * 0.26)
-	hill.size = Vector2(w + 80, total_h * 0.14)
-	hill.rotation_degrees = -1.2
-	_background_layer.add_child(hill)
+	if not use_photo:
+		var hill := ColorRect.new()
+		hill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		hill.color = theme.get("map_hill", Color(0.1, 0.42, 0.24, 0.88)) as Color
+		hill.position = Vector2(-40, total_h * 0.26)
+		hill.size = Vector2(w + 80, total_h * 0.14)
+		hill.rotation_degrees = -1.2
+		_background_layer.add_child(hill)
 
 
 func _place_path_tiles_on_curve(pts: PackedVector2Array) -> void:
@@ -613,13 +672,27 @@ func _build_visual_map() -> void:
 	## Lower level numbers sit at the bottom of the scroll; locked future levels climb upward.
 	var raw_pts: PackedVector2Array = PackedVector2Array()
 	for i in range(_display_levels):
-		var t: float = float(i)
 		var row_from_bottom: float = float(_display_levels - 1 - i)
 		var y: float = map_top_padding + row_from_bottom * level_spacing
-		var x: float = _node_center_x \
-			+ sin(t * path_wave_frequency) * path_wave_amplitude \
-			+ sin(t * path_wave_frequency * 0.33 + 0.95) * (path_wave_amplitude * 0.48) \
-			+ sin(t * 0.31 + 0.22) * (path_wave_amplitude * 0.2)
+		var x: float = _node_center_x
+		if snake_use_custom_points and path_points.size() >= 2:
+			# Map custom points into this map window height.
+			var idx: int = i % path_points.size()
+			var sx: float = w / maxf(1.0, path_points_base_size.x)
+			var sy: float = (float(_display_levels) * level_spacing) / maxf(1.0, path_points_base_size.y)
+			var bp: Vector2 = path_points[idx]
+			x = bp.x * sx
+			y = map_top_padding + bp.y * sy
+		else:
+			# Procedural S-curve: left↔right around center, clamped to margins.
+			var wl: float = maxf(2.0, snake_wavelength_levels)
+			var phase: float = snake_phase
+			var s: float = sin(((float(i) + phase) / wl) * TAU)
+			x = _node_center_x + s * snake_amplitude_px
+			var min_x: float = snake_x_margin_px
+			var max_x: float = w - snake_x_margin_px
+			x = clampf(x, min_x, max_x)
+
 		var p := Vector2(x, y)
 		raw_pts.append(p)
 		_level_centers.append(p)
@@ -647,7 +720,7 @@ func _build_visual_map() -> void:
 		var btn := Button.new()
 		btn.text = str(lv)
 		btn.set_meta(&"level_id", lv)
-		btn.custom_minimum_size = Vector2(76, 76)
+		btn.custom_minimum_size = Vector2(level_button_size_px, level_button_size_px)
 		btn.position = pos - btn.custom_minimum_size * 0.5
 		btn.focus_mode = Control.FOCUS_NONE
 		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -669,12 +742,12 @@ func _apply_locked_face(btn: Button, lv: int) -> void:
 		num.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		btn.add_child(num)
 	num.text = str(lv)
-	num.add_theme_font_size_override("font_size", 17)
-	num.add_theme_color_override("font_color", Color(0.72, 0.74, 0.82, 0.88))
-	num.add_theme_color_override("font_outline_color", Color(0.08, 0.08, 0.12, 0.92))
-	num.add_theme_constant_override("outline_size", 4)
+	num.add_theme_font_size_override("font_size", 26)
+	num.add_theme_color_override("font_color", Color(0.9, 0.92, 0.98, 0.9))
+	num.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
+	num.add_theme_constant_override("outline_size", 9)
 	num.size = Vector2(btn.custom_minimum_size.x, 22)
-	num.position = Vector2(0, btn.custom_minimum_size.y - 26)
+	num.position = Vector2(0, btn.custom_minimum_size.y - 36)
 
 	var ic := btn.get_node_or_null("LockIcon") as TextureRect
 	if ic == null:
@@ -686,8 +759,9 @@ func _apply_locked_face(btn: Button, lv: int) -> void:
 		btn.add_child(ic)
 	if _lock_tex != null:
 		ic.texture = _lock_tex
-	ic.custom_minimum_size = Vector2(30, 30)
-	ic.position = Vector2((btn.custom_minimum_size.x - 30) * 0.5, 10)
+	ic.custom_minimum_size = Vector2(44, 44)
+	ic.position = Vector2((btn.custom_minimum_size.x - 44) * 0.5, 12)
+	ic.modulate = Color(0.95, 0.98, 1.0, 0.92)
 
 
 func _apply_level_button_style(btn: Button, lv: int) -> void:
@@ -698,7 +772,7 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 		state = "current"
 	btn.disabled = state == "locked"
 
-	for decal_name in ["LockIcon", "LockedNum"]:
+	for decal_name in ["LockIcon", "LockedNum", "Shine"]:
 		var rm: Node = btn.get_node_or_null(decal_name)
 		if rm != null:
 			btn.remove_child(rm)
@@ -709,10 +783,10 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 	else:
 		btn.text = str(lv)
 
-	btn.add_theme_font_size_override("font_size", 22)
+	btn.add_theme_font_size_override("font_size", 34)
 	btn.add_theme_color_override("font_color", Color(1, 1, 1, 1))
-	btn.add_theme_color_override("font_outline_color", Color(0.12, 0.08, 0.22, 1))
-	btn.add_theme_constant_override("outline_size", 6)
+	btn.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1))
+	btn.add_theme_constant_override("outline_size", 10)
 
 	var n := StyleBoxFlat.new()
 	var h := StyleBoxFlat.new()
@@ -722,51 +796,56 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 		s.corner_radius_top_right = 99
 		s.corner_radius_bottom_right = 99
 		s.corner_radius_bottom_left = 99
-		s.shadow_color = Color(0.02, 0.04, 0.12, 0.42)
-		s.shadow_size = 7
-		s.shadow_offset = Vector2(0, 4)
+		s.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
+		s.shadow_size = 18
+		s.shadow_offset = Vector2(0, 10)
 
 	match state:
 		"locked":
-			n.bg_color = Color(0.3, 0.32, 0.38, 1)
-			n.border_color = Color(0.18, 0.19, 0.24, 1)
-			h.bg_color = Color(0.34, 0.36, 0.42, 1)
-			p.bg_color = Color(0.26, 0.28, 0.34, 1)
+			n.bg_color = Color(0.14, 0.15, 0.18, 1)
+			n.border_color = Color(0.38, 0.4, 0.48, 1)
+			h.bg_color = Color(0.18, 0.19, 0.22, 1)
+			p.bg_color = Color(0.12, 0.13, 0.16, 1)
+			n.shadow_size = 16
+			h.shadow_size = 16
+			p.shadow_size = 16
 		"done":
-			n.bg_color = Color(0.16, 0.78, 0.46, 1)
-			n.border_color = Color(1.0, 0.9, 0.28, 1)
-			h.bg_color = Color(0.22, 0.88, 0.52, 1)
-			p.bg_color = Color(0.12, 0.62, 0.36, 1)
-			n.shadow_size = 12
-			n.shadow_color = Color(0.75, 0.55, 0.12, 0.42)
-			h.shadow_size = 11
-			h.shadow_color = Color(0.85, 0.65, 0.15, 0.35)
-		"current":
-			n.bg_color = Color(1.0, 0.93, 0.38, 1)
-			n.border_color = Color(1.0, 0.78, 0.12, 1)
-			h.bg_color = Color(1.0, 0.97, 0.52, 1)
-			p.bg_color = Color(0.98, 0.82, 0.22, 1)
-			n.shadow_size = 28
-			n.shadow_color = Color(1.0, 0.72, 0.18, 0.62)
-			h.shadow_size = 24
-			h.shadow_color = Color(1.0, 0.78, 0.35, 0.5)
+			n.bg_color = Color(0.12, 0.42, 0.95, 1)
+			n.border_color = Color(1.0, 0.86, 0.32, 1)
+			h.bg_color = Color(0.18, 0.52, 1.0, 1)
+			p.bg_color = Color(0.09, 0.34, 0.82, 1)
+			n.shadow_size = 22
+			n.shadow_color = Color(0.02, 0.18, 0.45, 0.55)
+			h.shadow_size = 20
+			h.shadow_color = Color(0.02, 0.22, 0.55, 0.5)
 			p.shadow_size = 18
-			p.shadow_color = Color(0.85, 0.5, 0.05, 0.45)
+			p.shadow_color = Color(0.02, 0.14, 0.35, 0.42)
+		"current":
+			n.bg_color = Color(1.0, 0.92, 0.22, 1)
+			n.border_color = Color(0.12, 0.22, 0.55, 1)
+			h.bg_color = Color(1.0, 0.96, 0.38, 1)
+			p.bg_color = Color(0.95, 0.78, 0.18, 1)
+			n.shadow_size = 34
+			n.shadow_color = Color(1.0, 0.78, 0.22, 0.7)
+			h.shadow_size = 30
+			h.shadow_color = Color(1.0, 0.82, 0.35, 0.6)
+			p.shadow_size = 22
+			p.shadow_color = Color(0.85, 0.5, 0.05, 0.5)
 
 	if state == "current":
 		for s in [n, h, p]:
-			s.border_width_left = 6
-			s.border_width_top = 6
-			s.border_width_right = 6
-			s.border_width_bottom = 9
-		btn.add_theme_font_size_override("font_size", 24)
-		btn.add_theme_constant_override("outline_size", 8)
+			s.border_width_left = 9
+			s.border_width_top = 9
+			s.border_width_right = 9
+			s.border_width_bottom = 13
+		btn.add_theme_font_size_override("font_size", 36)
+		btn.add_theme_constant_override("outline_size", 12)
 	else:
 		for s in [n, h, p]:
-			s.border_width_left = 3
-			s.border_width_top = 3
-			s.border_width_right = 3
-			s.border_width_bottom = 5
+			s.border_width_left = 8 if state == "done" else 6
+			s.border_width_top = 8 if state == "done" else 6
+			s.border_width_right = 8 if state == "done" else 6
+			s.border_width_bottom = 12 if state == "done" else 8
 
 	var sel: bool = (lv == _selected_level and state != "locked")
 	if sel:
@@ -781,13 +860,23 @@ func _apply_level_button_style(btn: Button, lv: int) -> void:
 	btn.add_theme_stylebox_override("hover", h)
 	btn.add_theme_stylebox_override("pressed", p)
 	if state == "done":
-		btn.add_theme_constant_override("outline_size", 7)
+		btn.add_theme_constant_override("outline_size", 11)
 	if state == "locked":
 		var d := n.duplicate() as StyleBoxFlat
-		d.bg_color = Color(0.34, 0.36, 0.44, 0.88)
+		d.bg_color = Color(0.16, 0.17, 0.22, 0.9)
 		btn.add_theme_stylebox_override("disabled", d)
-		btn.add_theme_color_override("font_color", Color(0.55, 0.56, 0.62, 0.5))
+		btn.add_theme_color_override("font_color", Color(0.65, 0.68, 0.75, 0.55))
 		_apply_locked_face(btn, lv)
+	else:
+		# Subtle top highlight for readability.
+		var shine := ColorRect.new()
+		shine.name = "Shine"
+		shine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		shine.color = Color(1, 1, 1, 0.18 if state == "done" else 0.22)
+		shine.size = Vector2(btn.custom_minimum_size.x - 18.0, btn.custom_minimum_size.y * 0.34)
+		shine.position = Vector2(9.0, 8.0)
+		shine.z_index = 2
+		btn.add_child(shine)
 
 
 func _level_button_for(lv: int) -> Button:
@@ -825,12 +914,7 @@ func _refresh_all_level_styles() -> void:
 
 
 func _update_main_play_label() -> void:
-	var wt: Dictionary = WorldThemesResolve.theme_for_level(_selected_level)
-	var wname: String = str(wt.get("hud_name", ""))
-	if wname != "":
-		_main_play.text = "LEVEL %d  ·  %s" % [_selected_level, wname]
-	else:
-		_main_play.text = "LEVEL %d" % _selected_level
+	_main_play.text = "Level %d" % _selected_level
 
 
 func _scroll_to_selected() -> void:
@@ -858,7 +942,7 @@ func _read_pregame_booster_stocks() -> Vector2i:
 func _start_gameplay() -> void:
 	if _pregame_popup != null and _pregame_popup.has_method("present"):
 		var st: Vector2i = _read_pregame_booster_stocks()
-		_pregame_popup.call("present", st.x, st.y, _furthest_level)
+		_pregame_popup.call("present", st.x, st.y, _furthest_level, _selected_level)
 		return
 	LevelSelectState.set_pregame_boosters(false, false)
 	LevelSelectState.request_start_at_level(_selected_level)

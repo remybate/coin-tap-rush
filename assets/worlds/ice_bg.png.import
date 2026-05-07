@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c42xag7sgf735"
-path="res://.godot/imported/level_map_bg.png-0b66fe3173ae64ac4968daab22b1773b.ctex"
+uid="uid://q1oi4albmg12"
+path="res://.godot/imported/ice_bg.png-31eab12c1231e4014c5d88f81507c780.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/level_map_bg.png"
-dest_files=["res://.godot/imported/level_map_bg.png-0b66fe3173ae64ac4968daab22b1773b.ctex"]
+source_file="res://assets/worlds/ice_bg.png"
+dest_files=["res://.godot/imported/ice_bg.png-31eab12c1231e4014c5d88f81507c780.ctex"]
 
 [params]
 

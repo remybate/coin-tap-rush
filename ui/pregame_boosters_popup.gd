@@ -1,8 +1,11 @@
 extends Control
 
+const WorldThemesResolve = preload("res://world_themes_resolve.gd")
+
 signal play_pressed(use_bomb_clear: bool, use_start_slow: bool)
 signal closed_popup
 
+@onready var _world_backdrop: TextureRect = $WorldBackdrop
 @onready var _dim: ColorRect = $Dim
 @onready var _close_x: Button = $CloseX
 @onready var _play_btn: Button = $Center/Panel/Margin/Root/Footer/PlayButton
@@ -26,7 +29,7 @@ func _ready() -> void:
 	_toggle_slow.toggled.connect(_on_slow_toggled)
 
 
-func present(bomb_clear_stock: int, start_slow_stock: int, furthest_unlocked: int = 999999) -> void:
+func present(bomb_clear_stock: int, start_slow_stock: int, furthest_unlocked: int = 999999, playing_level: int = 1) -> void:
 	_stock_bomb_clear = maxi(0, bomb_clear_stock)
 	_stock_start_slow = maxi(0, start_slow_stock)
 	_hourglass_milestone_ok = LevelProgression.is_booster_unlocked("pregame_hourglass", furthest_unlocked)
@@ -34,8 +37,28 @@ func present(bomb_clear_stock: int, start_slow_stock: int, furthest_unlocked: in
 	_toggle_slow.set_pressed_no_signal(false)
 	_refresh_counts()
 	_apply_lock_styles()
+	_apply_world_backdrop(maxi(1, playing_level))
 	_hint.text = "Pick up to two charms, or tap Play with none — your river, your rules."
 	visible = true
+
+
+func _apply_world_backdrop(level: int) -> void:
+	if not is_instance_valid(_world_backdrop):
+		return
+	var t: Dictionary = WorldThemesResolve.theme_for_level(level)
+	var p: String = str(t.get("world_backdrop_path", t.get("playfield_texture", "")))
+	var tex: Texture2D = null
+	if p != "" and ResourceLoader.exists(p):
+		tex = load(p) as Texture2D
+	if tex == null and ResourceLoader.exists(WorldThemesResolve.FALLBACK_BG):
+		tex = load(WorldThemesResolve.FALLBACK_BG) as Texture2D
+	if tex == null:
+		_world_backdrop.texture = null
+		_world_backdrop.visible = false
+		return
+	_world_backdrop.texture = tex
+	_world_backdrop.modulate = t.get("playfield_modulate", Color.WHITE) as Color
+	_world_backdrop.visible = true
 
 
 func _refresh_counts() -> void:

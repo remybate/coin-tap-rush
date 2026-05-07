@@ -401,46 +401,6 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="TitlePlate" type="PanelContainer" parent="MainColumn/VBox/MainRow/CenterColumn" unique_id=205859873]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleTitlePlate")
-
-[node name="TitleMargin" type="MarginContainer" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate" unique_id=1137993721]
-layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 22
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 22
-
-[node name="TitleVBox" type="VBoxContainer" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin" unique_id=1380740744]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="ArcadeTag" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox" unique_id=1992919162]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "ARCADE • TREASURE RUSH"
-horizontal_alignment = 1
-
-[node name="Title" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox" unique_id=1906910601]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.86, 0.38, 1)
-theme_override_colors/font_outline_color = Color(0.42, 0.22, 0.75, 1)
-theme_override_constants/outline_size = 12
-theme_override_font_sizes/font_size = 52
-text = "COIN TAP RUSH"
-horizontal_alignment = 1
-
-[node name="Tagline" type="Label" parent="MainColumn/VBox/MainRow/CenterColumn/TitlePlate/TitleMargin/TitleVBox" unique_id=796571087]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
-theme_override_font_sizes/font_size = 22
-text = "Tap the rush — chase the shine!"
-horizontal_alignment = 1
-autowrap_mode = 3
-
 [node name="SpacerMid" type="Control" parent="MainColumn/VBox/MainRow/CenterColumn" unique_id=1415246756]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2

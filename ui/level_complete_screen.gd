@@ -1,9 +1,12 @@
 extends Control
 class_name LevelCompleteScreen
 
+const WorldThemesResolve = preload("res://world_themes_resolve.gd")
+
 signal continue_pressed
 signal home_pressed
 
+@onready var _world_backdrop: TextureRect = $WorldBackdrop
 @onready var title_label: Label = $Center/VBox/TitleLabel
 @onready var score_label: Label = $Center/VBox/ScoreLabel
 @onready var level_coins_label: Label = $Center/VBox/LevelCoinsLabel
@@ -78,6 +81,7 @@ func play_coin_fly(amount: int, target_global: Vector2, done: Callable) -> void:
 
 
 func show_for(completed_level: int, current_score: int, next_level: int, run_level_coins: int, rewards_text: String) -> void:
+	_apply_world_backdrop(maxi(1, completed_level))
 	title_label.text = "Level %d complete!" % completed_level
 	score_label.text = "Score: %d" % current_score
 	level_coins_label.text = "Coins this run: +%d" % run_level_coins
@@ -85,6 +89,25 @@ func show_for(completed_level: int, current_score: int, next_level: int, run_lev
 	next_button.text = "Continue → Level %d" % next_level
 	visible = true
 	_play_intro_sequence()
+
+
+func _apply_world_backdrop(level: int) -> void:
+	if not is_instance_valid(_world_backdrop):
+		return
+	var t: Dictionary = WorldThemesResolve.theme_for_level(level)
+	var p: String = str(t.get("world_backdrop_path", t.get("playfield_texture", "")))
+	var tex: Texture2D = null
+	if p != "" and ResourceLoader.exists(p):
+		tex = load(p) as Texture2D
+	if tex == null and ResourceLoader.exists(WorldThemesResolve.FALLBACK_BG):
+		tex = load(WorldThemesResolve.FALLBACK_BG) as Texture2D
+	if tex == null:
+		_world_backdrop.texture = null
+		_world_backdrop.visible = false
+		return
+	_world_backdrop.texture = tex
+	_world_backdrop.modulate = t.get("playfield_modulate", Color.WHITE) as Color
+	_world_backdrop.visible = true
 
 
 func hide_screen() -> void:

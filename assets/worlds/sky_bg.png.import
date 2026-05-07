@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c42xag7sgf735"
-path="res://.godot/imported/level_map_bg.png-0b66fe3173ae64ac4968daab22b1773b.ctex"
+uid="uid://dx7odfyg7fww0"
+path="res://.godot/imported/sky_bg.png-0185a57afaf3d546b5c73f2f1d21a3a6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/backgrounds/level_map_bg.png"
-dest_files=["res://.godot/imported/level_map_bg.png-0b66fe3173ae64ac4968daab22b1773b.ctex"]
+source_file="res://assets/worlds/sky_bg.png"
+dest_files=["res://.godot/imported/sky_bg.png-0185a57afaf3d546b5c73f2f1d21a3a6.ctex"]
 
 [params]
 
