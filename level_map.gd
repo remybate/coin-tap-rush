@@ -13,7 +13,7 @@ const KEY_PROGRESSION: String = "saved_progression_level"
 const KEY_FURTHEST_LEVEL: String = "furthest_level_unlocked"
 const KEY_CURRENT_LEVEL: String = "current_level_playing"
 const MAX_LIVES_DISPLAY: int = 5
-const DEBUG_LEVEL_MAP_FLOW: bool = true
+const DEBUG_LEVEL_MAP_FLOW: bool = false
 
 @export var level_spacing: float = 108.0
 @export var path_wave_amplitude: float = 86.0

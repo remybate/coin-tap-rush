@@ -34,7 +34,7 @@ const KEY_STAT_GLEAMS: String = "stat_gleams_collected"
 const KEY_STAT_BOMBS_DODGED: String = "stat_bombs_dodged"
 const KEY_STAT_MAX_COMBO: String = "stat_max_combo_streak"
 ## Temporary debug for level-complete → map flow (set false to silence).
-const DEBUG_LEVEL_COMPLETE_FLOW: bool = true
+const DEBUG_LEVEL_COMPLETE_FLOW: bool = false
 ## Retries after Level Failed before a long cooldown (each Retry tap uses one).
 const MAX_RETRY_CHARGES: int = 5
 const RETRY_COOLDOWN_SEC: int = 3 * 3600
@@ -904,7 +904,8 @@ func _on_level_continue_pressed() -> void:
 	var completed_level: int = progression_level
 	var next_level: int = completed_level + 1
 
-	print("[LevelComplete] Continue clicked: ", completed_level, " -> ", next_level)
+	if DEBUG_LEVEL_COMPLETE_FLOW:
+		print("[LevelComplete] Continue clicked: ", completed_level, " -> ", next_level)
 
 	_level_coin_fly_in_progress = true
 	level_complete_screen.set_continue_enabled(false)
@@ -914,7 +915,8 @@ func _on_level_continue_pressed() -> void:
 
 	# Play coin fly animation
 	_begin_level_complete_fly(func() -> void:
-		print("[LevelComplete] coin fly callback finished")
+		if DEBUG_LEVEL_COMPLETE_FLOW:
+			print("[LevelComplete] coin fly callback finished")
 	)
 
 	# Wait briefly, then force navigation
@@ -924,7 +926,8 @@ func _on_level_continue_pressed() -> void:
 
 
 func _go_to_level_map_after_continue(next_level: int) -> void:
-	print("[LevelComplete] forcing level map navigation to level: ", next_level)
+	if DEBUG_LEVEL_COMPLETE_FLOW:
+		print("[LevelComplete] forcing level map navigation to level: ", next_level)
 
 	_commit_level_complete_payout()
 	TreasureChestProgress.record_level_cleared()
@@ -948,7 +951,8 @@ func _go_to_level_map_after_continue(next_level: int) -> void:
 	get_tree().paused = false
 
 	var err: Error = get_tree().change_scene_to_file(LEVEL_MAP_SCENE)
-	print("[LevelComplete] change scene result: ", err)
+	if DEBUG_LEVEL_COMPLETE_FLOW:
+		print("[LevelComplete] change scene result: ", err)
 
 	if err != OK:
 		push_error("Failed to go to Level Map. Error: %s" % err)
