@@ -16,7 +16,8 @@ const KEY_PROGRESSION: String = "saved_progression_level"
 enum SortMode { BY_SCORE, BY_LEVEL }
 
 @onready var _dim: ColorRect = $Dim
-@onready var _list: VBoxContainer = $Center/Panel/Margin/VBox/Scroll/ListHost
+@onready var _close_x: Button = $CloseX
+@onready var _list: VBoxContainer = $Center/Panel/Margin/VBox/Scroll/ListMargins/ListHost
 @onready var _subtitle: Label = $Center/Panel/Margin/VBox/Subtitle
 @onready var _btn_sort_score: Button = $Center/Panel/Margin/VBox/SortRow/BtnSortScore
 @onready var _btn_sort_level: Button = $Center/Panel/Margin/VBox/SortRow/BtnSortLevel
@@ -35,6 +36,7 @@ func _ready() -> void:
 	_btn_sort_level.button_group = _sort_group
 	_btn_sort_score.button_pressed = true
 	_close_btn.pressed.connect(_on_close)
+	_close_x.pressed.connect(_on_close)
 	_btn_trophies.pressed.connect(_on_trophy_goals)
 	_dim.gui_input.connect(_on_dim_input)
 	_btn_sort_score.pressed.connect(_on_sort_score)
@@ -146,104 +148,108 @@ func _compare_players(a: Dictionary, b: Dictionary) -> bool:
 	return int(a["best"]) > int(b["best"])
 
 
-func _row_panel_style(is_you: bool, top_rank: bool) -> StyleBoxFlat:
-	var s := StyleBoxFlat.new()
-	s.corner_radius_top_left = 16
-	s.corner_radius_top_right = 16
-	s.corner_radius_bottom_right = 16
-	s.corner_radius_bottom_left = 16
-	s.border_width_left = 3
-	s.border_width_top = 3
-	s.border_width_right = 3
-	s.border_width_bottom = 4
-	s.shadow_offset = Vector2(0, 3)
-	s.shadow_size = 6
-	if is_you:
-		s.bg_color = Color(0.28, 0.22, 0.48, 0.98)
-		s.border_color = Color(1, 0.88, 0.38, 1)
-		s.shadow_color = Color(0.55, 0.35, 0.1, 0.4)
-	elif top_rank:
-		s.bg_color = Color(0.2, 0.18, 0.34, 0.96)
-		s.border_color = Color(1, 0.82, 0.35, 0.85)
-		s.shadow_color = Color(0.35, 0.25, 0.08, 0.35)
-	else:
-		s.bg_color = Color(0.16, 0.14, 0.26, 0.94)
-		s.border_color = Color(0.42, 0.4, 0.55, 1)
-		s.shadow_color = Color(0, 0, 0, 0.22)
-	return s
+func _row_panel_style(is_you: bool, place: int) -> StyleBoxFlat:
+	return CartoonStyleKit.rank_leaderboard_row(is_you, place)
 
 
 func _make_row(place: int, d: Dictionary) -> PanelContainer:
 	var is_you: bool = bool(d.get("is_you", false))
 	var top_rank: bool = place == 1
+	var podium: bool = place <= 3
 	var panel := PanelContainer.new()
-	panel.add_theme_stylebox_override("panel", _row_panel_style(is_you, top_rank))
+	panel.add_theme_stylebox_override("panel", _row_panel_style(is_you, place))
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if podium:
+		panel.custom_minimum_size = Vector2(0, 128)
+	else:
+		panel.custom_minimum_size = Vector2(0, 112)
+
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 10)
+	margin.layout_mode = 2
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 14)
 	panel.add_child(margin)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.layout_mode = 2
+	row.add_theme_constant_override("separation", 18)
 	margin.add_child(row)
 	var rk := Label.new()
-	rk.text = ("🏆 " if top_rank else "") + "#%d" % place
-	rk.custom_minimum_size = Vector2(52, 0)
-	rk.add_theme_font_size_override("font_size", 20)
+	var medal := ""
+	if place == 1:
+		medal = "🥇 "
+	elif place == 2:
+		medal = "🥈 "
+	elif place == 3:
+		medal = "🥉 "
+	rk.text = medal + "#%d" % place
+	rk.custom_minimum_size = Vector2(100 if podium else 88, 0)
+	rk.add_theme_font_size_override("font_size", 38 if podium else 34)
 	rk.add_theme_color_override("font_color", Color(1, 0.92, 0.55, 1) if top_rank else Color(0.88, 0.9, 1, 1))
 	rk.add_theme_color_override("font_outline_color", Color(0.06, 0.04, 0.14, 1))
-	rk.add_theme_constant_override("outline_size", 4)
+	rk.add_theme_constant_override("outline_size", 5)
 	rk.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(rk)
 	var av := PanelContainer.new()
-	av.custom_minimum_size = Vector2(48, 48)
+	var av_side: int = 72 if podium else 64
+	av.custom_minimum_size = Vector2(av_side, av_side)
 	var av_st := StyleBoxFlat.new()
 	av_st.bg_color = Color.from_hsv(float(d["hue"]), 0.52, 0.92, 1)
-	av_st.border_color = Color(0.12, 0.08, 0.22, 1)
-	av_st.set_border_width_all(2)
+	av_st.border_color = Color(1, 0.88, 0.42, 0.95)
+	av_st.set_border_width_all(4)
+	av_st.shadow_color = Color(0, 0, 0, 0.4)
+	av_st.shadow_size = 8
+	av_st.shadow_offset = Vector2(0, 3)
 	av_st.corner_radius_top_left = 99
 	av_st.corner_radius_top_right = 99
 	av_st.corner_radius_bottom_right = 99
 	av_st.corner_radius_bottom_left = 99
 	av.add_theme_stylebox_override("panel", av_st)
 	var av_ctr := CenterContainer.new()
+	av_ctr.layout_mode = 2
+	av_ctr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	av.add_child(av_ctr)
 	var ini := Label.new()
 	if str(d.get("emoji", "")).length() > 0:
 		ini.text = str(d["emoji"])
 	else:
 		ini.text = _initial(str(d["name"]))
+	ini.layout_mode = 2
 	ini.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ini.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	ini.add_theme_font_size_override("font_size", 22)
+	ini.add_theme_font_size_override("font_size", 40 if podium else 36)
 	ini.add_theme_color_override("font_color", Color(0.12, 0.1, 0.18, 1))
 	ini.add_theme_color_override("font_outline_color", Color(1, 1, 1, 0.35))
 	ini.add_theme_constant_override("outline_size", 3)
 	av_ctr.add_child(ini)
 	row.add_child(av)
 	var mid := VBoxContainer.new()
+	mid.layout_mode = 2
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid.add_theme_constant_override("separation", 6)
 	row.add_child(mid)
 	var nm := Label.new()
 	nm.text = str(d["name"])
-	nm.add_theme_font_size_override("font_size", 19)
+	nm.add_theme_font_size_override("font_size", 36 if podium else 32)
 	nm.add_theme_color_override("font_color", Color(0.98, 0.97, 1, 1))
 	nm.add_theme_color_override("font_outline_color", Color(0.06, 0.04, 0.14, 1))
-	nm.add_theme_constant_override("outline_size", 3)
+	nm.add_theme_constant_override("outline_size", 4)
 	mid.add_child(nm)
 	var st := Label.new()
 	if is_you:
 		var pl: int = int(d.get("plevel", int(d["level"])))
 		var tit: String = str(d.get("title", ""))
 		var bd: String = str(d.get("badge", ""))
-		st.text = "Rank %s  ·  %s  ·  P.Lv. %d  ·  Stage %d  ·  Best %s" % [bd, tit, pl, int(d["level"]), _fmt_num(int(d["best"]))]
-		st.text += "  ·  This device"
+		st.text = "Rank %s · %s · P.Lv. %d\nStage %d · Best %s · This device" % [bd, tit, pl, int(d["level"]), _fmt_num(int(d["best"]))]
+		st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	else:
 		st.text = "Lv. %d  ·  Best %s" % [int(d["level"]), _fmt_num(int(d["best"]))]
-	st.add_theme_font_size_override("font_size", 15)
-	st.add_theme_color_override("font_color", Color(0.78, 0.84, 0.95, 1))
+	st.add_theme_font_size_override("font_size", 30 if podium else 28)
+	st.add_theme_color_override("font_color", Color(0.88, 0.93, 1, 1))
+	st.add_theme_color_override("font_outline_color", Color(0.05, 0.07, 0.16, 1))
+	st.add_theme_constant_override("outline_size", 4 if podium else 3)
 	mid.add_child(st)
 	return panel
 

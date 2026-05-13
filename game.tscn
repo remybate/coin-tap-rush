@@ -36,74 +36,77 @@ fill_from = Vector2(0.5, 0)
 fill_to = Vector2(0.5, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleHudIconN"]
-bg_color = Color(0.22, 0.12, 0.38, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 6
-border_color = Color(0.55, 0.35, 0.95, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 6
-shadow_offset = Vector2(0, 4)
+bg_color = Color(0.32, 0.18, 0.55, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 7
+border_color = Color(0.72, 0.48, 1, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0, 0, 0.48)
+shadow_size = 10
+shadow_offset = Vector2(0, 5)
 
 [sub_resource type="StyleBoxFlat" id="StyleHudIconH"]
-bg_color = Color(0.32, 0.18, 0.52, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 6
-border_color = Color(0.75, 0.55, 1, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+bg_color = Color(0.42, 0.26, 0.72, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 7
+border_color = Color(0.92, 0.75, 1, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0.35, 0.2, 0.65, 0.35)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleHudIconP"]
-bg_color = Color(0.16, 0.08, 0.28, 1)
+bg_color = Color(0.2, 0.1, 0.38, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 5
+border_color = Color(0.45, 0.28, 0.78, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleHudIconD"]
+bg_color = Color(0.14, 0.14, 0.2, 0.62)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 4
-border_color = Color(0.35, 0.2, 0.62, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-
-[sub_resource type="StyleBoxFlat" id="StyleHudIconD"]
-bg_color = Color(0.12, 0.12, 0.16, 0.55)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 3
-border_color = Color(0.35, 0.35, 0.42, 0.55)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+border_color = Color(0.38, 0.4, 0.48, 0.65)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleDockPanel"]
-bg_color = Color(0.06, 0.04, 0.12, 0.78)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.78, 0.35, 0.35)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 10
-shadow_offset = Vector2(0, -4)
-content_margin_left = 10.0
-content_margin_top = 10.0
-content_margin_right = 10.0
-content_margin_bottom = 10.0
+bg_color = Color(0.1, 0.06, 0.22, 0.88)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 5
+border_color = Color(1, 0.86, 0.42, 0.75)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0, 0, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, -5)
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
 
 [sub_resource type="Theme" id="Theme_0xm2m"]
 
@@ -180,40 +183,40 @@ mouse_filter = 0
 
 [node name="HudRow" type="HBoxContainer" parent="CanvasLayer/MobileHud"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 
 [node name="LeftStack" type="VBoxContainer" parent="CanvasLayer/MobileHud/HudRow"]
 layout_mode = 2
 size_flags_horizontal = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 4
 
 [node name="ScoreCaption" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.86, 1, 0.85)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.92, 1, 0.92)
+theme_override_font_sizes/font_size = 15
 text = "SCORE"
 
 [node name="ScoreLabel" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack" unique_id=1799012871]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.94, 0.62, 1)
-theme_override_colors/font_outline_color = Color(0.12, 0.06, 0.22, 1)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.96, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.05, 0.22, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 34
 text = "0"
 vertical_alignment = 1
 
 [node name="CoinsCaption" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.86, 1, 0.85)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.82, 0.92, 1, 0.92)
+theme_override_font_sizes/font_size = 15
 text = "COINS"
 
 [node name="VaultCoinsLabel" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack" unique_id=1799012874]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.88, 0.48, 1)
-theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.05, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 26
+theme_override_colors/font_color = Color(1, 0.9, 0.42, 1)
+theme_override_colors/font_outline_color = Color(0.22, 0.1, 0.05, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 28
 text = "0"
 vertical_alignment = 1
 
@@ -227,7 +230,7 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="PauseButton" type="Button" parent="CanvasLayer/MobileHud/HudRow/RightStack" unique_id=1908926187]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(58, 58)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
@@ -239,7 +242,7 @@ text = "‖"
 mouse_filter = 0
 
 [node name="SettingsButton" type="Button" parent="CanvasLayer/MobileHud/HudRow/RightStack" unique_id=1908926186]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(58, 58)
 layout_mode = 2
 focus_mode = 0
 theme_override_styles/normal = SubResource("StyleHudIconN")
@@ -251,7 +254,7 @@ expand_icon = true
 mouse_filter = 0
 
 [node name="AudioToggleButton" type="Button" parent="CanvasLayer/MobileHud/HudRow/RightStack"]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(58, 58)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
@@ -269,7 +272,7 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = -120.0
+offset_top = -132.0
 offset_right = -12.0
 offset_bottom = -10.0
 grow_horizontal = 2
@@ -284,10 +287,10 @@ theme_override_constants/separation = 6
 [node name="ToastLabel" type="Label" parent="CanvasLayer/BoosterDock/VBox" unique_id=1892446012]
 layout_mode = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(0.65, 0.98, 0.82, 1)
-theme_override_colors/font_outline_color = Color(0.05, 0.12, 0.1, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.72, 1, 0.88, 1)
+theme_override_colors/font_outline_color = Color(0.04, 0.14, 0.1, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 autowrap_mode = 3
 text = ""
@@ -298,10 +301,10 @@ alignment = 1
 theme_override_constants/separation = 10
 
 [node name="BoosterFreeze" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446014]
-custom_minimum_size = Vector2(64, 64)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
@@ -309,10 +312,10 @@ theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "❄️\n0"
 
 [node name="BoosterSlow" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446015]
-custom_minimum_size = Vector2(64, 64)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
@@ -320,10 +323,10 @@ theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "🌀\n0"
 
 [node name="BoosterMagnet" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446016]
-custom_minimum_size = Vector2(64, 64)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
@@ -331,10 +334,10 @@ theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "🧲\n0"
 
 [node name="BoosterShield" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446017]
-custom_minimum_size = Vector2(64, 64)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")

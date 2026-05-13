@@ -6,17 +6,17 @@ signal home_pressed
 
 const MAX_RETRIES_DISPLAY: int = 5
 
-@onready var final_score_label: Label = $Center/MainColumn/ScoreColumn/FinalScoreLabel
-@onready var coins_lost_label: Label = $Center/MainColumn/ScoreColumn/CoinsLostLabel
-@onready var best_score_label: Label = $Center/MainColumn/ScoreColumn/BestScoreLabel
-@onready var retries_label: Label = $Center/MainColumn/RetriesLabel
-@onready var minus_badge: Label = $Center/MainColumn/HeartRow/HeartPanel/MinusBadge
-@onready var booster_lightning: Button = $Center/MainColumn/BoosterRow/LightningBooster
-@onready var booster_hourglass: Button = $Center/MainColumn/BoosterRow/HourglassBooster
-@onready var lightning_count_label: Label = $Center/MainColumn/BoosterRow/LightningBooster/Badge/Count
-@onready var hourglass_count_label: Label = $Center/MainColumn/BoosterRow/HourglassBooster/Badge/Count
-@onready var retry_button: Button = $Center/MainColumn/RetryButton
-@onready var home_button: Button = $Center/MainColumn/HomeButton
+@onready var final_score_label: Label = $Center/MainPanel/InnerMargin/MainColumn/ScoreColumn/FinalScoreLabel
+@onready var coins_lost_label: Label = $Center/MainPanel/InnerMargin/MainColumn/ScoreColumn/CoinsLostLabel
+@onready var best_score_label: Label = $Center/MainPanel/InnerMargin/MainColumn/ScoreColumn/BestScoreLabel
+@onready var retries_label: Label = $Center/MainPanel/InnerMargin/MainColumn/RetriesLabel
+@onready var minus_badge: Label = $Center/MainPanel/InnerMargin/MainColumn/HeartRow/HeartPanel/MinusBadge
+@onready var booster_lightning: Button = $Center/MainPanel/InnerMargin/MainColumn/BoosterRow/LightningBooster
+@onready var booster_hourglass: Button = $Center/MainPanel/InnerMargin/MainColumn/BoosterRow/HourglassBooster
+@onready var lightning_count_label: Label = $Center/MainPanel/InnerMargin/MainColumn/BoosterRow/LightningBooster/Badge/Count
+@onready var hourglass_count_label: Label = $Center/MainPanel/InnerMargin/MainColumn/BoosterRow/HourglassBooster/Badge/Count
+@onready var retry_button: Button = $Center/MainPanel/InnerMargin/MainColumn/RetryButton
+@onready var home_button: Button = $Center/MainPanel/InnerMargin/MainColumn/HomeButton
 @onready var close_button: Button = $CloseButton
 
 

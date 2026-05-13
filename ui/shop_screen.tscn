@@ -1,33 +1,66 @@
-[gd_scene load_steps=4 format=3 uid="uid://shop_full_screen"]
+[gd_scene load_steps=5 format=3 uid="uid://shop_full_screen"]
 
 [ext_resource type="Script" path="res://ui/shop_screen.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleMainPanel"]
-bg_color = Color(0.06, 0.04, 0.14, 0.98)
+bg_color = Color(0.08, 0.06, 0.2, 0.98)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 7
+border_color = Color(1, 0.86, 0.42, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0, 0, 0, 0.58)
+shadow_size = 22
+shadow_offset = Vector2(0, 10)
+
+[sub_resource type="StyleBoxFlat" id="StyleFooterWatch"]
+bg_color = Color(0.52, 0.26, 0.88, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 9
+border_color = Color(1, 0.9, 0.42, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+shadow_color = Color(0.55, 0.35, 0.12, 0.5)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleFooterClose"]
+bg_color = Color(0.16, 0.58, 0.72, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 9
+border_color = Color(0.75, 0.98, 1, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+shadow_color = Color(0.05, 0.22, 0.32, 0.55)
+shadow_size = 14
+shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleCloseXBtn"]
+bg_color = Color(0.95, 0.28, 0.28, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
-border_width_bottom = 5
-border_color = Color(1, 0.8, 0.38, 0.95)
-corner_radius_top_left = 26
-corner_radius_top_right = 26
-corner_radius_bottom_right = 26
-corner_radius_bottom_left = 26
-shadow_color = Color(0, 0, 0, 0.55)
-shadow_size = 20
-shadow_offset = Vector2(0, 10)
-
-[sub_resource type="StyleBoxFlat" id="StyleFooterBtn"]
-bg_color = Color(0.28, 0.16, 0.62, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
 border_width_bottom = 6
-border_color = Color(0.98, 0.82, 0.32, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+border_color = Color(1, 0.75, 0.75, 1)
+corner_radius_top_left = 99
+corner_radius_top_right = 99
+corner_radius_bottom_right = 99
+corner_radius_bottom_left = 99
+shadow_color = Color(0.35, 0.05, 0.05, 0.48)
+shadow_size = 10
+shadow_offset = Vector2(0, 4)
 
 [node name="ShopScreen" type="Control"]
 process_mode = 3
@@ -56,17 +89,22 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -76.0
-offset_top = 12.0
-offset_right = -12.0
-offset_bottom = 68.0
+offset_left = -74.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = 78.0
 grow_horizontal = 0
 grow_vertical = 0
 focus_mode = 0
+z_index = 20
+custom_minimum_size = Vector2(64, 64)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.05, 0.2, 1)
 theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 36
+theme_override_styles/normal = SubResource("StyleCloseXBtn")
+theme_override_styles/hover = SubResource("StyleCloseXBtn")
+theme_override_styles/pressed = SubResource("StyleCloseXBtn")
 text = "✕"
 
 [node name="MainMargin" type="MarginContainer" parent="."]
@@ -74,15 +112,15 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = -10.0
-offset_bottom = -10.0
+offset_left = 14.0
+offset_top = 16.0
+offset_right = -14.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 0
-theme_override_constants/margin_top = 48
+theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 0
 theme_override_constants/margin_bottom = 0
 
@@ -101,21 +139,23 @@ theme_override_constants/margin_bottom = 16
 
 [node name="VBox" type="VBoxContainer" parent="MainMargin/MainPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 14
 
 [node name="Title" type="Label" parent="MainMargin/MainPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
 theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.45, 1)
-theme_override_constants/outline_size = 7
-theme_override_font_sizes/font_size = 32
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 60
 text = "Treasure Shop"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="Subtitle" type="Label" parent="MainMargin/MainPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_constants/line_spacing = 6
+theme_override_font_sizes/font_size = 30
 text = "Colorful preview — no real payments hooked up yet."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -129,35 +169,41 @@ vertical_scroll_mode = 2
 [node name="ListHost" type="VBoxContainer" parent="MainMargin/MainPanel/Margin/VBox/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 20
 
-[node name="FooterRow" type="HBoxContainer" parent="MainMargin/MainPanel/Margin/VBox"]
+[node name="Footer" type="CenterContainer" parent="MainMargin/MainPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="FooterColumn" type="VBoxContainer" parent="MainMargin/MainPanel/Margin/VBox/Footer"]
+custom_minimum_size = Vector2(348, 0)
 layout_mode = 2
 theme_override_constants/separation = 14
-alignment = 1
 
-[node name="WatchAdBtn" type="Button" parent="MainMargin/MainPanel/Margin/VBox/FooterRow"]
-custom_minimum_size = Vector2(220, 56)
+[node name="WatchAdBtn" type="Button" parent="MainMargin/MainPanel/Margin/VBox/Footer/FooterColumn"]
+custom_minimum_size = Vector2(348, 96)
 layout_mode = 2
+size_flags_horizontal = 3
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.16, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleFooterBtn")
-theme_override_styles/hover = SubResource("StyleFooterBtn")
-theme_override_styles/pressed = SubResource("StyleFooterBtn")
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 32
+theme_override_styles/normal = SubResource("StyleFooterWatch")
+theme_override_styles/hover = SubResource("StyleFooterWatch")
+theme_override_styles/pressed = SubResource("StyleFooterWatch")
 text = "Free coins (ad) — soon"
 
-[node name="CloseBtn" type="Button" parent="MainMargin/MainPanel/Margin/VBox/FooterRow"]
-custom_minimum_size = Vector2(220, 56)
+[node name="CloseBtn" type="Button" parent="MainMargin/MainPanel/Margin/VBox/Footer/FooterColumn"]
+custom_minimum_size = Vector2(348, 92)
 layout_mode = 2
+size_flags_horizontal = 3
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.04, 0.16, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 20
-theme_override_styles/normal = SubResource("StyleFooterBtn")
-theme_override_styles/hover = SubResource("StyleFooterBtn")
-theme_override_styles/pressed = SubResource("StyleFooterBtn")
+theme_override_colors/font_outline_color = Color(0.04, 0.12, 0.16, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 34
+theme_override_styles/normal = SubResource("StyleFooterClose")
+theme_override_styles/hover = SubResource("StyleFooterClose")
+theme_override_styles/pressed = SubResource("StyleFooterClose")
 text = "Close"

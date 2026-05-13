@@ -8,8 +8,8 @@ signal toast_requested(title: String, body: String)
 @onready var _dim: ColorRect = $Dim
 @onready var _close_x: Button = $CloseX
 @onready var _list: VBoxContainer = $MainMargin/MainPanel/Margin/VBox/Scroll/ListHost
-@onready var _watch_ad_btn: Button = $MainMargin/MainPanel/Margin/VBox/FooterRow/WatchAdBtn
-@onready var _close_btn: Button = $MainMargin/MainPanel/Margin/VBox/FooterRow/CloseBtn
+@onready var _watch_ad_btn: Button = $MainMargin/MainPanel/Margin/VBox/Footer/FooterColumn/WatchAdBtn
+@onready var _close_btn: Button = $MainMargin/MainPanel/Margin/VBox/Footer/FooterColumn/CloseBtn
 
 
 func _ready() -> void:
@@ -61,22 +61,37 @@ func _build_shop() -> void:
 	for c in _list.get_children():
 		c.queue_free()
 	_list.add_child(_section_title("Coin packs"))
-	var coin_flow := HFlowContainer.new()
-	coin_flow.add_theme_constant_override("h_separation", 12)
-	coin_flow.add_theme_constant_override("v_separation", 12)
-	coin_flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_list.add_child(coin_flow)
+	var coin_rows := VBoxContainer.new()
+	coin_rows.add_theme_constant_override("separation", 18)
+	coin_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list.add_child(coin_rows)
+	var row1 := HBoxContainer.new()
+	row1.add_theme_constant_override("separation", 16)
+	row1.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row1.alignment = BoxContainer.ALIGNMENT_CENTER
+	var row2 := HBoxContainer.new()
+	row2.add_theme_constant_override("separation", 16)
+	row2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row2.alignment = BoxContainer.ALIGNMENT_CENTER
+	coin_rows.add_child(row1)
+	coin_rows.add_child(row2)
 	var coin_packs: Array[Dictionary] = [
 		{"emoji": "🪙", "title": "Pocket Stack", "desc": "+250 vault coins", "price": "$0.99", "accent": Color(0.95, 0.72, 0.22)},
 		{"emoji": "💰", "title": "Satchel", "desc": "+1,200 coins", "price": "$4.99", "accent": Color(0.98, 0.55, 0.28)},
 		{"emoji": "🏦", "title": "Vault Crate", "desc": "+5,000 coins", "price": "$14.99", "accent": Color(1.0, 0.82, 0.35)},
 		{"emoji": "✨", "title": "Mega Mint", "desc": "+25,000 coins", "price": "$39.99", "accent": Color(0.45, 0.92, 0.55)},
 	]
-	for d in coin_packs:
-		coin_flow.add_child(_make_pack_card(d, false))
+	for i in range(2):
+		var c := _make_pack_card(coin_packs[i], false, true)
+		c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row1.add_child(c)
+	for i in range(2, 4):
+		var c2 := _make_pack_card(coin_packs[i], false, true)
+		c2.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row2.add_child(c2)
 	_list.add_child(_section_title("Booster packs"))
 	var boost_wrap := VBoxContainer.new()
-	boost_wrap.add_theme_constant_override("separation", 12)
+	boost_wrap.add_theme_constant_override("separation", 16)
 	boost_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_child(boost_wrap)
 	var boosters: Array[Dictionary] = [
@@ -84,7 +99,7 @@ func _build_shop() -> void:
 		{"emoji": "⚡", "title": "Power Hour", "desc": "Double charges on every booster for your next streak of runs.", "price": "$7.99", "accent": Color(0.95, 0.35, 0.72)},
 	]
 	for d in boosters:
-		boost_wrap.add_child(_make_pack_card(d, true))
+		boost_wrap.add_child(_make_pack_card(d, true, false))
 	_list.add_child(_section_title("Remove ads"))
 	_list.add_child(
 		_make_pack_card(
@@ -96,7 +111,8 @@ func _build_shop() -> void:
 				"accent": Color(0.38, 0.55, 0.95),
 				"badge": "PLACEHOLDER",
 			},
-			true
+			true,
+			false
 		)
 	)
 	_list.add_child(_section_title("Starter bundle"))
@@ -111,7 +127,8 @@ func _build_shop() -> void:
 				"badge": "BEST VALUE",
 				"hero": true,
 			},
-			true
+			true,
+			false
 		)
 	)
 
@@ -119,108 +136,114 @@ func _build_shop() -> void:
 func _section_title(text: String) -> Label:
 	var lb := Label.new()
 	lb.text = text
-	lb.add_theme_font_size_override("font_size", 24)
+	lb.add_theme_font_size_override("font_size", 38)
 	lb.add_theme_color_override("font_color", Color(1, 0.9, 0.5, 1))
 	lb.add_theme_color_override("font_outline_color", Color(0.15, 0.08, 0.35, 1))
-	lb.add_theme_constant_override("outline_size", 5)
+	lb.add_theme_constant_override("outline_size", 7)
 	return lb
 
 
-func _make_pack_card(d: Dictionary, wide: bool) -> PanelContainer:
+func _make_pack_card(d: Dictionary, wide: bool, coin_tile: bool) -> PanelContainer:
 	var accent: Color = d["accent"]
 	var hero: bool = bool(d.get("hero", false))
+	var pack_style: int = 1 if coin_tile else 2
+	var frame: StyleBoxFlat = CartoonStyleKit.shop_pack_frame(accent, hero, pack_style)
 	var panel := PanelContainer.new()
-	var frame := StyleBoxFlat.new()
-	var bg := accent.lerp(Color(0.06, 0.05, 0.12), 0.72)
-	frame.bg_color = bg
-	frame.border_color = accent.lerp(Color.WHITE, 0.35)
-	var bw: int = 5 if hero else 3
-	frame.set_border_width_all(bw)
-	frame.corner_radius_top_left = 20
-	frame.corner_radius_top_right = 20
-	frame.corner_radius_bottom_right = 20
-	frame.corner_radius_bottom_left = 20
-	frame.shadow_color = Color(accent.r, accent.g, accent.b, 0.35)
-	frame.shadow_size = 18 if hero else 10
-	frame.shadow_offset = Vector2(0, 6)
-	frame.content_margin_left = 16
-	frame.content_margin_top = 14
-	frame.content_margin_right = 16
-	frame.content_margin_bottom = 14
 	panel.add_theme_stylebox_override("panel", frame)
 	if wide:
+		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	elif coin_tile:
+		panel.custom_minimum_size = Vector2(0, 276)
 		panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	else:
 		panel.custom_minimum_size = Vector2(158, 0)
 	var root := VBoxContainer.new()
-	root.add_theme_constant_override("separation", 10)
+	root.add_theme_constant_override("separation", 14 if (wide or coin_tile) else 10)
 	panel.add_child(root)
 	var top := HBoxContainer.new()
-	top.add_theme_constant_override("separation", 10)
+	top.add_theme_constant_override("separation", 14 if (wide or coin_tile) else 10)
 	root.add_child(top)
 	var emoji := Label.new()
 	emoji.text = str(d.get("emoji", "💎"))
-	emoji.add_theme_font_size_override("font_size", 36 if hero else 30)
+	if coin_tile:
+		emoji.add_theme_font_size_override("font_size", 64)
+	elif hero:
+		emoji.add_theme_font_size_override("font_size", 62)
+	elif wide:
+		emoji.add_theme_font_size_override("font_size", 54)
+	else:
+		emoji.add_theme_font_size_override("font_size", 40)
 	top.add_child(emoji)
 	var head_col := VBoxContainer.new()
+	head_col.add_theme_constant_override("separation", 8 if (wide or coin_tile) else 6)
 	head_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(head_col)
 	var title := Label.new()
 	var badge: String = str(d.get("badge", ""))
 	title.text = str(d["title"]) + (("  ·  " + badge) if not badge.is_empty() else "")
-	title.add_theme_font_size_override("font_size", 22 if hero else 20)
+	if coin_tile:
+		title.add_theme_font_size_override("font_size", 34)
+	elif hero:
+		title.add_theme_font_size_override("font_size", 52)
+	elif wide:
+		title.add_theme_font_size_override("font_size", 46)
+	else:
+		title.add_theme_font_size_override("font_size", 26 if hero else 24)
 	title.add_theme_color_override("font_color", Color(0.98, 0.97, 1, 1))
 	title.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.2, 1))
-	title.add_theme_constant_override("outline_size", 4)
+	title.add_theme_constant_override("outline_size", 6 if (wide or coin_tile) else 4)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	head_col.add_child(title)
 	var desc := Label.new()
 	desc.text = str(d["desc"])
-	desc.add_theme_font_size_override("font_size", 15)
-	desc.add_theme_color_override("font_color", Color(0.85, 0.9, 0.98, 0.95))
+	if coin_tile:
+		desc.add_theme_font_size_override("font_size", 28)
+	elif wide:
+		desc.add_theme_font_size_override("font_size", 34)
+	else:
+		desc.add_theme_font_size_override("font_size", 18)
+	desc.add_theme_constant_override("line_spacing", 6 if wide else 4)
+	desc.add_theme_color_override("font_color", Color(0.88, 0.93, 0.99, 0.96))
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	head_col.add_child(desc)
 	var bot := HBoxContainer.new()
-	bot.add_theme_constant_override("separation", 12)
+	bot.add_theme_constant_override("separation", 16)
 	bot.alignment = BoxContainer.ALIGNMENT_END
 	root.add_child(bot)
 	var price := Label.new()
 	price.text = str(d["price"])
-	price.add_theme_font_size_override("font_size", 26 if hero else 22)
-	price.add_theme_color_override("font_color", Color(0.75, 1.0, 0.88, 1))
+	if coin_tile:
+		price.add_theme_font_size_override("font_size", 34)
+	elif hero:
+		price.add_theme_font_size_override("font_size", 48)
+	elif wide:
+		price.add_theme_font_size_override("font_size", 42)
+	else:
+		price.add_theme_font_size_override("font_size", 26 if hero else 22)
+	price.add_theme_color_override("font_color", Color(0.78, 1.0, 0.9, 1))
 	price.add_theme_color_override("font_outline_color", Color(0.05, 0.12, 0.1, 1))
-	price.add_theme_constant_override("outline_size", 4)
+	price.add_theme_constant_override("outline_size", 6 if (wide or coin_tile) else 4)
 	bot.add_child(price)
 	var buy := Button.new()
 	buy.text = "Buy"
 	buy.focus_mode = Control.FOCUS_NONE
-	buy.custom_minimum_size = Vector2(160 if hero else 132, 58 if hero else 52)
-	buy.add_theme_font_size_override("font_size", 22 if hero else 20)
-	_style_buy_button(buy, accent)
+	var chip_style: int = 1 if coin_tile else 2
+	if coin_tile:
+		buy.custom_minimum_size = Vector2(168, 80)
+		buy.add_theme_font_size_override("font_size", 30)
+	elif hero:
+		buy.custom_minimum_size = Vector2(248, 96)
+		buy.add_theme_font_size_override("font_size", 38)
+	elif wide:
+		buy.custom_minimum_size = Vector2(228, 88)
+		buy.add_theme_font_size_override("font_size", 34)
+	else:
+		buy.custom_minimum_size = Vector2(168 if hero else 140, 62 if hero else 56)
+		buy.add_theme_font_size_override("font_size", 24 if hero else 22)
+		chip_style = 0
+	CartoonStyleKit.style_buy_chip(buy, accent, chip_style)
 	var t := str(d["title"])
 	var p := str(d["price"])
 	buy.pressed.connect(_on_buy.bind(t, p))
 	bot.add_child(buy)
 	return panel
-
-
-func _style_buy_button(btn: Button, accent: Color) -> void:
-	var n := StyleBoxFlat.new()
-	n.bg_color = accent.lerp(Color(0.15, 0.1, 0.25), 0.25)
-	n.border_color = Color(1, 0.95, 0.75, 1)
-	n.set_border_width_all(3)
-	n.corner_radius_top_left = 16
-	n.corner_radius_top_right = 16
-	n.corner_radius_bottom_right = 16
-	n.corner_radius_bottom_left = 16
-	var h := n.duplicate() as StyleBoxFlat
-	h.bg_color = accent.lerp(Color.WHITE, 0.15)
-	var p := n.duplicate() as StyleBoxFlat
-	p.bg_color = accent.lerp(Color.BLACK, 0.35)
-	btn.add_theme_stylebox_override("normal", n)
-	btn.add_theme_stylebox_override("hover", h)
-	btn.add_theme_stylebox_override("pressed", p)
-	btn.add_theme_stylebox_override("focus", n)
-	btn.add_theme_color_override("font_color", Color.WHITE)
-	btn.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.15, 1))
-	btn.add_theme_constant_override("outline_size", 4)

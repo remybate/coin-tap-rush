@@ -152,6 +152,10 @@ func _rebuild() -> void:
 
 	for e in events:
 		_items_host.add_child(_make_event_row(e))
+	var stretch_e := Control.new()
+	stretch_e.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stretch_e.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_items_host.add_child(stretch_e)
 
 
 func _make_event_row(e: Dictionary) -> PanelContainer:
@@ -165,21 +169,7 @@ func _make_event_row(e: Dictionary) -> PanelContainer:
 	var ratio: float = clampf(float(cur) / float(goal), 0.0, 1.0)
 
 	var row := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	if active:
-		sb.bg_color = Color(0.07, 0.09, 0.16, 0.95)
-		sb.border_color = Color(0.95, 0.7, 0.35, 0.75)
-	else:
-		sb.bg_color = Color(0.05, 0.06, 0.1, 0.92)
-		sb.border_color = Color(0.45, 0.44, 0.55, 0.45)
-	sb.border_width_left = 2
-	sb.border_width_top = 2
-	sb.border_width_right = 2
-	sb.border_width_bottom = 2
-	sb.corner_radius_top_left = 14
-	sb.corner_radius_top_right = 14
-	sb.corner_radius_bottom_right = 14
-	sb.corner_radius_bottom_left = 14
+	var sb: StyleBoxFlat = CartoonStyleKit.event_row_panel(active)
 	sb.content_margin_left = 14
 	sb.content_margin_top = 12
 	sb.content_margin_right = 14
@@ -189,30 +179,32 @@ func _make_event_row(e: Dictionary) -> PanelContainer:
 		row.modulate = Color(0.75, 0.76, 0.84, 1)
 
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
+	v.add_theme_constant_override("separation", 10)
 	row.add_child(v)
 
 	var top := HBoxContainer.new()
-	top.add_theme_constant_override("separation", 10)
+	top.add_theme_constant_override("separation", 12)
 	v.add_child(top)
 
-	var t := Label.new()
-	t.text = title
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t.add_theme_font_size_override("font_size", 22)
-	t.add_theme_color_override("font_color", Color(1, 0.88, 0.45, 1) if active else Color(0.9, 0.9, 1, 0.95))
-	top.add_child(t)
+	var ev_title := Label.new()
+	ev_title.text = title
+	ev_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ev_title.add_theme_font_size_override("font_size", 28)
+	ev_title.add_theme_color_override("font_color", Color(1, 0.88, 0.45, 1) if active else Color(0.9, 0.9, 1, 0.95))
+	ev_title.add_theme_color_override("font_outline_color", Color(0.1, 0.05, 0.2, 1))
+	ev_title.add_theme_constant_override("outline_size", 4)
+	top.add_child(ev_title)
 
 	var badge := Label.new()
 	badge.text = "LIVE" if active else "SOON"
-	badge.add_theme_font_size_override("font_size", 14)
+	badge.add_theme_font_size_override("font_size", 18)
 	badge.add_theme_color_override("font_color", Color(0.55, 1.0, 0.72, 1) if active else Color(0.8, 0.82, 0.92, 0.85))
 	top.add_child(badge)
 
 	var ld := Label.new()
 	ld.text = desc
 	ld.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	ld.add_theme_font_size_override("font_size", 16)
+	ld.add_theme_font_size_override("font_size", 19)
 	ld.add_theme_color_override("font_color", Color(0.86, 0.92, 1.0, 0.92))
 	v.add_child(ld)
 
@@ -220,7 +212,7 @@ func _make_event_row(e: Dictionary) -> PanelContainer:
 	bar.min_value = 0.0
 	bar.max_value = float(goal)
 	bar.value = float(cur)
-	bar.custom_minimum_size = Vector2(0, 22)
+	bar.custom_minimum_size = Vector2(0, 28)
 	bar.show_percentage = false
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.05, 0.06, 0.1, 1)
@@ -239,20 +231,20 @@ func _make_event_row(e: Dictionary) -> PanelContainer:
 	var meta_lbl := Label.new()
 	meta_lbl.text = meta
 	meta_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	meta_lbl.add_theme_font_size_override("font_size", 14)
+	meta_lbl.add_theme_font_size_override("font_size", 18)
 	meta_lbl.add_theme_color_override("font_color", Color(0.78, 0.85, 0.98, 0.85))
 	meta_row.add_child(meta_lbl)
 
 	var nums := Label.new()
 	nums.text = "%d / %d" % [cur, goal]
-	nums.add_theme_font_size_override("font_size", 14)
+	nums.add_theme_font_size_override("font_size", 18)
 	nums.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 0.95))
 	meta_row.add_child(nums)
 
 	var rw := Label.new()
 	rw.text = reward
 	rw.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	rw.add_theme_font_size_override("font_size", 15)
+	rw.add_theme_font_size_override("font_size", 19)
 	rw.add_theme_color_override("font_color", Color(0.75, 1.0, 0.85, 1))
 	v.add_child(rw)
 

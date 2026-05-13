@@ -55,6 +55,8 @@ var level_coins_collected: int = 0
 var _cached_level_bonus: Dictionary = {}
 var _level_payout_ready: bool = false
 var _level_coin_fly_in_progress: bool = false
+## When true, `_on_level_complete_home_pressed` interrupted Continue; skip deferred map navigation.
+var _cancel_level_continue_navigation: bool = false
 ## Cleared stage index for meta XP; applied inside `_save_progress_file`.
 var _pending_xp_cleared_level: int = 0
 ## Consecutive gold / silver / diamond taps; resets on miss or bomb tap.
@@ -229,6 +231,8 @@ func _apply_world_theme() -> void:
 
 
 func _on_progress_reset() -> void:
+	if gameplay_tips != null and gameplay_tips.has_method("clear_saved_tip_prefs"):
+		gameplay_tips.clear_saved_tip_prefs()
 	_load_progress_from_disk()
 	_refresh_ui()
 
@@ -663,6 +667,10 @@ func _play_diamond_resonance_vfx() -> void:
 func _spawn_floating_points(canvas_pos: Vector2, pts: int, combo_mult: int, k: Collectible.Kind) -> void:
 	if pts <= 0:
 		return
+	if level_complete_screen != null and level_complete_screen.visible:
+		return
+	if game_over_screen != null and game_over_screen.visible:
+		return
 	var cl: CanvasLayer = $CanvasLayer as CanvasLayer
 	if cl == null:
 		return
@@ -911,6 +919,7 @@ func _on_level_continue_pressed() -> void:
 	if DEBUG_LEVEL_COMPLETE_FLOW:
 		print("[LevelComplete] Continue clicked: ", completed_level, " -> ", next_level)
 
+	_cancel_level_continue_navigation = false
 	_level_coin_fly_in_progress = true
 	level_complete_screen.set_continue_enabled(false)
 
@@ -925,6 +934,11 @@ func _on_level_continue_pressed() -> void:
 
 	# Wait briefly, then force navigation
 	await get_tree().create_timer(1.0, true, false, true).timeout
+
+	if _cancel_level_continue_navigation:
+		if DEBUG_LEVEL_COMPLETE_FLOW:
+			print("[LevelComplete] Continue navigation cancelled (home/close during fly)")
+		return
 
 	_go_to_level_map_after_continue(next_level)
 
@@ -948,6 +962,7 @@ func _go_to_level_map_after_continue(next_level: int) -> void:
 
 	_level_payout_ready = false
 	_level_coin_fly_in_progress = false
+	_cancel_level_continue_navigation = false
 
 	if level_complete_screen:
 		level_complete_screen.hide_screen()
@@ -962,9 +977,16 @@ func _go_to_level_map_after_continue(next_level: int) -> void:
 		push_error("Failed to go to Level Map. Error: %s" % err)
 
 func _on_level_complete_home_pressed() -> void:
-	if _level_coin_fly_in_progress:
-		return
+	var leaving_mid_continue_fly: bool = _level_coin_fly_in_progress
+	if leaving_mid_continue_fly:
+		_cancel_level_continue_navigation = true
+		if is_instance_valid(level_complete_screen) and level_complete_screen.has_method("abort_coin_fly"):
+			level_complete_screen.abort_coin_fly()
+		_level_coin_fly_in_progress = false
 	AudioService.play_button_click()
+	# Player already chose Continue — bank gleams if they exit during the fly instead of the map.
+	if leaving_mid_continue_fly:
+		_commit_level_complete_payout()
 	_level_payout_ready = false
 	_level_coin_fly_in_progress = false
 	var cleared_stage: int = progression_level
@@ -1072,6 +1094,7 @@ func _try_offer_level_gate() -> void:
 	level_complete_screen.show_for(progression_level, score, progression_level + 1, level_coins_collected, rewards_txt)
 	_level_payout_ready = true
 	_level_coin_fly_in_progress = false
+	_cancel_level_continue_navigation = false
 	get_tree().paused = true
 
 
@@ -1373,12 +1396,14 @@ func _maybe_auto_gameplay_tips() -> void:
 		return
 	if gameplay_tips.should_suppress_auto():
 		return
+	if progression_level != 1:
+		return
 	if game_over or level_complete_screen.visible:
 		return
 	var body: String = _compose_gameplay_tips_text()
 	_paused_for_tips = true
 	get_tree().paused = true
-	gameplay_tips.call("present", "How this run works", body)
+	gameplay_tips.call("present", "How to Play", body)
 
 
 func _compose_gameplay_tips_text() -> String:

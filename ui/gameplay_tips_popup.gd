@@ -7,8 +7,11 @@ signal closed
 const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
 const SECTION: String = "settings"
 const KEY_HIDE_AUTO: String = "gameplay_tips_hide_auto"
+## Once the player closes the intro tips (✕ or Got it), never auto-open again.
+const KEY_INTRO_SEEN: String = "gameplay_tips_intro_seen"
 
 @onready var _dim: ColorRect = $Dim
+@onready var _close_x: Button = $CloseX
 @onready var _panel: PanelContainer = $Center/Panel
 @onready var _title: Label = $Center/Panel/Margin/VBox/Title
 @onready var _scroll: ScrollContainer = $Center/Panel/Margin/VBox/Scroll
@@ -22,6 +25,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	if _dim:
 		_dim.gui_input.connect(_on_dim_gui_input)
+	if _close_x:
+		_close_x.pressed.connect(_on_close_pressed)
 	if _close:
 		_close.pressed.connect(_on_close_pressed)
 
@@ -30,6 +35,8 @@ func should_suppress_auto() -> bool:
 	var cfg := ConfigFile.new()
 	if cfg.load(SAVE_PATH) != OK:
 		return false
+	if bool(cfg.get_value(SECTION, KEY_INTRO_SEEN, false)):
+		return true
 	return bool(cfg.get_value(SECTION, KEY_HIDE_AUTO, false))
 
 
@@ -38,6 +45,21 @@ func set_suppress_auto(on: bool) -> void:
 	if cfg.load(SAVE_PATH) != OK:
 		return
 	cfg.set_value(SECTION, KEY_HIDE_AUTO, on)
+	cfg.save(SAVE_PATH)
+
+
+func clear_saved_tip_prefs() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(SAVE_PATH)
+	cfg.set_value(SECTION, KEY_INTRO_SEEN, false)
+	cfg.set_value(SECTION, KEY_HIDE_AUTO, false)
+	cfg.save(SAVE_PATH)
+
+
+func _mark_intro_seen() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(SAVE_PATH)
+	cfg.set_value(SECTION, KEY_INTRO_SEEN, true)
 	cfg.save(SAVE_PATH)
 
 
@@ -53,6 +75,7 @@ func present(title: String, body_text: String) -> void:
 		_panel.scale = Vector2(0.92, 0.92)
 		_panel.modulate.a = 0.0
 		var tw := create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 		tw.set_ease(Tween.EASE_OUT)
 		tw.set_trans(Tween.TRANS_CUBIC)
 		tw.tween_property(_panel, "modulate:a", 1.0, 0.22)
@@ -62,6 +85,7 @@ func present(title: String, body_text: String) -> void:
 func hide_popup() -> void:
 	if not visible:
 		return
+	_mark_intro_seen()
 	if _dont_again != null and _dont_again.button_pressed:
 		set_suppress_auto(true)
 	if _panel == null:
@@ -69,6 +93,7 @@ func hide_popup() -> void:
 		closed.emit()
 		return
 	var tw := create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(_panel, "modulate:a", 0.0, 0.16)
 	tw.parallel().tween_property(_panel, "scale", Vector2(0.94, 0.94), 0.18)
 	await tw.finished
@@ -77,9 +102,11 @@ func hide_popup() -> void:
 
 
 func _on_close_pressed() -> void:
+	AudioService.play_button_click()
 	hide_popup()
 
 
 func _on_dim_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		AudioService.play_button_click()
 		hide_popup()

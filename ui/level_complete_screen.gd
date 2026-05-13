@@ -7,26 +7,38 @@ signal continue_pressed
 signal home_pressed
 
 @onready var _world_backdrop: TextureRect = $WorldBackdrop
-@onready var title_label: Label = $Center/VBox/TitleLabel
-@onready var score_label: Label = $Center/VBox/ScoreLabel
-@onready var level_coins_label: Label = $Center/VBox/LevelCoinsLabel
-@onready var rewards_label: Label = $Center/VBox/RewardPanel/RVBox/RewardsLabel
-@onready var coin_fly_anchor: Control = $Center/VBox/RewardPanel/RVBox/CoinFlyAnchor
-@onready var next_button: Button = $Center/VBox/ButtonRow/ContinueButton
-@onready var home_button: Button = $Center/VBox/ButtonRow/HomeButton
-@onready var reward_panel: Control = $Center/VBox/RewardPanel
-@onready var hint_label: Label = $Center/VBox/RewardPanel/RVBox/Hint
+@onready var title_label: Label = $Center/MainPanel/InnerMargin/VBox/TitleLabel
+@onready var score_label: Label = $Center/MainPanel/InnerMargin/VBox/ScoreLabel
+@onready var level_coins_label: Label = $Center/MainPanel/InnerMargin/VBox/LevelCoinsLabel
+@onready var rewards_label: Label = $Center/MainPanel/InnerMargin/VBox/RewardPanel/RVBox/RewardsLabel
+@onready var coin_fly_anchor: Control = $Center/MainPanel/InnerMargin/VBox/RewardPanel/RVBox/CoinFlyAnchor
+@onready var next_button: Button = $Center/MainPanel/InnerMargin/VBox/ButtonWrap/ButtonRow/ContinueButton
+@onready var home_button: Button = $Center/MainPanel/InnerMargin/VBox/ButtonWrap/ButtonRow/HomeButton
+@onready var reward_panel: Control = $Center/MainPanel/InnerMargin/VBox/RewardPanel
+@onready var hint_label: Label = $Center/MainPanel/InnerMargin/VBox/RewardPanel/RVBox/Hint
+@onready var close_button_top: Button = $CloseButton
+@onready var _dim: ColorRect = $Dim
+@onready var _sparkle_burst: CPUParticles2D = $SparkleBurst
 
 
 func _ready() -> void:
 	next_button.pressed.connect(func() -> void: continue_pressed.emit())
 	home_button.pressed.connect(func() -> void: home_pressed.emit())
+	close_button_top.pressed.connect(func() -> void: home_pressed.emit())
+	_dim.gui_input.connect(_on_dim_gui_input)
 	set_continue_enabled(false)
 
 
 func set_continue_enabled(enabled: bool) -> void:
 	next_button.disabled = not enabled
 	home_button.disabled = not enabled
+	# Keep ✕ always tappable so players can exit even during intro / fly FX.
+	close_button_top.disabled = false
+
+
+func _on_dim_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		home_pressed.emit()
 
 
 func get_coin_fly_start_global() -> Vector2:
@@ -35,12 +47,16 @@ func get_coin_fly_start_global() -> Vector2:
 	return get_viewport_rect().get_center()
 
 
+var _coin_fly_host: Control = null
+
+
 ## Runs while tree is paused (this node uses process_mode = ALWAYS).
 func play_coin_fly(amount: int, target_global: Vector2, done: Callable) -> void:
 	if amount <= 0:
 		done.call()
 		return
 	var host := Control.new()
+	_coin_fly_host = host
 	host.set_anchors_preset(Control.PRESET_FULL_RECT)
 	host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.z_index = 20
@@ -74,15 +90,22 @@ func play_coin_fly(amount: int, target_global: Vector2, done: Callable) -> void:
 			finished += 1
 			if finished >= n and not emitted:
 				emitted = true
+				_coin_fly_host = null
 				if is_instance_valid(host):
 					host.queue_free()
 				done.call()
 		)
 
 
+func abort_coin_fly() -> void:
+	if is_instance_valid(_coin_fly_host):
+		_coin_fly_host.queue_free()
+		_coin_fly_host = null
+
+
 func show_for(completed_level: int, current_score: int, next_level: int, run_level_coins: int, rewards_text: String) -> void:
 	_apply_world_backdrop(maxi(1, completed_level))
-	title_label.text = "Level %d complete!" % completed_level
+	title_label.text = "LEVEL %d\nCOMPLETE!" % completed_level
 	score_label.text = "Score: %d" % current_score
 	level_coins_label.text = "Coins this run: +%d" % run_level_coins
 	rewards_label.text = rewards_text
@@ -121,6 +144,12 @@ func _play_intro_sequence() -> void:
 	modulate.a = 0.0
 	scale = Vector2(0.9, 0.9)
 	title_label.scale = Vector2.ONE
+
+	if is_instance_valid(_sparkle_burst):
+		var vr: Rect2 = get_viewport_rect()
+		_sparkle_burst.position = Vector2(vr.size.x * 0.5, vr.size.y * 0.16)
+		_sparkle_burst.restart()
+		_sparkle_burst.emitting = true
 
 	score_label.modulate.a = 0.0
 	level_coins_label.modulate.a = 0.0

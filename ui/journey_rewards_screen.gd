@@ -11,6 +11,7 @@ const KEY_FURTHEST_LEVEL: String = "furthest_level_unlocked"
 const KEY_PROGRESSION: String = "saved_progression_level"
 
 @onready var _dim: ColorRect = $Dim
+@onready var _close_x: Button = $CloseX
 @onready var _list: VBoxContainer = $Center/Panel/Margin/VBox/Scroll/ListHost
 @onready var _close_btn: Button = $Center/Panel/Margin/VBox/Footer/CloseBtn
 @onready var _subtitle: Label = $Center/Panel/Margin/VBox/Subtitle
@@ -23,6 +24,7 @@ func _ready() -> void:
 	_lock_tex = load("res://ui/map_art/lock_map.svg") as Texture2D
 	_chest_tex = load("res://ui/map_art/treasure_chest.svg") as Texture2D
 	_close_btn.pressed.connect(_on_close)
+	_close_x.pressed.connect(_on_close)
 	_dim.gui_input.connect(_on_dim_input)
 	hide()
 
@@ -73,6 +75,10 @@ func _refresh_list() -> void:
 	_subtitle.text = "Highest unlocked level: %d  ·  Next milestone: %d" % [furthest, target]
 	for m in range(10, max_m + 1, 10):
 		_list.add_child(_make_row(m, furthest, target))
+	var stretch_j := Control.new()
+	stretch_j.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stretch_j.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_list.add_child(stretch_j)
 
 
 func _panel_style(completed: bool, locked: bool, current: bool) -> StyleBoxFlat:
@@ -117,28 +123,28 @@ func _make_row(milestone: int, furthest: int, target: int) -> PanelContainer:
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_bottom", 14)
 	panel.add_child(margin)
 
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	row.add_theme_constant_override("separation", 14)
 	margin.add_child(row)
 
 	var status := TextureRect.new()
-	status.custom_minimum_size = Vector2(40, 40)
+	status.custom_minimum_size = Vector2(48, 48)
 	status.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	status.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	if completed:
 		var chk := Label.new()
 		chk.text = "✓"
-		chk.add_theme_font_size_override("font_size", 32)
+		chk.add_theme_font_size_override("font_size", 38)
 		chk.add_theme_color_override("font_color", Color(0.55, 1.0, 0.65, 1))
 		chk.add_theme_color_override("font_outline_color", Color(0.05, 0.2, 0.08, 1))
 		chk.add_theme_constant_override("outline_size", 6)
-		chk.custom_minimum_size = Vector2(40, 40)
+		chk.custom_minimum_size = Vector2(48, 48)
 		chk.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		chk.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		row.add_child(chk)
@@ -149,11 +155,11 @@ func _make_row(milestone: int, furthest: int, target: int) -> PanelContainer:
 	else:
 		var pulse := Label.new()
 		pulse.text = "★"
-		pulse.add_theme_font_size_override("font_size", 28)
+		pulse.add_theme_font_size_override("font_size", 32)
 		pulse.add_theme_color_override("font_color", Color(1, 0.92, 0.45, 1))
 		pulse.add_theme_color_override("font_outline_color", Color(0.35, 0.15, 0.05, 1))
 		pulse.add_theme_constant_override("outline_size", 5)
-		pulse.custom_minimum_size = Vector2(40, 40)
+		pulse.custom_minimum_size = Vector2(48, 48)
 		pulse.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		pulse.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		row.add_child(pulse)
@@ -169,7 +175,7 @@ func _make_row(milestone: int, furthest: int, target: int) -> PanelContainer:
 		title.text = "Level %d — Cleared" % milestone
 	else:
 		title.text = "Level %d — Locked" % milestone
-	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_font_size_override("font_size", 24)
 	title.add_theme_color_override("font_color", Color(0.98, 0.96, 1, 1))
 	title.add_theme_color_override("font_outline_color", Color(0.08, 0.05, 0.18, 1))
 	title.add_theme_constant_override("outline_size", 4)
@@ -179,7 +185,7 @@ func _make_row(milestone: int, furthest: int, target: int) -> PanelContainer:
 	desc.text = "Rewards: %d vault coins · %s" % [int(bundle["coins"]), str(bundle["boost_label"])]
 	if bool(bundle.get("chest", false)):
 		desc.text += " · Bonus treasure cache"
-	desc.add_theme_font_size_override("font_size", 15)
+	desc.add_theme_font_size_override("font_size", 18)
 	desc.add_theme_color_override("font_color", Color(0.82, 0.88, 0.95, 1))
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	mid.add_child(desc)
@@ -190,7 +196,7 @@ func _make_row(milestone: int, furthest: int, target: int) -> PanelContainer:
 
 	var coin_l := Label.new()
 	coin_l.text = "🪙 %d" % int(bundle["coins"])
-	coin_l.add_theme_font_size_override("font_size", 18)
+	coin_l.add_theme_font_size_override("font_size", 22)
 	icons.add_child(coin_l)
 
 	if bool(bundle.get("chest", false)) and _chest_tex != null:

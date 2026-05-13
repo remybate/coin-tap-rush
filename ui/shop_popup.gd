@@ -82,6 +82,10 @@ func _build_items() -> void:
 	]
 	for entry in catalog:
 		_items_host.add_child(_make_row(entry["title"], entry["desc"], entry["price"]))
+	var stretch_s := Control.new()
+	stretch_s.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stretch_s.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_items_host.add_child(stretch_s)
 
 
 func _make_row(title: String, desc: String, price: String) -> PanelContainer:
@@ -116,14 +120,14 @@ func _make_row(title: String, desc: String, price: String) -> PanelContainer:
 
 	var lt := Label.new()
 	lt.text = title
-	lt.add_theme_font_size_override("font_size", 22)
+	lt.add_theme_font_size_override("font_size", 26)
 	lt.add_theme_color_override("font_color", Color(1, 0.88, 0.45, 1))
 	texts.add_child(lt)
 
 	var ld := Label.new()
 	ld.text = desc
 	ld.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	ld.add_theme_font_size_override("font_size", 18)
+	ld.add_theme_font_size_override("font_size", 22)
 	ld.add_theme_color_override("font_color", Color(0.82, 0.9, 0.98, 0.92))
 	texts.add_child(ld)
 
@@ -134,14 +138,14 @@ func _make_row(title: String, desc: String, price: String) -> PanelContainer:
 	var price_lbl := Label.new()
 	price_lbl.text = price
 	price_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	price_lbl.add_theme_font_size_override("font_size", 20)
+	price_lbl.add_theme_font_size_override("font_size", 24)
 	price_lbl.add_theme_color_override("font_color", Color(0.75, 1, 0.85, 1))
 	right.add_child(price_lbl)
 
 	var buy := Button.new()
 	buy.text = "Buy"
-	buy.custom_minimum_size = Vector2(120, 48)
-	buy.add_theme_font_size_override("font_size", 20)
+	buy.custom_minimum_size = Vector2(160, 54)
+	buy.add_theme_font_size_override("font_size", 22)
 	buy.pressed.connect(_on_buy.bind(title, price))
 	right.add_child(buy)
 

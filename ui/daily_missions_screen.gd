@@ -7,7 +7,7 @@ signal info_requested(title: String, msg: String)
 @onready var _close_x: Button = $CloseX
 @onready var _list: VBoxContainer = $MainMargin/MainPanel/Margin/VBox/Scroll/ListHost
 @onready var _subtitle: Label = $MainMargin/MainPanel/Margin/VBox/Subtitle
-@onready var _close_btn: Button = $MainMargin/MainPanel/Margin/VBox/FooterRow/CloseBtn
+@onready var _close_btn: Button = $MainMargin/MainPanel/Margin/VBox/Footer/CloseBtn
 
 
 func _ready() -> void:
@@ -55,6 +55,10 @@ func _rebuild_list() -> void:
 		for row in rows as Array:
 			if row is Dictionary:
 				_list.add_child(_make_mission_card(row as Dictionary))
+	var stretch_dm := Control.new()
+	stretch_dm.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stretch_dm.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_list.add_child(stretch_dm)
 
 
 func _make_mission_card(d: Dictionary) -> PanelContainer:
@@ -81,7 +85,7 @@ func _make_mission_card(d: Dictionary) -> PanelContainer:
 	panel.add_child(v)
 	var title := Label.new()
 	title.text = str(d["title"])
-	title.add_theme_font_size_override("font_size", 22)
+	title.add_theme_font_size_override("font_size", 26)
 	title.add_theme_color_override("font_color", Color(1, 0.9, 0.5, 1))
 	title.add_theme_color_override("font_outline_color", Color(0.1, 0.06, 0.25, 1))
 	title.add_theme_constant_override("outline_size", 5)
@@ -89,7 +93,7 @@ func _make_mission_card(d: Dictionary) -> PanelContainer:
 	var desc := Label.new()
 	desc.text = str(d["desc"])
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_font_size_override("font_size", 15)
+	desc.add_theme_font_size_override("font_size", 19)
 	desc.add_theme_color_override("font_color", Color(0.82, 0.9, 0.98, 1))
 	v.add_child(desc)
 	var goal: int = int(d["goal"])
@@ -99,7 +103,7 @@ func _make_mission_card(d: Dictionary) -> PanelContainer:
 	bar.min_value = 0.0
 	bar.max_value = 100.0
 	bar.value = pct * 100.0
-	bar.custom_minimum_size = Vector2(0, 28)
+	bar.custom_minimum_size = Vector2(0, 32)
 	bar.show_percentage = false
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.08, 0.07, 0.14, 1)
@@ -123,12 +127,12 @@ func _make_mission_card(d: Dictionary) -> PanelContainer:
 		prog_lbl.text = "Progress: done!" if cur >= 1 else "Progress: not yet — keep your streak!"
 	else:
 		prog_lbl.text = "Progress: %d / %d" % [mini(cur, goal), goal]
-	prog_lbl.add_theme_font_size_override("font_size", 16)
+	prog_lbl.add_theme_font_size_override("font_size", 19)
 	prog_lbl.add_theme_color_override("font_color", Color(0.78, 0.86, 1.0, 1))
 	v.add_child(prog_lbl)
 	var rew := Label.new()
 	rew.text = "Reward: %s" % str(d["reward"])
-	rew.add_theme_font_size_override("font_size", 15)
+	rew.add_theme_font_size_override("font_size", 18)
 	rew.add_theme_color_override("font_color", Color(0.95, 0.75, 1.0, 1))
 	v.add_child(rew)
 	var claimed: bool = bool(d["claimed"])
@@ -140,8 +144,8 @@ func _make_mission_card(d: Dictionary) -> PanelContainer:
 	claim.text = "Claimed ✓" if claimed else ("Claim!" if complete else "Locked")
 	claim.disabled = claimed or not complete
 	claim.focus_mode = Control.FOCUS_NONE
-	claim.custom_minimum_size = Vector2(200, 54)
-	claim.add_theme_font_size_override("font_size", 20)
+	claim.custom_minimum_size = Vector2(240, 58)
+	claim.add_theme_font_size_override("font_size", 22)
 	_style_claim_button(claim, claimed, complete)
 	var mid: int = int(d["id"])
 	claim.pressed.connect(_on_claim_pressed.bind(mid))

@@ -83,6 +83,10 @@ func _refresh_list() -> void:
 
 	for d in defs:
 		_items_host.add_child(_make_trophy_row(d))
+	var stretch_t := Control.new()
+	stretch_t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stretch_t.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_items_host.add_child(stretch_t)
 
 
 func _make_trophy_row(d: Dictionary) -> PanelContainer:
@@ -94,21 +98,7 @@ func _make_trophy_row(d: Dictionary) -> PanelContainer:
 	var ratio: float = 0.0 if goal <= 0 else clampf(float(cur) / float(goal), 0.0, 1.0)
 
 	var row := PanelContainer.new()
-	var sb := StyleBoxFlat.new()
-	if earned:
-		sb.bg_color = Color(0.1, 0.14, 0.08, 0.95)
-		sb.border_color = Color(1, 0.82, 0.35, 0.95)
-	else:
-		sb.bg_color = Color(0.06, 0.08, 0.14, 0.92)
-		sb.border_color = Color(0.45, 0.35, 0.62, 0.55)
-	sb.border_width_left = 3
-	sb.border_width_top = 3
-	sb.border_width_right = 3
-	sb.border_width_bottom = 3
-	sb.corner_radius_top_left = 14
-	sb.corner_radius_top_right = 14
-	sb.corner_radius_bottom_right = 14
-	sb.corner_radius_bottom_left = 14
+	var sb: StyleBoxFlat = CartoonStyleKit.trophy_milestone_panel(earned)
 	sb.content_margin_left = 14
 	sb.content_margin_top = 12
 	sb.content_margin_right = 14
@@ -121,24 +111,26 @@ func _make_trophy_row(d: Dictionary) -> PanelContainer:
 	row.add_child(margin)
 
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
+	v.add_theme_constant_override("separation", 10)
 	margin.add_child(v)
 
 	var top := HBoxContainer.new()
-	top.add_theme_constant_override("separation", 10)
+	top.add_theme_constant_override("separation", 12)
 	v.add_child(top)
 
 	var status_icon := Label.new()
 	status_icon.text = "✓" if earned else "🔒"
-	status_icon.add_theme_font_size_override("font_size", 22)
+	status_icon.add_theme_font_size_override("font_size", 26)
 	top.add_child(status_icon)
 
-	var t := Label.new()
-	t.text = title
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t.add_theme_font_size_override("font_size", 21)
-	t.add_theme_color_override("font_color", Color(1, 0.9, 0.55, 1) if earned else Color(0.92, 0.82, 1.0, 1))
-	top.add_child(t)
+	var title_lb := Label.new()
+	title_lb.text = title
+	title_lb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lb.add_theme_font_size_override("font_size", 24)
+	title_lb.add_theme_color_override("font_color", Color(1, 0.9, 0.55, 1) if earned else Color(0.92, 0.82, 1.0, 1))
+	title_lb.add_theme_color_override("font_outline_color", Color(0.12, 0.06, 0.22, 1))
+	title_lb.add_theme_constant_override("outline_size", 4)
+	top.add_child(title_lb)
 
 	var state := Label.new()
 	if earned:
@@ -147,13 +139,13 @@ func _make_trophy_row(d: Dictionary) -> PanelContainer:
 	else:
 		state.text = "Locked"
 		state.add_theme_color_override("font_color", Color(0.75, 0.78, 0.88, 0.85))
-	state.add_theme_font_size_override("font_size", 16)
+	state.add_theme_font_size_override("font_size", 19)
 	top.add_child(state)
 
 	var ld := Label.new()
 	ld.text = desc
 	ld.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	ld.add_theme_font_size_override("font_size", 16)
+	ld.add_theme_font_size_override("font_size", 19)
 	ld.add_theme_color_override("font_color", Color(0.82, 0.9, 1.0, 0.9))
 	v.add_child(ld)
 
@@ -161,7 +153,7 @@ func _make_trophy_row(d: Dictionary) -> PanelContainer:
 	bar.min_value = 0.0
 	bar.max_value = float(goal)
 	bar.value = float(cur)
-	bar.custom_minimum_size = Vector2(0, 22)
+	bar.custom_minimum_size = Vector2(0, 28)
 	bar.show_percentage = false
 	var bg := StyleBoxFlat.new()
 	bg.bg_color = Color(0.05, 0.06, 0.1, 1)
@@ -180,7 +172,7 @@ func _make_trophy_row(d: Dictionary) -> PanelContainer:
 
 	var nums := Label.new()
 	nums.text = "%s / %d  (%d%%)" % [_fmt_int(cur), goal, int(round(ratio * 100.0))]
-	nums.add_theme_font_size_override("font_size", 16)
+	nums.add_theme_font_size_override("font_size", 19)
 	nums.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 0.95))
 	v.add_child(nums)
 

@@ -1,42 +1,155 @@
-[gd_scene format=3 uid="uid://cqwstjceovyhg"]
+[gd_scene load_steps=10 format=3 uid="uid://cqwstjceovyhg"]
 
 [ext_resource type="Script" path="res://ui/pregame_boosters_popup.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StylePanel"]
-bg_color = Color(0.16, 0.1, 0.28, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 5
-border_color = Color(1, 0.78, 0.35, 0.95)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 14
-shadow_offset = Vector2(0, 6)
+bg_color = Color(0.22, 0.12, 0.48, 0.97)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 10
+border_color = Color(1, 0.86, 0.42, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+shadow_color = Color(0.45, 0.2, 0.95, 0.55)
+shadow_size = 28
+shadow_offset = Vector2(0, 12)
 
-[sub_resource type="StyleBoxFlat" id="StyleCard"]
-bg_color = Color(0.28, 0.16, 0.48, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 4
-border_color = Color(0.65, 0.45, 0.95, 1)
+[sub_resource type="StyleBoxFlat" id="StyleCardLight"]
+bg_color = Color(0.42, 0.22, 0.72, 0.98)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 8
+border_color = Color(1, 0.92, 0.45, 1)
 corner_radius_top_left = 22
 corner_radius_top_right = 22
 corner_radius_bottom_right = 22
 corner_radius_bottom_left = 22
+shadow_color = Color(0.55, 0.35, 1, 0.5)
+shadow_size = 16
+shadow_offset = Vector2(0, 6)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 
-[sub_resource type="StyleBoxFlat" id="StylePlay"]
-bg_color = Color(0.18, 0.62, 0.38, 1)
+[sub_resource type="StyleBoxFlat" id="StyleCardSlow"]
+bg_color = Color(0.28, 0.38, 0.78, 0.98)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 8
+border_color = Color(0.55, 0.92, 1, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0.2, 0.45, 0.95, 0.5)
+shadow_size = 16
+shadow_offset = Vector2(0, 6)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxFlat" id="StyleCountBadge"]
+bg_color = Color(0.08, 0.12, 0.22, 0.92)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 6
+border_color = Color(1, 0.78, 0.28, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(1, 0.65, 0.15, 0.35)
+shadow_size = 10
+shadow_offset = Vector2(0, 3)
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleToggleRow"]
+bg_color = Color(0.12, 0.1, 0.22, 0.88)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
 border_width_bottom = 5
-border_color = Color(0.05, 0.35, 0.18, 1)
+border_color = Color(0.45, 0.5, 0.75, 1)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StyleToggleRowHi"]
+bg_color = Color(0.18, 0.32, 0.28, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.45, 1, 0.72, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+
+[sub_resource type="StyleBoxFlat" id="StylePlayN"]
+bg_color = Color(0.12, 0.82, 0.48, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 12
+border_color = Color(0.85, 1, 0.55, 1)
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
+shadow_color = Color(0, 0.55, 0.28, 0.55)
+shadow_size = 18
+shadow_offset = Vector2(0, 7)
+
+[sub_resource type="StyleBoxFlat" id="StylePlayH"]
+bg_color = Color(0.22, 0.95, 0.58, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 12
+border_color = Color(1, 1, 0.88, 1)
+corner_radius_top_left = 26
+corner_radius_top_right = 26
+corner_radius_bottom_right = 26
+corner_radius_bottom_left = 26
+shadow_color = Color(0.2, 1, 0.55, 0.45)
+shadow_size = 20
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="StyleCloseXBtn"]
+bg_color = Color(0.95, 0.28, 0.28, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 6
+border_color = Color(1, 0.75, 0.75, 1)
+corner_radius_top_left = 99
+corner_radius_top_right = 99
+corner_radius_bottom_right = 99
+corner_radius_bottom_left = 99
+shadow_color = Color(0.35, 0.05, 0.05, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 4)
 
 [node name="PreGameBoostersPopup" type="Control"]
 layout_mode = 3
@@ -69,170 +182,249 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0, 0, 0)
+mouse_filter = 0
+color = Color(0.05, 0.03, 0.18, 0.82)
 
-visible = false
 [node name="CloseX" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -64.0
-offset_top = 36.0
-offset_right = -20.0
-offset_bottom = 84.0
+offset_left = -74.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = 78.0
 grow_horizontal = 0
-theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 28
-flat = true
+grow_vertical = 0
+focus_mode = 0
+z_index = 20
+custom_minimum_size = Vector2(64, 64)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleCloseXBtn")
+theme_override_styles/hover = SubResource("StyleCloseXBtn")
+theme_override_styles/pressed = SubResource("StyleCloseXBtn")
 text = "✕"
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 18.0
+offset_right = -12.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(460, 520)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StylePanel")
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 28
 
 [node name="Root" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 16
 
 [node name="TitleLabel" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
-theme_override_colors/font_outline_color = Color(0.15, 0.08, 0.3, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(1, 0.9, 0.42, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.08, 0.45, 1)
+theme_override_constants/outline_size = 12
+theme_override_font_sizes/font_size = 88
 text = "River Charms"
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="SubTitle" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.12, 0.28, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 44
 text = "Optional boosts before you sail"
 horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="CardsRow" type="HBoxContainer" parent="Center/Panel/Margin/Root"]
+[node name="StockHint" type="Label" parent="Center/Panel/Margin/Root"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.15, 0.25, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 34
+text = "Earn more charms by clearing levels — stock carries over between runs."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CardsCenter" type="CenterContainer" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 12
 
-[node name="BombClearCard" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsRow"]
+[node name="CardsRow" type="HBoxContainer" parent="Center/Panel/Margin/Root/CardsCenter"]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="BombClearCard" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow"]
+custom_minimum_size = Vector2(228, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleCard")
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleCardLight")
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard"]
+[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
-[node name="IconL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+[node name="IconL" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 72
 text = "⚡"
 horizontal_alignment = 1
 
-[node name="NameL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+[node name="NameL" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.95, 0.65, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.96, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0.25, 0.12, 0.05, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 44
 text = "Lightning Booster"
 horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="DescL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+[node name="DescL" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.82, 0.95, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.94, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.22, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 36
+theme_override_constants/line_spacing = 4
 text = "Zaps every bomb off the board once."
 autowrap_mode = 3
 
-[node name="CountLabel" type="Label" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+[node name="CountBadge" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 1, 0.75, 1)
-theme_override_font_sizes/font_size = 20
-text = "×0"
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleCountBadge")
+
+[node name="CountLabel" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox/CountBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 1, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.18, 0.12, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 52
+text = "IN STOCK  ×0"
 horizontal_alignment = 1
 
-[node name="Toggle" type="CheckButton" parent="Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox"]
+[node name="Toggle" type="CheckButton" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
-text = "Use"
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.55, 1, 0.85, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.75, 1, 0.95, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleToggleRow")
+theme_override_styles/pressed = SubResource("StyleToggleRowHi")
+theme_override_styles/hover = SubResource("StyleToggleRowHi")
+text = "Use this charm"
 
-[node name="StartSlowCard" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsRow"]
+[node name="StartSlowCard" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow"]
+custom_minimum_size = Vector2(228, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleCard")
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleCardSlow")
 
-[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard"]
+[node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin"]
+[node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 10
 
-[node name="IconL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+[node name="IconL" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 72
 text = "⏳"
 horizontal_alignment = 1
 
-[node name="NameL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+[node name="NameL" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.95, 0.65, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 0.96, 0.72, 1)
+theme_override_colors/font_outline_color = Color(0.25, 0.12, 0.05, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 44
 text = "Hourglass Booster"
 horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="DescL" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+[node name="DescL" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.82, 0.95, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.92, 0.94, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.1, 0.22, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 36
+theme_override_constants/line_spacing = 4
 text = "Slows falling loot for the first 10 seconds."
 autowrap_mode = 3
 
-[node name="CountLabel" type="Label" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+[node name="CountBadge" type="PanelContainer" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 1, 0.75, 1)
-theme_override_font_sizes/font_size = 20
-text = "×0"
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleCountBadge")
+
+[node name="CountLabel" type="Label" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox/CountBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 1, 0.78, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.18, 0.12, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 52
+text = "IN STOCK  ×0"
 horizontal_alignment = 1
 
-[node name="Toggle" type="CheckButton" parent="Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox"]
+[node name="Toggle" type="CheckButton" parent="Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
-text = "Use"
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.96, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.55, 1, 0.85, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.75, 1, 0.95, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleToggleRow")
+theme_override_styles/pressed = SubResource("StyleToggleRowHi")
+theme_override_styles/hover = SubResource("StyleToggleRowHi")
+text = "Use this charm"
 
 [node name="HintLabel" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.76, 0.88, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.82, 0.88, 1, 1)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.2, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 36
 text = "Pick up to two charms, or tap Play with none."
 autowrap_mode = 3
 horizontal_alignment = 1
@@ -242,10 +434,14 @@ layout_mode = 2
 alignment = 1
 
 [node name="PlayButton" type="Button" parent="Center/Panel/Margin/Root/Footer"]
-custom_minimum_size = Vector2(220, 56)
+custom_minimum_size = Vector2(360, 100)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(0.95, 1, 0.9, 1)
-theme_override_font_sizes/font_size = 26
-theme_override_styles/normal = SubResource("StylePlay")
+theme_override_colors/font_hover_color = Color(0.95, 1, 0.92, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.22, 0.1, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 58
+theme_override_styles/normal = SubResource("StylePlayN")
+theme_override_styles/hover = SubResource("StylePlayH")
+theme_override_styles/pressed = SubResource("StylePlayN")
 text = "PLAY"

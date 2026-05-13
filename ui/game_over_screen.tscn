@@ -1,157 +1,182 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://ui/game_over_screen.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/game_over_bg.png" id="2"]
 
 [sub_resource type="StyleBoxFlat" id="StyleRetryNormal"]
-bg_color = Color(0.38, 0.76, 0.46, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 10
-border_color = Color(0.16, 0.22, 0.52, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
-shadow_color = Color(0.05, 0.12, 0.1, 0.52)
-shadow_size = 6
-shadow_offset = Vector2(0, 4)
+bg_color = Color(0.32, 0.88, 0.52, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 12
+border_color = Color(0.08, 0.45, 0.22, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0.02, 0.25, 0.12, 0.55)
+shadow_size = 12
+shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleRetryHover"]
-bg_color = Color(0.44, 0.84, 0.52, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 10
-border_color = Color(0.2, 0.26, 0.58, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+bg_color = Color(0.42, 0.98, 0.62, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 12
+border_color = Color(0.12, 0.52, 0.28, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleRetryPressed"]
-bg_color = Color(0.28, 0.58, 0.36, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 8
-border_color = Color(0.1, 0.14, 0.38, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+bg_color = Color(0.22, 0.68, 0.4, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 9
+border_color = Color(0.06, 0.35, 0.18, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleRetryDisabled"]
-bg_color = Color(0.55, 0.62, 0.58, 0.85)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
+bg_color = Color(0.52, 0.58, 0.56, 0.88)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
 border_width_bottom = 10
-border_color = Color(0.34, 0.38, 0.48, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+border_color = Color(0.32, 0.36, 0.45, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleBoosterNormal"]
-bg_color = Color(0.38, 0.34, 0.62, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 8
-border_color = Color(0.22, 0.18, 0.42, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-
-[sub_resource type="StyleBoxFlat" id="StyleBoosterHover"]
-bg_color = Color(0.48, 0.44, 0.75, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 8
-border_color = Color(0.28, 0.24, 0.52, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-
-[sub_resource type="StyleBoxFlat" id="StyleBoosterPressed"]
-bg_color = Color(0.3, 0.26, 0.52, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 8
-border_color = Color(0.16, 0.12, 0.35, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-
-[sub_resource type="StyleBoxFlat" id="StyleBadge"]
-bg_color = Color(0.88, 0.2, 0.22, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.45, 0.45, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-
-[sub_resource type="StyleBoxFlat" id="StyleHomeNormal"]
-bg_color = Color(0.36, 0.32, 0.68, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 10
-border_color = Color(0.2, 0.16, 0.45, 1)
+bg_color = Color(0.45, 0.38, 0.78, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 9
+border_color = Color(0.28, 0.2, 0.52, 1)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
-shadow_color = Color(0.08, 0.06, 0.18, 0.45)
-shadow_size = 6
+shadow_color = Color(0.12, 0.08, 0.28, 0.4)
+shadow_size = 8
 shadow_offset = Vector2(0, 4)
 
-[sub_resource type="StyleBoxFlat" id="StyleHomeHover"]
-bg_color = Color(0.44, 0.4, 0.78, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 10
-border_color = Color(0.28, 0.22, 0.55, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoosterHover"]
+bg_color = Color(0.55, 0.48, 0.92, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 9
+border_color = Color(0.38, 0.3, 0.65, 1)
 corner_radius_top_left = 18
 corner_radius_top_right = 18
 corner_radius_bottom_right = 18
 corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoosterPressed"]
+bg_color = Color(0.32, 0.28, 0.58, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 7
+border_color = Color(0.18, 0.14, 0.38, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBadge"]
+bg_color = Color(1, 0.35, 0.38, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.82, 0.82, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleHomeNormal"]
+bg_color = Color(0.38, 0.34, 0.78, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 11
+border_color = Color(0.22, 0.18, 0.52, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0.1, 0.08, 0.25, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 5)
+
+[sub_resource type="StyleBoxFlat" id="StyleHomeHover"]
+bg_color = Color(0.48, 0.44, 0.92, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 11
+border_color = Color(0.32, 0.26, 0.62, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleHomePressed"]
-bg_color = Color(0.28, 0.24, 0.52, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
+bg_color = Color(0.28, 0.24, 0.58, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
 border_width_bottom = 8
-border_color = Color(0.14, 0.1, 0.35, 1)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
+border_color = Color(0.16, 0.12, 0.38, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleClose"]
-bg_color = Color(0.9, 0.22, 0.22, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 4
-border_color = Color(0.45, 0.08, 0.08, 1)
+bg_color = Color(0.95, 0.28, 0.28, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 6
+border_color = Color(1, 0.75, 0.75, 1)
 corner_radius_top_left = 99
 corner_radius_top_right = 99
 corner_radius_bottom_right = 99
 corner_radius_bottom_left = 99
+shadow_color = Color(0.35, 0.05, 0.05, 0.5)
+shadow_size = 10
+shadow_offset = Vector2(0, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleMainPanel"]
+bg_color = Color(0.08, 0.06, 0.22, 0.98)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 7
+border_color = Color(1, 0.86, 0.4, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0, 0, 0, 0.58)
+shadow_size = 22
+shadow_offset = Vector2(0, 9)
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
 
 [node name="GameOverScreen" type="Control"]
 process_mode = 3
@@ -184,45 +209,62 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0, 0, 0)
+mouse_filter = 0
+color = Color(0.04, 0.03, 0.12, 0.82)
 
-visible = false
 [node name="CloseButton" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -72.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 72.0
+offset_left = -74.0
+offset_top = 14.0
+offset_right = -14.0
+offset_bottom = 78.0
 grow_horizontal = 0
 grow_vertical = 0
 focus_mode = 0
+z_index = 20
+custom_minimum_size = Vector2(64, 64)
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 36
 theme_override_styles/normal = SubResource("StyleClose")
 theme_override_styles/hover = SubResource("StyleClose")
 theme_override_styles/pressed = SubResource("StyleClose")
 text = "✕"
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 40.0
+offset_left = 14.0
+offset_top = 16.0
+offset_right = -14.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MainColumn" type="VBoxContainer" parent="Center"]
+[node name="MainPanel" type="PanelContainer" parent="Center"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleMainPanel")
+
+[node name="InnerMargin" type="MarginContainer" parent="Center/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 16
+
+[node name="MainColumn" type="VBoxContainer" parent="Center/MainPanel/InnerMargin"]
 layout_mode = 2
 theme_override_constants/separation = 18
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="Center/MainColumn"]
+[node name="TitleLabel" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.22, 0.12, 0.08, 1)
@@ -231,15 +273,15 @@ theme_override_font_sizes/font_size = 52
 text = "Level Failed"
 horizontal_alignment = 1
 
-[node name="HeartRow" type="CenterContainer" parent="Center/MainColumn"]
+[node name="HeartRow" type="CenterContainer" parent="Center/MainPanel/InnerMargin/MainColumn"]
 custom_minimum_size = Vector2(0, 180)
 layout_mode = 2
 
-[node name="HeartPanel" type="Control" parent="Center/MainColumn/HeartRow"]
+[node name="HeartPanel" type="Control" parent="Center/MainPanel/InnerMargin/MainColumn/HeartRow"]
 custom_minimum_size = Vector2(220, 170)
 layout_mode = 2
 
-[node name="HeartLabel" type="Label" parent="Center/MainColumn/HeartRow/HeartPanel"]
+[node name="HeartLabel" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/HeartRow/HeartPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -257,7 +299,7 @@ text = "💔"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="MinusBadge" type="Label" parent="Center/MainColumn/HeartRow/HeartPanel"]
+[node name="MinusBadge" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/HeartRow/HeartPanel"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -278,53 +320,53 @@ text = "-1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ScoreColumn" type="VBoxContainer" parent="Center/MainColumn"]
+[node name="ScoreColumn" type="VBoxContainer" parent="Center/MainPanel/InnerMargin/MainColumn"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="FinalScoreLabel" type="Label" parent="Center/MainColumn/ScoreColumn"]
+[node name="FinalScoreLabel" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/ScoreColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.96, 0.98, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 28
 text = "Score: 0"
 horizontal_alignment = 1
 
-[node name="CoinsLostLabel" type="Label" parent="Center/MainColumn/ScoreColumn"]
+[node name="CoinsLostLabel" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/ScoreColumn"]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.72, 0.55, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 24
 text = "Coins not banked: 0"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="BestScoreLabel" type="Label" parent="Center/MainColumn/ScoreColumn"]
+[node name="BestScoreLabel" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/ScoreColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.72, 0.86, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 text = "Best: 0"
 horizontal_alignment = 1
 
-[node name="RetriesLabel" type="Label" parent="Center/MainColumn"]
+[node name="RetriesLabel" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 text = "Retries left: 5 / 5"
 horizontal_alignment = 1
 
-[node name="BoostersCaption" type="Label" parent="Center/MainColumn"]
+[node name="BoostersCaption" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 24
 text = "Select Boosters"
 horizontal_alignment = 1
 
-[node name="BoosterRow" type="HBoxContainer" parent="Center/MainColumn"]
+[node name="BoosterRow" type="HBoxContainer" parent="Center/MainPanel/InnerMargin/MainColumn"]
 layout_mode = 2
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="LightningBooster" type="Button" parent="Center/MainColumn/BoosterRow"]
+[node name="LightningBooster" type="Button" parent="Center/MainPanel/InnerMargin/MainColumn/BoosterRow"]
 custom_minimum_size = Vector2(118, 118)
 layout_mode = 2
 toggle_mode = true
@@ -337,7 +379,7 @@ theme_override_styles/hover = SubResource("StyleBoosterHover")
 theme_override_styles/pressed = SubResource("StyleBoosterPressed")
 text = "⚡"
 
-[node name="Badge" type="PanelContainer" parent="Center/MainColumn/BoosterRow/LightningBooster"]
+[node name="Badge" type="PanelContainer" parent="Center/MainPanel/InnerMargin/MainColumn/BoosterRow/LightningBooster"]
 custom_minimum_size = Vector2(34, 34)
 layout_mode = 1
 anchors_preset = 3
@@ -352,7 +394,7 @@ offset_bottom = -6.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBadge")
 
-[node name="Count" type="Label" parent="Center/MainColumn/BoosterRow/LightningBooster/Badge"]
+[node name="Count" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/BoosterRow/LightningBooster/Badge"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 18
@@ -360,7 +402,7 @@ text = "5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HourglassBooster" type="Button" parent="Center/MainColumn/BoosterRow"]
+[node name="HourglassBooster" type="Button" parent="Center/MainPanel/InnerMargin/MainColumn/BoosterRow"]
 custom_minimum_size = Vector2(118, 118)
 layout_mode = 2
 toggle_mode = true
@@ -373,7 +415,7 @@ theme_override_styles/hover = SubResource("StyleBoosterHover")
 theme_override_styles/pressed = SubResource("StyleBoosterPressed")
 text = "⏳"
 
-[node name="Badge" type="PanelContainer" parent="Center/MainColumn/BoosterRow/HourglassBooster"]
+[node name="Badge" type="PanelContainer" parent="Center/MainPanel/InnerMargin/MainColumn/BoosterRow/HourglassBooster"]
 custom_minimum_size = Vector2(34, 34)
 layout_mode = 1
 anchors_preset = 3
@@ -388,7 +430,7 @@ offset_bottom = -6.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBadge")
 
-[node name="Count" type="Label" parent="Center/MainColumn/BoosterRow/HourglassBooster/Badge"]
+[node name="Count" type="Label" parent="Center/MainPanel/InnerMargin/MainColumn/BoosterRow/HourglassBooster/Badge"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 18
@@ -396,9 +438,10 @@ text = "4"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="RetryButton" type="Button" parent="Center/MainColumn"]
-custom_minimum_size = Vector2(420, 76)
+[node name="RetryButton" type="Button" parent="Center/MainPanel/InnerMargin/MainColumn"]
+custom_minimum_size = Vector2(0, 84)
 layout_mode = 2
+size_flags_horizontal = 3
 flat = false
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
@@ -406,22 +449,23 @@ theme_override_colors/font_pressed_color = Color(0.92, 1, 0.94, 1)
 theme_override_colors/font_disabled_color = Color(0.9, 0.92, 0.93, 0.72)
 theme_override_colors/font_outline_color = Color(0.06, 0.18, 0.1, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 36
 theme_override_styles/normal = SubResource("StyleRetryNormal")
 theme_override_styles/hover = SubResource("StyleRetryHover")
 theme_override_styles/pressed = SubResource("StyleRetryPressed")
 theme_override_styles/disabled = SubResource("StyleRetryDisabled")
 text = "Retry"
 
-[node name="HomeButton" type="Button" parent="Center/MainColumn"]
-custom_minimum_size = Vector2(420, 64)
+[node name="HomeButton" type="Button" parent="Center/MainPanel/InnerMargin/MainColumn"]
+custom_minimum_size = Vector2(0, 76)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 0.96, 0.88, 1)
 theme_override_colors/font_pressed_color = Color(0.92, 0.9, 1, 1)
 theme_override_colors/font_outline_color = Color(0.12, 0.1, 0.28, 1)
 theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("StyleHomeNormal")
 theme_override_styles/hover = SubResource("StyleHomeHover")
 theme_override_styles/pressed = SubResource("StyleHomePressed")

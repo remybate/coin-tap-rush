@@ -9,13 +9,14 @@ signal closed_popup
 @onready var _dim: ColorRect = $Dim
 @onready var _close_x: Button = $CloseX
 @onready var _play_btn: Button = $Center/Panel/Margin/Root/Footer/PlayButton
-@onready var _card_bomb: PanelContainer = $Center/Panel/Margin/Root/CardsRow/BombClearCard
-@onready var _card_slow: PanelContainer = $Center/Panel/Margin/Root/CardsRow/StartSlowCard
-@onready var _toggle_bomb: CheckButton = $Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox/Toggle
-@onready var _toggle_slow: CheckButton = $Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox/Toggle
-@onready var _count_bomb: Label = $Center/Panel/Margin/Root/CardsRow/BombClearCard/Margin/VBox/CountLabel
-@onready var _count_slow: Label = $Center/Panel/Margin/Root/CardsRow/StartSlowCard/Margin/VBox/CountLabel
+@onready var _card_bomb: PanelContainer = $Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard
+@onready var _card_slow: PanelContainer = $Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard
+@onready var _toggle_bomb: CheckButton = $Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox/Toggle
+@onready var _toggle_slow: CheckButton = $Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox/Toggle
+@onready var _count_bomb: Label = $Center/Panel/Margin/Root/CardsCenter/CardsRow/BombClearCard/Margin/VBox/CountBadge/CountLabel
+@onready var _count_slow: Label = $Center/Panel/Margin/Root/CardsCenter/CardsRow/StartSlowCard/Margin/VBox/CountBadge/CountLabel
 @onready var _hint: Label = $Center/Panel/Margin/Root/HintLabel
+@onready var _stock_hint: Label = $Center/Panel/Margin/Root/StockHint
 
 var _stock_bomb_clear: int = 0
 var _stock_start_slow: int = 0
@@ -39,6 +40,8 @@ func present(bomb_clear_stock: int, start_slow_stock: int, furthest_unlocked: in
 	_apply_lock_styles()
 	_apply_world_backdrop(maxi(1, playing_level))
 	_hint.text = "Pick up to two charms, or tap Play with none — your river, your rules."
+	if is_instance_valid(_stock_hint):
+		_stock_hint.text = "Earn more charms by clearing levels — stock carries over between runs."
 	visible = true
 
 
@@ -62,8 +65,8 @@ func _apply_world_backdrop(level: int) -> void:
 
 
 func _refresh_counts() -> void:
-	_count_bomb.text = "×%d" % _stock_bomb_clear
-	_count_slow.text = "×%d" % _stock_start_slow
+	_count_bomb.text = "Owned  ×%d" % _stock_bomb_clear
+	_count_slow.text = "Owned  ×%d" % _stock_start_slow
 
 
 func _apply_lock_styles() -> void:

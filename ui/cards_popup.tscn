@@ -1,21 +1,51 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://ui/cards_popup.gd" id="1"]
 
 [sub_resource type="StyleBoxFlat" id="StylePanel"]
-bg_color = Color(0.05, 0.1, 0.12, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 4
-border_color = Color(0.35, 0.82, 0.72, 0.72)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 12
+bg_color = Color(0.16, 0.12, 0.36, 0.98)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 10
+border_color = Color(0.55, 0.92, 1, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_right = 30
+corner_radius_bottom_left = 30
+shadow_color = Color(0.45, 0.25, 0.95, 0.5)
+shadow_size = 26
+shadow_offset = Vector2(0, 11)
+
+[sub_resource type="StyleBoxFlat" id="StyleCloseN"]
+bg_color = Color(0.12, 0.92, 0.48, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 9
+border_color = Color(1, 0.95, 0.55, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0, 0.55, 0.28, 0.55)
+shadow_size = 14
 shadow_offset = Vector2(0, 6)
+
+[sub_resource type="StyleBoxFlat" id="StyleCloseH"]
+bg_color = Color(0.22, 1, 0.58, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 9
+border_color = Color(1, 1, 0.9, 1)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0.35, 1, 0.55, 0.45)
+shadow_size = 16
+shadow_offset = Vector2(0, 7)
 
 [node name="CardsPopup" type="Control"]
 process_mode = 3
@@ -36,68 +66,56 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-color = Color(0, 0, 0, 0)
+mouse_filter = 0
+color = Color(0.04, 0.03, 0.12, 0.82)
 
-visible = false
-[node name="CloseX" type="Button" parent="."]
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -72.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 72.0
-grow_horizontal = 0
-grow_vertical = 0
-focus_mode = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 28
-text = "✕"
-
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Center" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = 56.0
-offset_right = -16.0
-offset_bottom = -16.0
+offset_left = 10.0
+offset_top = 16.0
+offset_right = -10.0
+offset_bottom = -14.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(540, 580)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StylePanel")
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
+theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
+theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 20
 
 [node name="Root" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 18
+alignment = 0
 
 [node name="Title" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.95, 0.88, 1)
-theme_override_colors/font_outline_color = Color(0.12, 0.28, 0.32, 1)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.55, 0.98, 0.95, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.18, 0.42, 1)
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 70
 text = "Rush Reliquary"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.92, 1, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.92, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0.06, 0.08, 0.2, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 40
+theme_override_constants/line_spacing = 7
 text = "Foil vault cards awaken as you chase gleams, depth, and clever dodges. Locked backs show a whisper of how to earn them."
 horizontal_alignment = 1
 autowrap_mode = 3
@@ -111,22 +129,37 @@ vertical_scroll_mode = 2
 [node name="Margin" type="MarginContainer" parent="Center/Panel/Margin/Root/Scroll"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/margin_right = 6
+size_flags_vertical = 0
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 0
 
-[node name="CardGrid" type="GridContainer" parent="Center/Panel/Margin/Root/Scroll/Margin"]
+[node name="CardRows" type="VBoxContainer" parent="Center/Panel/Margin/Root/Scroll/Margin"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
-columns = 3
+size_flags_vertical = 0
+theme_override_constants/separation = 28
 
-[node name="Footer" type="HBoxContainer" parent="Center/Panel/Margin/Root"]
+[node name="FooterWrap" type="MarginContainer" parent="Center/Panel/Margin/Root"]
 layout_mode = 2
-alignment = 1
+size_flags_horizontal = 3
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
 
-[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/Root/Footer"]
-custom_minimum_size = Vector2(240, 52)
+[node name="Footer" type="CenterContainer" parent="Center/Panel/Margin/Root/FooterWrap"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="CloseBtn" type="Button" parent="Center/Panel/Margin/Root/FooterWrap/Footer"]
+custom_minimum_size = Vector2(160, 56)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.2, 0.08, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("StyleCloseN")
+theme_override_styles/hover = SubResource("StyleCloseH")
+theme_override_styles/pressed = SubResource("StyleCloseN")
 text = "Close"
