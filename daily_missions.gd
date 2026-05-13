@@ -22,6 +22,7 @@ const COMBO_MULT_GOAL: int = 5
 
 
 func _ready() -> void:
+	print("[DailyMissions] _ready")
 	ensure_current_day()
 
 

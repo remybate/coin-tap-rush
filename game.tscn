@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" uid="uid://cd13kkwnd3pda" path="res://coin.gd" id="1_ig7tw"]
 [ext_resource type="Script" path="res://game.gd" id="3_game"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://collect_burst_fx.gd" id="9_burst"]
 [ext_resource type="Texture2D" path="res://assets/backgrounds/game_bg.png" id="10_bg"]
 [ext_resource type="Script" path="res://shake_pause_fix.gd" id="11_shakepf"]
+[ext_resource type="PackedScene" path="res://ui/gameplay_tips_popup.tscn" id="12_tips"]
+[ext_resource type="Texture2D" path="res://ui/home_icons/gear.svg" id="13_gear"]
 
 [sub_resource type="Gradient" id="Grad_Playfield"]
 offsets = PackedFloat32Array(0, 0.35, 0.62, 1)
@@ -32,38 +34,6 @@ width = 4
 height = 1024
 fill_from = Vector2(0.5, 0)
 fill_to = Vector2(0.5, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBox_TopBar"]
-bg_color = Color(0.1, 0.06, 0.2, 0.97)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 4
-border_color = Color(0.95, 0.72, 0.28, 0.95)
-corner_radius_top_left = 0
-corner_radius_top_right = 0
-corner_radius_bottom_right = 22
-corner_radius_bottom_left = 22
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 10
-shadow_offset = Vector2(0, 6)
-content_margin_left = 4.0
-content_margin_top = 4.0
-content_margin_right = 4.0
-content_margin_bottom = 6.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBox_BottomBar"]
-bg_color = Color(0.07, 0.04, 0.14, 0.98)
-border_width_left = 0
-border_width_top = 4
-border_width_right = 0
-border_width_bottom = 0
-border_color = Color(1, 0.78, 0.32, 0.9)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 12
-shadow_offset = Vector2(0, -5)
 
 [sub_resource type="StyleBoxFlat" id="StyleHudIconN"]
 bg_color = Color(0.22, 0.12, 0.38, 1)
@@ -116,34 +86,26 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
-[sub_resource type="Theme" id="Theme_0xm2m"]
-
-[sub_resource type="StyleBoxFlat" id="StyleComboMeterBg"]
-bg_color = Color(0.08, 0.06, 0.16, 0.92)
+[sub_resource type="StyleBoxFlat" id="StyleDockPanel"]
+bg_color = Color(0.06, 0.04, 0.12, 0.78)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.45, 0.35, 0.65, 0.85)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+border_color = Color(1, 0.78, 0.35, 0.35)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 10
+shadow_offset = Vector2(0, -4)
+content_margin_left = 10.0
+content_margin_top = 10.0
+content_margin_right = 10.0
+content_margin_bottom = 10.0
 
-[sub_resource type="StyleBoxFlat" id="StyleComboMeterFill"]
-bg_color = Color(0.35, 0.95, 0.62, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.88, 0.35, 0.95)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0.2, 0.85, 0.55, 0.45)
-shadow_size = 6
-shadow_offset = Vector2(0, 2)
+[sub_resource type="Theme" id="Theme_0xm2m"]
 
 [node name="Game" type="Node2D" unique_id=1231411710]
 script = ExtResource("3_game")
@@ -205,232 +167,188 @@ mouse_filter = 2
 visible = false
 color = Color(0.48, 0.9, 1, 1)
 
-[node name="TopBar" type="PanelContainer" parent="CanvasLayer" unique_id=1091089218]
+[node name="MobileHud" type="MarginContainer" parent="CanvasLayer"]
+layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_left = 12.0
-offset_top = 10.0
-offset_right = -12.0
-offset_bottom = 198.0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = 92.0
 grow_horizontal = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBox_TopBar")
+mouse_filter = 0
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/TopBar" unique_id=1880931650]
+[node name="HudRow" type="HBoxContainer" parent="CanvasLayer/MobileHud"]
 layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 10
+theme_override_constants/separation = 12
 
-[node name="Row" type="HBoxContainer" parent="CanvasLayer/TopBar/Margin" unique_id=1143984539]
+[node name="LeftStack" type="VBoxContainer" parent="CanvasLayer/MobileHud/HudRow"]
 layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 8
+size_flags_horizontal = 2
+theme_override_constants/separation = 2
 
-[node name="ScoreColumn" type="VBoxContainer" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1799012870]
+[node name="ScoreCaption" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack"]
 layout_mode = 2
-mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_colors/font_color = Color(0.78, 0.86, 1, 0.85)
+theme_override_font_sizes/font_size = 14
+text = "SCORE"
 
-[node name="ScoreLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012871]
+[node name="ScoreLabel" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack" unique_id=1799012871]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
-theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.35, 1)
+theme_override_colors/font_color = Color(1, 0.94, 0.62, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.06, 0.22, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 30
+text = "0"
+vertical_alignment = 1
+
+[node name="CoinsCaption" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 1, 0.85)
+theme_override_font_sizes/font_size = 14
+text = "COINS"
+
+[node name="VaultCoinsLabel" type="Label" parent="CanvasLayer/MobileHud/HudRow/LeftStack" unique_id=1799012874]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.48, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.05, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 28
-text = "Score: 0"
+theme_override_font_sizes/font_size = 26
+text = "0"
 vertical_alignment = 1
 
-[node name="BestLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012872]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.92, 1, 1)
-theme_override_colors/font_outline_color = Color(0.12, 0.2, 0.35, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 22
-text = "High: 0 (saved)"
-vertical_alignment = 1
-
-[node name="ComboLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012873]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.72, 0.95, 1)
-theme_override_colors/font_outline_color = Color(0.35, 0.1, 0.3, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 20
-text = "Combo x1 · 0 streak"
-vertical_alignment = 1
-
-[node name="ComboMeter" type="ProgressBar" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 14)
-max_value = 100.0
-value = 0.0
-show_percentage = false
-theme_override_styles/background = SubResource("StyleComboMeterBg")
-theme_override_styles/fill = SubResource("StyleComboMeterFill")
-
-[node name="VaultCoinsLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012874]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.86, 0.42, 1)
-theme_override_colors/font_outline_color = Color(0.22, 0.12, 0.05, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 20
-text = "🪙 Vault: 0"
-vertical_alignment = 1
-
-[node name="LevelCoinsHudLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row/ScoreColumn" unique_id=1799012875]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.95, 0.88, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.2, 0.15, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 19
-text = "Level coins: 0"
-vertical_alignment = 1
-
-[node name="LivesLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=2145121924]
+[node name="Spacer" type="Control" parent="CanvasLayer/MobileHud/HudRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.88, 0.55, 1)
-theme_override_colors/font_outline_color = Color(0.35, 0.12, 0.2, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 26
-text = "Lives: 5/5 ❤️❤️❤️❤️❤️"
-horizontal_alignment = 1
-vertical_alignment = 1
+mouse_filter = 2
 
-[node name="LevelLabel" type="Label" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926185]
+[node name="RightStack" type="HBoxContainer" parent="CanvasLayer/MobileHud/HudRow"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 1, 0.92, 1)
-theme_override_colors/font_outline_color = Color(0.1, 0.25, 0.2, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 26
-text = "Level: 1"
-horizontal_alignment = 2
-vertical_alignment = 1
+theme_override_constants/separation = 8
 
-[node name="PauseButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926187]
+[node name="PauseButton" type="Button" parent="CanvasLayer/MobileHud/HudRow/RightStack" unique_id=1908926187]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-custom_minimum_size = Vector2(64, 64)
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
 text = "‖"
 mouse_filter = 0
 
-[node name="SettingsButton" type="Button" parent="CanvasLayer/TopBar/Margin/Row" unique_id=1908926186]
+[node name="SettingsButton" type="Button" parent="CanvasLayer/MobileHud/HudRow/RightStack" unique_id=1908926186]
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
-custom_minimum_size = Vector2(64, 64)
 focus_mode = 0
-theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
-theme_override_font_sizes/font_size = 30
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
-text = "⚙"
+icon = ExtResource("13_gear")
+flat = true
+expand_icon = true
 mouse_filter = 0
 
-[node name="BottomBar" type="PanelContainer" parent="CanvasLayer" unique_id=1871596873]
+[node name="AudioToggleButton" type="Button" parent="CanvasLayer/MobileHud/HudRow/RightStack"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleHudIconN")
+theme_override_styles/hover = SubResource("StyleHudIconH")
+theme_override_styles/pressed = SubResource("StyleHudIconP")
+text = "🔊"
+mouse_filter = 0
+
+[node name="BoosterDock" type="PanelContainer" parent="CanvasLayer" unique_id=1871596873]
+layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = -252.0
-offset_right = -10.0
+offset_left = 12.0
+offset_top = -120.0
+offset_right = -12.0
 offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_styles/panel = SubResource("StyleBox_BottomBar")
+mouse_filter = 0
+theme_override_styles/panel = SubResource("StyleDockPanel")
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/BottomBar" unique_id=152725311]
-layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 14
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/BottomBar/Margin" unique_id=1915377881]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/BoosterDock" unique_id=1915377881]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ControlsLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=585042804]
+[node name="ToastLabel" type="Label" parent="CanvasLayer/BoosterDock/VBox" unique_id=1892446012]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.98, 1, 1)
-theme_override_colors/font_outline_color = Color(0.12, 0.08, 0.22, 1)
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.65, 0.98, 0.82, 1)
+theme_override_colors/font_outline_color = Color(0.05, 0.12, 0.1, 1)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 24
-text = "Tap a coin or gem to collect it."
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
 autowrap_mode = 3
+text = ""
 
-[node name="MissSummaryLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=585042805]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.72, 0.72, 1)
-theme_override_colors/font_outline_color = Color(0.35, 0.08, 0.12, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 22
-text = "Missed coins: 0"
-
-[node name="WarningLabel" type="Label" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=1892446012]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.72, 0.88, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.15, 0.28, 1)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 20
-text = "Tip: Don’t let coins or gems reach the red strip — that also costs a life."
-autowrap_mode = 3
-
-[node name="BoosterBar" type="HBoxContainer" parent="CanvasLayer/BottomBar/Margin/VBox" unique_id=1892446013]
+[node name="BoosterBar" type="HBoxContainer" parent="CanvasLayer/BoosterDock/VBox" unique_id=1892446013]
 layout_mode = 2
 alignment = 1
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="BoosterFreeze" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446014]
-custom_minimum_size = Vector2(70, 70)
+[node name="BoosterFreeze" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446014]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
 theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "❄️\n0"
 
-[node name="BoosterSlow" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446015]
-custom_minimum_size = Vector2(70, 70)
+[node name="BoosterSlow" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446015]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
 theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "🌀\n0"
 
-[node name="BoosterMagnet" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446016]
-custom_minimum_size = Vector2(70, 70)
+[node name="BoosterMagnet" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446016]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
 theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "🧲\n0"
 
-[node name="BoosterShield" type="Button" parent="CanvasLayer/BottomBar/Margin/VBox/BoosterBar" unique_id=1892446017]
-custom_minimum_size = Vector2(70, 70)
+[node name="BoosterShield" type="Button" parent="CanvasLayer/BoosterDock/VBox/BoosterBar" unique_id=1892446017]
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleHudIconN")
 theme_override_styles/hover = SubResource("StyleHudIconH")
 theme_override_styles/pressed = SubResource("StyleHudIconP")
 theme_override_styles/disabled = SubResource("StyleHudIconD")
 text = "🛡️\n0"
+
+[node name="GameplayTipsPopup" parent="CanvasLayer" instance=ExtResource("12_tips")]
+z_index = 120
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="PauseScreen" parent="CanvasLayer" instance=ExtResource("6_pa")]
 layout_mode = 1

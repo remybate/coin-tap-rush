@@ -51,11 +51,24 @@ var _play_bounce_t: float = 0.0
 
 
 func _ready() -> void:
-	how_to_play.visible = false
-	settings.visible = false
-	daily_bonus.hide_bonus()
-	daily_bonus.claim_pressed.connect(_on_daily_vault_claimed)
-	settings.progress_reset.connect(_on_progress_reset)
+	print("[MainMenu] _ready start OS=", OS.get_name())
+	if is_instance_valid(how_to_play):
+		how_to_play.visible = false
+	else:
+		push_warning("[MainMenu] HowToPlayLayer missing")
+	if is_instance_valid(settings):
+		settings.visible = false
+		if settings.has_signal("progress_reset"):
+			settings.progress_reset.connect(_on_progress_reset)
+	else:
+		push_warning("[MainMenu] SettingsLayer missing")
+	if is_instance_valid(daily_bonus):
+		if daily_bonus.has_method("hide_bonus"):
+			daily_bonus.call("hide_bonus")
+		if daily_bonus.has_signal("claim_pressed"):
+			daily_bonus.claim_pressed.connect(_on_daily_vault_claimed)
+	else:
+		push_warning("[MainMenu] DailyBonusLayer missing")
 	if shop_popup != null and shop_popup.has_signal("toast_requested"):
 		shop_popup.connect("toast_requested", Callable(self, "_open_popup"))
 	if is_instance_valid(rank_screen) and rank_screen.has_signal("trophies_requested"):
@@ -70,6 +83,7 @@ func _ready() -> void:
 	_try_auto_daily_bonus()
 	_build_menu_sparkles()
 	set_process(true)
+	print("[MainMenu] _ready done")
 
 
 func _process(delta: float) -> void:
@@ -219,21 +233,26 @@ func _daily_day_number_for_popup() -> int:
 
 
 func _try_auto_daily_bonus() -> void:
+	if not is_instance_valid(daily_bonus) or not daily_bonus.has_method("present"):
+		return
 	var st: Dictionary = _read_daily_state()
 	if int(st["last_day"]) == _today_day_index():
 		return
 	var next_day: int = _daily_day_number_for_popup()
-	daily_bonus.present(next_day, true, int(st["streak"]))
+	daily_bonus.call("present", next_day, true, int(st["streak"]))
 
 
 func _open_daily_bonus_flow() -> void:
 	AudioService.play_button_click()
+	if not is_instance_valid(daily_bonus) or not daily_bonus.has_method("present"):
+		_open_popup("Daily reward", "Daily bonus screen is unavailable.")
+		return
 	var st: Dictionary = _read_daily_state()
 	var today: int = _today_day_index()
 	var can_claim: bool = int(st["last_day"]) != today
 	var streak_saved: int = int(st["streak"])
 	var next_day: int = _daily_day_number_for_popup() if can_claim else streak_saved
-	daily_bonus.present(next_day, can_claim, streak_saved)
+	daily_bonus.call("present", next_day, can_claim, streak_saved)
 
 
 func _daily_reward_payload(day: int) -> Dictionary:
@@ -282,6 +301,8 @@ func _grant_daily_rewards_for_day(cfg: ConfigFile, day: int) -> void:
 
 
 func _on_daily_vault_claimed() -> void:
+	if not is_instance_valid(daily_bonus):
+		return
 	var cfg := ConfigFile.new()
 	cfg.load(SAVE_PATH)
 	var today: int = _today_day_index()
@@ -299,19 +320,23 @@ func _on_daily_vault_claimed() -> void:
 	_grant_daily_rewards_for_day(cfg, day)
 	cfg.save(SAVE_PATH)
 	_refresh_currency_ui()
-	daily_bonus.hide_bonus()
+	if daily_bonus.has_method("hide_bonus"):
+		daily_bonus.call("hide_bonus")
 
 
 func _show_stub(title: String, message: String) -> void:
 	# Legacy AcceptDialog fallback (should be rare).
+	if not is_instance_valid(stub_dialog):
+		push_warning("[MainMenu] StubDialog missing: %s — %s" % [title, message])
+		return
 	stub_dialog.title = title
 	stub_dialog.dialog_text = message
 	stub_dialog.popup_centered()
 
 
 func _open_popup(title: String, message: String) -> void:
-	if simple_popup != null:
-		simple_popup.open_popup(title, message)
+	if is_instance_valid(simple_popup) and simple_popup.has_method("open_popup"):
+		simple_popup.call("open_popup", title, message)
 	else:
 		_show_stub(title, message)
 
@@ -331,7 +356,10 @@ func _on_profile_pressed() -> void:
 
 func _on_top_settings_pressed() -> void:
 	AudioService.play_button_click()
-	settings.open_settings()
+	if is_instance_valid(settings) and settings.has_method("open_settings"):
+		settings.call("open_settings")
+	else:
+		_open_popup("Settings", "Settings are unavailable.")
 
 
 func _on_side_daily_pressed() -> void:
@@ -402,7 +430,8 @@ func _open_events() -> void:
 
 func _on_progress_reset() -> void:
 	_refresh_currency_ui()
-	daily_bonus.hide_bonus()
+	if is_instance_valid(daily_bonus) and daily_bonus.has_method("hide_bonus"):
+		daily_bonus.call("hide_bonus")
 
 
 func _open_shop() -> void:

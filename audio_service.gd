@@ -7,9 +7,9 @@ class_name AudioService
 
 static func _mgr() -> Object:
 	var st := Engine.get_main_loop() as SceneTree
-	if st == null:
+	if st == null or st.root == null:
 		return null
-	return st.root.get_node_or_null("/root/AudioManager")
+	return st.root.get_node_or_null("AudioManager")
 
 
 static func play_coin_tap() -> void:

@@ -9,6 +9,10 @@ const KEY_XP: String = "player_xp_total"
 const KEY_AVATAR: String = "player_avatar_id"
 
 
+func _ready() -> void:
+	print("[PlayerProfile] _ready")
+
+
 func read_xp_from_cfg(cfg: ConfigFile) -> int:
 	return maxi(0, int(cfg.get_value(SAVE_SECTION, KEY_XP, 0)))
 

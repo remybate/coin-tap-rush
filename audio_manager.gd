@@ -27,6 +27,7 @@ const DEFAULT_BGM: String = "res://audio/music_loop.wav"
 
 
 func _ready() -> void:
+	print("[AudioManager] _ready")
 	_load_audio_settings()
 	_stream_coin = load("res://audio/coin_tap.wav") as AudioStream
 	_stream_miss = load("res://audio/miss.wav") as AudioStream

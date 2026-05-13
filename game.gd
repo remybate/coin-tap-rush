@@ -12,7 +12,7 @@ const COLLECTIBLES_CAP_SLOTS: int = 20
 const MAX_LIVES: int = 5
 const HEART_EMOJI: String = "❤️"
 ## Playfield: coins that fall below this Y (viewport pixels) count as missed — aligns with bottom HUD strip.
-const BOTTOM_HUD_RESERVE_PX: float = 248.0
+const BOTTOM_HUD_RESERVE_PX: float = 132.0
 const PARK_POS: Vector2 = Vector2(-4000, -4000)
 const SAVE_PATH: String = "user://coin_tap_rush_save.cfg"
 const SAVE_SECTION: String = "progress"
@@ -113,33 +113,29 @@ var _collectibles: Array[Collectible] = []
 var _last_slot_count: int = -1
 ## When true, gameplay was paused only because Settings was opened from the HUD (not Pause / level-up).
 var _paused_for_hud_settings: bool = false
+var _paused_for_tips: bool = false
 var _screen_shake_rem: float = 0.0
 var _screen_shake_dur_cap: float = 0.11
 var _screen_shake_mag_peak: float = 0.0
 var _combo_hud_glow_timer: float = 0.0
 var _active_world_theme: Dictionary = {}
 
-@onready var score_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ScoreLabel
-@onready var best_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/BestLabel
-@onready var combo_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ComboLabel
-@onready var combo_meter: ProgressBar = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/ComboMeter
-@onready var vault_coins_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/VaultCoinsLabel
-@onready var level_coins_hud_label: Label = $CanvasLayer/TopBar/Margin/Row/ScoreColumn/LevelCoinsHudLabel
-@onready var lives_label: Label = $CanvasLayer/TopBar/Margin/Row/LivesLabel
-@onready var level_label: Label = $CanvasLayer/TopBar/Margin/Row/LevelLabel
-@onready var controls_label: Label = $CanvasLayer/BottomBar/Margin/VBox/ControlsLabel
-@onready var miss_summary_label: Label = $CanvasLayer/BottomBar/Margin/VBox/MissSummaryLabel
-@onready var warning_label: Label = $CanvasLayer/BottomBar/Margin/VBox/WarningLabel
-@onready var booster_freeze_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterFreeze
-@onready var booster_slow_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterSlow
-@onready var booster_magnet_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterMagnet
-@onready var booster_shield_btn: Button = $CanvasLayer/BottomBar/Margin/VBox/BoosterBar/BoosterShield
+@onready var score_label: Label = $CanvasLayer/MobileHud/HudRow/LeftStack/ScoreLabel
+@onready var vault_coins_label: Label = $CanvasLayer/MobileHud/HudRow/LeftStack/VaultCoinsLabel
+@onready var toast_label: Label = $CanvasLayer/BoosterDock/VBox/ToastLabel
+@onready var booster_freeze_btn: Button = $CanvasLayer/BoosterDock/VBox/BoosterBar/BoosterFreeze
+@onready var booster_slow_btn: Button = $CanvasLayer/BoosterDock/VBox/BoosterBar/BoosterSlow
+@onready var booster_magnet_btn: Button = $CanvasLayer/BoosterDock/VBox/BoosterBar/BoosterMagnet
+@onready var booster_shield_btn: Button = $CanvasLayer/BoosterDock/VBox/BoosterBar/BoosterShield
 @onready var game_over_screen: CanvasItem = $CanvasLayer/GameOverScreen
 @onready var settings_screen: SettingsScreen = $CanvasLayer/SettingsScreen
 @onready var pause_screen: PauseScreen = $CanvasLayer/PauseScreen
 @onready var how_to_play_screen: HowToPlayScreen = $CanvasLayer/HowToPlayScreen
-@onready var pause_button: Button = $CanvasLayer/TopBar/Margin/Row/PauseButton
-@onready var settings_button: Button = $CanvasLayer/TopBar/Margin/Row/SettingsButton
+@onready var pause_button: Button = $CanvasLayer/MobileHud/HudRow/RightStack/PauseButton
+@onready var settings_button: Button = $CanvasLayer/MobileHud/HudRow/RightStack/SettingsButton
+@onready var audio_toggle_button: Button = $CanvasLayer/MobileHud/HudRow/RightStack/AudioToggleButton
+@onready var mobile_hud: MarginContainer = $CanvasLayer/MobileHud
+@onready var gameplay_tips: Node = $CanvasLayer/GameplayTipsPopup
 @onready var level_complete_screen: Control = $CanvasLayer/LevelCompleteScreen
 @onready var _collect_burst: CPUParticles2D = $CollectBurst
 @onready var _juice_sparkles: CPUParticles2D = $JuiceSparkles
@@ -163,6 +159,10 @@ func _ready() -> void:
 	_apply_pregame_charm_selection(LevelSelectState.consume_pregame_flags())
 	pause_button.pressed.connect(_on_pause_button_pressed)
 	settings_button.pressed.connect(_on_settings_open)
+	if audio_toggle_button != null:
+		audio_toggle_button.pressed.connect(_on_audio_toggle_pressed)
+	if gameplay_tips != null and gameplay_tips.has_signal("closed"):
+		gameplay_tips.connect("closed", Callable(self, "_on_gameplay_tips_closed"))
 	level_complete_screen.continue_pressed.connect(_on_level_continue_pressed)
 	level_complete_screen.home_pressed.connect(_on_level_complete_home_pressed)
 	game_over_screen.play_again_pressed.connect(_on_play_again_pressed)
@@ -190,6 +190,7 @@ func _ready() -> void:
 	set_process(true)
 	_apply_world_theme()
 	_refresh_ui()
+	call_deferred("_deferred_boot_hud")
 
 
 func get_active_world_theme() -> Dictionary:
@@ -286,6 +287,7 @@ func _process(delta: float) -> void:
 		_magnet_timer = maxf(0.0, _magnet_timer - delta)
 	if _booster_feedback_timer > 0.0:
 		_booster_feedback_timer = maxf(0.0, _booster_feedback_timer - delta)
+	_sync_toast_label()
 	if _level_time_remaining > 0.0 and not game_over and not level_complete_screen.visible:
 		_level_time_remaining = maxf(0.0, _level_time_remaining - delta)
 		if _level_time_remaining <= 0.0:
@@ -334,14 +336,14 @@ func _update_screen_shake(delta: float) -> void:
 
 
 func _update_combo_hud_glow(delta: float) -> void:
-	if combo_label == null:
+	if score_label == null:
 		return
 	if _combo_hud_glow_timer <= 0.0:
-		combo_label.modulate = Color.WHITE
+		score_label.modulate = Color.WHITE
 		return
 	_combo_hud_glow_timer = maxf(0.0, _combo_hud_glow_timer - delta)
 	var e: float = clampf(_combo_hud_glow_timer / 0.22, 0.0, 1.0)
-	combo_label.modulate = Color.WHITE.lerp(Color(1.22, 1.08, 1.18, 1.0), e)
+	score_label.modulate = Color.WHITE.lerp(Color(1.22, 1.08, 1.18, 1.0), e)
 
 
 func _maybe_combo_tier_celebrate(prev_streak: int, new_streak: int) -> void:
@@ -489,6 +491,7 @@ func _apply_pregame_charm_selection(pre: Dictionary) -> void:
 func _flash_booster(msg: String) -> void:
 	_booster_feedback_text = msg
 	_booster_feedback_timer = 2.0
+	_sync_toast_label()
 	_refresh_ui()
 
 
@@ -887,6 +890,7 @@ func _on_settings_closed() -> void:
 	if _paused_for_hud_settings:
 		get_tree().paused = false
 		_paused_for_hud_settings = false
+	_refresh_audio_toggle_visual()
 
 
 func _deferred_change_to_level_map() -> void:
@@ -1300,61 +1304,99 @@ func _refresh_booster_bar() -> void:
 
 func _refresh_ui() -> void:
 	_refresh_booster_bar()
-	if controls_label:
-		if bombs_enabled():
-			controls_label.text = "Tap a coin or gem to collect it. Tap a red bomb = mistake (loses a life)."
-		else:
-			controls_label.text = "Tap a coin or gem to collect it. (No bombs yet — just catch the good drops.)"
-	if score_label:
-		score_label.text = "Score: %d" % score
-	if vault_coins_label:
-		vault_coins_label.text = "🪙 Vault: %d" % vault_coins
-	if level_coins_hud_label:
-		level_coins_hud_label.text = "Level coins: %d" % level_coins_collected
-	if best_label:
-		best_label.text = "High: %d (saved)" % max(best_score, score)
-	if combo_label:
-		if combo_streak == 0:
-			combo_label.text = "Combo x1 · %d taps without miss → x2" % COMBO_STEP
-		else:
-			var mult: int = 1 + combo_streak / COMBO_STEP
-			var until_next: int = (1 + combo_streak / COMBO_STEP) * COMBO_STEP - combo_streak
-			combo_label.text = "Combo x%d · streak %d (%d to x%d)" % [mult, combo_streak, until_next, mult + 1]
-	if combo_meter != null:
-		var into: int = combo_streak % COMBO_STEP
-		var pct: float = float(into) / float(COMBO_STEP)
-		if combo_streak > 0 and into == 0:
-			pct = 0.0
-		combo_meter.value = pct * 100.0
-	if lives_label:
-		lives_label.text = _lives_text()
+	if score_label != null:
+		score_label.text = str(score)
+	if vault_coins_label != null:
+		vault_coins_label.text = str(vault_coins)
 	if not game_over:
 		_sync_collectible_slots()
 		_try_offer_level_gate()
-	if level_label:
-		var ts: int = int(_cached_cfg.get("target_score", 1))
-		var tc: int = int(_cached_cfg.get("target_coins", 1))
-		var dpts: int = maxi(0, score - _level_score_at_start)
-		var time_bit: String = ""
-		if _level_time_remaining > 0.0:
-			time_bit = "  ·  %.0fs" % _level_time_remaining
-		level_label.text = "Level %d  ·  %d/%d pts  ·  %d/%d coins%s" % [get_level(), dpts, ts, level_coins_collected, tc, time_bit]
-	if miss_summary_label:
-		miss_summary_label.text = "Missed coins: %d" % missed_coins
-	if warning_label:
-		if _booster_feedback_timer > 0.0 and not _booster_feedback_text.is_empty():
-			warning_label.add_theme_color_override("font_color", Color(0.55, 0.98, 0.78))
-			warning_label.text = _booster_feedback_text
-		elif level_complete_screen.visible:
-			warning_label.text = ""
-		elif game_over:
-			warning_label.text = "Level failed — Retry or ✕ for menu."
-		elif lives <= 1:
-			warning_label.add_theme_color_override("font_color", Color(1, 0.55, 0.45))
-			warning_label.text = "Last life! Tap coins & gems only — bombs are a mistake. Strip still costs a life. " + _level_help_text()
-		elif lives <= 3:
-			warning_label.add_theme_color_override("font_color", Color(0.85, 0.75, 0.55))
-			warning_label.text = "Low lives — " + _level_help_text()
-		else:
-			warning_label.add_theme_color_override("font_color", Color(0.62, 0.7, 0.8))
-			warning_label.text = _level_help_text()
+	_sync_toast_label()
+	_refresh_audio_toggle_visual()
+
+
+func _deferred_boot_hud() -> void:
+	_apply_mobile_hud_insets()
+	_refresh_audio_toggle_visual()
+	_maybe_auto_gameplay_tips()
+
+
+func _apply_mobile_hud_insets() -> void:
+	if mobile_hud == null:
+		return
+	var top_margin: int = 10
+	if OS.has_feature("android") or OS.has_feature("ios"):
+		top_margin = 20
+	mobile_hud.add_theme_constant_override("margin_top", top_margin)
+	mobile_hud.add_theme_constant_override("margin_left", 10)
+	mobile_hud.add_theme_constant_override("margin_right", 10)
+
+
+func _sync_toast_label() -> void:
+	if toast_label == null:
+		return
+	if _booster_feedback_timer > 0.0 and not _booster_feedback_text.is_empty():
+		toast_label.text = _booster_feedback_text
+		toast_label.visible = true
+	else:
+		toast_label.text = ""
+		toast_label.visible = false
+
+
+func _refresh_audio_toggle_visual() -> void:
+	if audio_toggle_button == null:
+		return
+	var on: bool = AudioService.get_music_enabled() or AudioService.get_sfx_enabled()
+	audio_toggle_button.text = "🔊" if on else "🔇"
+	audio_toggle_button.tooltip_text = "Sound on (tap to mute)" if on else "Muted (tap for sound)"
+
+
+func _on_audio_toggle_pressed() -> void:
+	AudioService.play_button_click()
+	var on: bool = AudioService.get_music_enabled() or AudioService.get_sfx_enabled()
+	AudioService.set_music_enabled(not on)
+	AudioService.set_sfx_enabled(not on)
+	_refresh_audio_toggle_visual()
+
+
+func _on_gameplay_tips_closed() -> void:
+	if _paused_for_tips:
+		get_tree().paused = false
+		_paused_for_tips = false
+	_refresh_booster_bar()
+
+
+func _maybe_auto_gameplay_tips() -> void:
+	if gameplay_tips == null or not gameplay_tips.has_method("should_suppress_auto"):
+		return
+	if not gameplay_tips.has_method("present"):
+		return
+	if gameplay_tips.should_suppress_auto():
+		return
+	if game_over or level_complete_screen.visible:
+		return
+	var body: String = _compose_gameplay_tips_text()
+	_paused_for_tips = true
+	get_tree().paused = true
+	gameplay_tips.call("present", "How this run works", body)
+
+
+func _compose_gameplay_tips_text() -> String:
+	var parts: PackedStringArray = []
+	if bombs_enabled():
+		parts.append("Tap coins and gems to collect them. Red bombs are mistakes and cost a life.")
+	else:
+		parts.append("Tap coins and gems to collect them. Bombs are not active on this stretch yet.")
+	parts.append(_level_help_text())
+	parts.append(_lives_text())
+	parts.append("Missed drops this level: %d." % missed_coins)
+	parts.append("Letting a gleam reach the bottom danger strip also costs a life.")
+	var ts: int = int(_cached_cfg.get("target_score", 1))
+	var tc: int = int(_cached_cfg.get("target_coins", 1))
+	var dpts: int = maxi(0, score - _level_score_at_start)
+	if _level_time_remaining > 0.05:
+		parts.append("Time left: %.0f s." % _level_time_remaining)
+	parts.append("Current progress: +%d / %d pts, %d / %d level coins." % [dpts, ts, level_coins_collected, tc])
+	parts.append("Combo: every %d gleams in a row without a miss steps the score multiplier (×2, ×3, …)." % COMBO_STEP)
+	parts.append("Best vault high score (saved): %d." % maxi(0, int(best_score)))
+	return "\n\n".join(parts)

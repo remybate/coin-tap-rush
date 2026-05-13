@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+StartupLog="*res://startup_log.gd"
 AudioManager="*res://audio_manager.gd"
 BoosterManager="*res://booster_manager.gd"
 DailyMissions="*res://daily_missions.gd"
@@ -29,7 +30,6 @@ window/size/viewport_height=1920
 window/size/window_width_override=540
 window/size/window_height_override=960
 window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
 window/handheld/orientation=1
 
 [physics]
@@ -41,3 +41,4 @@ window/handheld/orientation=1
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
