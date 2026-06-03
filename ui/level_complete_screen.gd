@@ -3,42 +3,50 @@ class_name LevelCompleteScreen
 
 const WorldThemesResolve = preload("res://world_themes_resolve.gd")
 
+const STAR_ACTIVE := Color(1, 0.92, 0.26, 1)
+const STAR_DIM := Color(0.28, 0.22, 0.18, 0.5)
+
 signal continue_pressed
 signal home_pressed
 
 @onready var _world_backdrop: TextureRect = $WorldBackdrop
-@onready var title_label: Label = $Center/MainPanel/InnerMargin/VBox/TitleLabel
-@onready var score_label: Label = $Center/MainPanel/InnerMargin/VBox/ScoreLabel
-@onready var level_coins_label: Label = $Center/MainPanel/InnerMargin/VBox/LevelCoinsLabel
-@onready var rewards_label: Label = $Center/MainPanel/InnerMargin/VBox/RewardPanel/RVBox/RewardsLabel
-@onready var coin_fly_anchor: Control = $Center/MainPanel/InnerMargin/VBox/RewardPanel/RVBox/CoinFlyAnchor
-@onready var next_button: Button = $Center/MainPanel/InnerMargin/VBox/ButtonWrap/ButtonRow/ContinueButton
-@onready var home_button: Button = $Center/MainPanel/InnerMargin/VBox/ButtonWrap/ButtonRow/HomeButton
-@onready var reward_panel: Control = $Center/MainPanel/InnerMargin/VBox/RewardPanel
-@onready var hint_label: Label = $Center/MainPanel/InnerMargin/VBox/RewardPanel/RVBox/Hint
-@onready var close_button_top: Button = $CloseButton
-@onready var _dim: ColorRect = $Dim
+@onready var hero_section: VBoxContainer = $SafeMargins/Scroll/VBoxMain/HeroSection
+@onready var excellent_label: Label = $SafeMargins/Scroll/VBoxMain/HeroSection/RibbonBanner/ExcellentLabel
+@onready var star_left: Label = $SafeMargins/Scroll/VBoxMain/HeroSection/StarsRow/StarLeft
+@onready var star_center: Label = $SafeMargins/Scroll/VBoxMain/HeroSection/StarsRow/StarCenter
+@onready var star_right: Label = $SafeMargins/Scroll/VBoxMain/HeroSection/StarsRow/StarRight
+@onready var score_label: Label = $SafeMargins/Scroll/VBoxMain/ScoreLabel
+@onready var level_coins_label: Label = $SafeMargins/Scroll/VBoxMain/LevelCoinsLabel
+@onready var rewards_label: Label = $SafeMargins/Scroll/VBoxMain/RewardPanel/RVBox/RewardsLabel
+@onready var coin_fly_anchor: Control = $SafeMargins/Scroll/VBoxMain/RewardPanel/RVBox/CoinFlyAnchor
+@onready var next_button: Button = $SafeMargins/Scroll/VBoxMain/ButtonWrap/ContinueFrame/ContinueButton
+@onready var reward_panel: Control = $SafeMargins/Scroll/VBoxMain/RewardPanel
+@onready var hint_label: Label = $SafeMargins/Scroll/VBoxMain/RewardPanel/RVBox/Hint
 @onready var _sparkle_burst: CPUParticles2D = $SparkleBurst
 
 
 func _ready() -> void:
 	next_button.pressed.connect(func() -> void: continue_pressed.emit())
-	home_button.pressed.connect(func() -> void: home_pressed.emit())
-	close_button_top.pressed.connect(func() -> void: home_pressed.emit())
-	_dim.gui_input.connect(_on_dim_gui_input)
 	set_continue_enabled(false)
+
+
+static func stars_from_level_time(sec: float) -> int:
+	if sec < 60.0:
+		return 3
+	if sec < 90.0:
+		return 2
+	return 1
+
+
+func _apply_star_row(stars_lit: int) -> void:
+	stars_lit = clampi(stars_lit, 0, 3)
+	var labels: Array[Label] = [star_left, star_center, star_right]
+	for i in 3:
+		labels[i].modulate = STAR_ACTIVE if i < stars_lit else STAR_DIM
 
 
 func set_continue_enabled(enabled: bool) -> void:
 	next_button.disabled = not enabled
-	home_button.disabled = not enabled
-	# Keep ✕ always tappable so players can exit even during intro / fly FX.
-	close_button_top.disabled = false
-
-
-func _on_dim_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		home_pressed.emit()
 
 
 func get_coin_fly_start_global() -> Vector2:
@@ -103,13 +111,14 @@ func abort_coin_fly() -> void:
 		_coin_fly_host = null
 
 
-func show_for(completed_level: int, current_score: int, next_level: int, run_level_coins: int, rewards_text: String) -> void:
+func show_for(completed_level: int, current_score: int, _next_level: int, run_level_coins: int, rewards_text: String, level_elapsed_sec: float) -> void:
 	_apply_world_backdrop(maxi(1, completed_level))
-	title_label.text = "LEVEL %d\nCOMPLETE!" % completed_level
+	_apply_star_row(stars_from_level_time(level_elapsed_sec))
+	excellent_label.text = "Excellent"
 	score_label.text = "Score: %d" % current_score
 	level_coins_label.text = "Coins this run: +%d" % run_level_coins
 	rewards_label.text = rewards_text
-	next_button.text = "Continue → Level %d" % next_level
+	next_button.text = "Continue"
 	visible = true
 	_play_intro_sequence()
 
@@ -142,8 +151,9 @@ func _play_intro_sequence() -> void:
 	set_continue_enabled(false)
 
 	modulate.a = 0.0
-	scale = Vector2(0.9, 0.9)
-	title_label.scale = Vector2.ONE
+	scale = Vector2(0.97, 0.97)
+	excellent_label.scale = Vector2.ONE
+	hero_section.modulate.a = 1.0
 
 	if is_instance_valid(_sparkle_burst):
 		var vr: Rect2 = get_viewport_rect()
@@ -155,25 +165,23 @@ func _play_intro_sequence() -> void:
 	level_coins_label.modulate.a = 0.0
 	reward_panel.modulate.a = 0.0
 	next_button.modulate.a = 0.0
-	home_button.modulate.a = 0.0
 
 	var tw := create_tween()
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tw.tween_property(self, "modulate:a", 1.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(self, "scale", Vector2.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-	# Title bounce + subtle glow pulse (by modulating alpha).
-	tw.tween_property(title_label, "scale", Vector2(1.05, 1.05), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(title_label, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
-	tw.parallel().tween_property(title_label, "modulate:a", 1.0, 0.01)
-	tw.parallel().tween_property(title_label, "modulate:a", 0.92, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.parallel().tween_property(title_label, "modulate:a", 1.0, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# Ribbon title bounce + subtle pulse.
+	tw.tween_property(excellent_label, "scale", Vector2(1.05, 1.05), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(excellent_label, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.parallel().tween_property(excellent_label, "modulate:a", 1.0, 0.01)
+	tw.parallel().tween_property(excellent_label, "modulate:a", 0.92, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.parallel().tween_property(excellent_label, "modulate:a", 1.0, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 	# Rewards reveal one by one.
 	tw.tween_property(score_label, "modulate:a", 1.0, 0.12)
 	tw.tween_property(level_coins_label, "modulate:a", 1.0, 0.12)
 	tw.tween_property(reward_panel, "modulate:a", 1.0, 0.14)
-	tw.tween_property(home_button, "modulate:a", 1.0, 0.10)
 	tw.tween_property(next_button, "modulate:a", 1.0, 0.10)
 	tw.tween_callback(func() -> void:
 		set_continue_enabled(true)

@@ -72,6 +72,8 @@ var furthest_level_unlocked: int = 1
 var _level_score_at_start: int = 0
 ## Remaining seconds for optional time limit; <= 0 means off.
 var _level_time_remaining: float = -1.0
+## Wall time spent clearing the current level (for level-complete star rating). Pauses with the tree.
+var _level_elapsed_sec: float = 0.0
 ## Cached output of LevelProgression.get_level_config(progression_level).
 var _cached_cfg: Dictionary = {}
 ## Inventory for the level-fail screen (persisted).
@@ -263,6 +265,7 @@ func _begin_level_segment(update_floor_from_score: bool) -> void:
 		_level_score_at_start = score
 	var tl: float = float(_cached_cfg.get("time_limit", 0.0))
 	_level_time_remaining = tl if tl > 0.05 else -1.0
+	_level_elapsed_sec = 0.0
 	_last_slot_count = -1
 	_apply_world_theme()
 
@@ -279,6 +282,8 @@ func _level_targets_met() -> bool:
 
 
 func _process(delta: float) -> void:
+	if not game_over and not level_complete_screen.visible and not get_tree().paused:
+		_level_elapsed_sec += delta
 	_update_screen_shake(delta)
 	_update_combo_hud_glow(delta)
 	if _booster_slow_timer > 0.0:
@@ -1091,7 +1096,7 @@ func _try_offer_level_gate() -> void:
 	AudioService.play_level_up()
 	_cached_level_bonus = BoosterManager.roll_level_complete_bonus(_reward_rng)
 	var rewards_txt: String = _format_level_bonus_for_ui(_cached_level_bonus)
-	level_complete_screen.show_for(progression_level, score, progression_level + 1, level_coins_collected, rewards_txt)
+	level_complete_screen.show_for(progression_level, score, progression_level + 1, level_coins_collected, rewards_txt, _level_elapsed_sec)
 	_level_payout_ready = true
 	_level_coin_fly_in_progress = false
 	_cancel_level_continue_navigation = false
